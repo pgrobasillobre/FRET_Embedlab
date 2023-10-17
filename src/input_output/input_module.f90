@@ -4,7 +4,8 @@ module input_module
 !   Module input
 !
     !$ use omp_lib
-    !!!use output_module
+    use output_module
+    use parallel_module
     !!!use parameters_module
     !!!use string_manipulation_module
     !!!use array_manipulation_module
@@ -68,82 +69,88 @@ module input_module
 !
      class(inp_type)  :: inp_
 !
-print *, 'oli'
-!!!!!     
-!!!!     character(len=100)  :: junk
-!!!!!     
-!!!!     !$ algorithm%n_threads_OMP = omp_get_max_threads()
-!!!!!     
-!!!!     inp_%NArg=command_argument_count()
-!!!!!
-!!!!     If (inp_%NArg .eq. 1) then 
-!!!!!
-!!!!        Call get_command_argument(inp_%narg,inp_%filename)
-!!!!        call out_%out_file_fill(inp_%filename)
-!!!!!
-!!!!     else If (inp_%NArg .gt. 1) then
-!!!!!
-!!!!        Call get_command_argument(1,inp_%filename)
-!!!!        call out_%out_file_fill(inp_%filename)
-!!!!        Call get_command_argument(2,junk)
-!!!!!
-!!!!        If(trim(junk).eq.'-omp') then 
-!!!!!
-!!!!           If(inp_%NArg .ge. 3) then
-!!!!!
-!!!!              Call get_command_argument(3,junk)
-!!!!              read(junk,'(i3)') algorithm%n_threads_OMP
-!!!!              If(inp_%NArg .eq. 4) Call get_command_argument(4,out_%filename)
-!!!!!
-!!!!           else
-!!!!!
-!!!!              Write(*,*) '-omp but no number given'
-!!!!!
-!!!!           endif
-!!!!!
-!!!!        else
-!!!!!
-!!!!           Call get_command_argument(2,out_%filename)
-!!!!!
-!!!!           If(inp_%NArg.gt.2) then
-!!!!!
-!!!!              Call get_command_argument(3,junk)
-!!!!!
-!!!!              If(trim(junk).ne.'-omp') then
-!!!!!
-!!!!                 Write(*,*) 'I do not know what option is: ', trim(junk)
-!!!!!
-!!!!              else
-!!!!!
-!!!!                 If(inp_%NArg .eq. 4) then
-!!!!!
-!!!!                    Call get_command_argument(4,junk)
-!!!!                    read(junk,'(i3)') algorithm%n_threads_OMP
-!!!!!
-!!!!                 else
-!!!!!
-!!!!                    Write(*,*) '-omp but no number given'
-!!!!!
-!!!!                 endif
-!!!!!
-!!!!              endif
-!!!!!
-!!!!           endif
-!!!!!
-!!!!        endif
-!!!!!
-!!!!     else If (inp_%NArg .eq. 0) then 
-!!!!!
-!!!!        Write(*,'(/a/)') "Type the mfq filename (e.g. filename.mfq)"
-!!!!        Read(*,*) inp_%filename(1:99)
-!!!!        Write(*,'(/a/)') "Type the log filename (e.g. filename.log)"
-!!!!        Read(*,*) out_%filename(1:99)
-!!!!        inp_%NArg = 2
-!!!!!
-!!!!     endIf
-!!!!!
-!!!!     inp_%filename = trim(inp_%filename)
-!!!!!  
+!     
+     character(len=100)  :: junk
+!     
+     !$ parallel%n_threads_OMP = omp_get_max_threads()
+!     
+     inp_%NArg=command_argument_count()
+!
+     If (inp_%NArg .eq. 1) then 
+!
+        Call get_command_argument(inp_%narg,inp_%filename)
+        call out_%out_file_fill(inp_%filename)
+!
+     else If (inp_%NArg .gt. 1) then
+!
+        Call get_command_argument(1,inp_%filename)
+        call out_%out_file_fill(inp_%filename)
+        Call get_command_argument(2,junk)
+
+!
+!       Give number of procs for parallel
+!
+        If(trim(junk).eq.'-omp') then 
+!
+           If(inp_%NArg .ge. 3) then
+!
+              Call get_command_argument(3,junk)
+              read(junk,'(i3)') parallel%n_threads_OMP
+              If(inp_%NArg .eq. 4) Call get_command_argument(4,out_%filename)
+!
+           else
+!
+              Write(*,*) '-omp but no number given'
+              Stop
+!
+           endif
+!
+!       Give input_name output_name [-omp #]
+!
+        else
+!
+           Call get_command_argument(2,out_%filename)
+!
+           If(inp_%NArg.gt.2) then
+!
+              Call get_command_argument(3,junk)
+!
+              If(trim(junk).ne.'-omp') then
+!
+                 Write(*,*) 'I do not know what option is: ', trim(junk)
+!
+              else
+!
+                 If(inp_%NArg .eq. 4) then
+!
+                    Call get_command_argument(4,junk)
+                    read(junk,'(i3)') parallel%n_threads_OMP
+!
+                 else
+!
+                    Write(*,*) '-omp but no number given'
+                    Stop
+!
+                 endif
+!
+              endif
+!
+           endif
+!
+        endif
+!
+     else If (inp_%NArg .eq. 0) then 
+!
+        Write(*,'(/a/)') "Type the inp filename (e.g. filename.inp)"
+        Read(*,*) inp_%filename(1:99)
+        Write(*,'(/a/)') "Type the log filename (e.g. filename.log)"
+        Read(*,*) out_%filename(1:99)
+        inp_%NArg = 2
+!
+     endIf
+!
+     inp_%filename = trim(inp_%filename)
+!  
    end subroutine get_arguments
 !!!!!-----------------------------------------------------------------------
 !!!!   subroutine check_input_file(inp_)

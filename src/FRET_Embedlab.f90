@@ -2,7 +2,7 @@ Program FRET_Embedlab
 !
 use input_module
 !!use output_module
-!!use time_module
+use time_module
 !!use target_module
 !!use general_module
 !$ use omp_lib
@@ -26,8 +26,8 @@ use input_module
 implicit none
 !
 call inp_%get_arguments()
-!!call time%initialize()
-!!call time%start("total")
+call time%initialize()
+call time%start("total")
 !!call inp_%check_input_file()
 !!!!
 !!!!$ call omp_set_num_threads(algorithm%n_threads_OMP) 
