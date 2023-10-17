@@ -1,0 +1,1 @@
+/usr/bin/gfortran    -ffree-form -O3 -funroll-loops -Wall CMakeFiles/FRET_Embedlab.dir/src/input_output/input_module.f90.o CMakeFiles/FRET_Embedlab.dir/src/FRET_Embedlab.f90.o  -o FRET_Embedlab  /usr/lib/x86_64-linux-gnu/liblapack.so /usr/lib/x86_64-linux-gnu/libblas.so 
