@@ -23,7 +23,7 @@ module output_module
 !!!
 !!      logical  :: exists = .false.
 !!!
-!!      character (len=12)  :: sticks = "(1x,80(1h-))"
+      character (len=12)  :: sticks = "(1x,80(1h-))"
       character (len=200) :: filename
 !!      character (len=200) :: info_file
 !!      character (len=200) :: what
@@ -31,9 +31,9 @@ module output_module
       contains
 !!!
       procedure :: out_file_fill
-!!      procedure :: print_banner
+      procedure :: print_banner
 !!      procedure :: print_matrix
-!!      procedure :: warning
+      procedure :: warning
       procedure :: error
 !!      procedure :: clean_up_scratch
 !!      procedure :: make_targz
@@ -62,35 +62,34 @@ module output_module
 !       
    end subroutine out_file_fill
 !-----------------------------------------------------------------------
-!!!   subroutine print_banner(out_)
-!!!!
-!!!     implicit none
-!!!!     
-!!!!    print banner nanoFQ  
-!!!!
-!!!     class(out_type)  :: out_
-!!!!
-!!!     Write(out_%iunit,out_%sticks) 
-!!!     Write(out_%iunit,'(22x,a)') "                         ______ ____  "
-!!!     Write(out_%iunit,'(22x,a)') "                        |  ____/ __ \ "
-!!!     Write(out_%iunit,'(22x,a)') " _ __   __ _ _ __   ___ | |__ | |  | |"
-!!!     Write(out_%iunit,'(22x,a)') "| '_ \ / _` | '_ \ / _ \|  __|| |  | |"
-!!!     Write(out_%iunit,'(22x,a)') "| | | | (_| | | | | (_) | |   | |__| |"
-!!!     Write(out_%iunit,'(22x,a)') "|_| |_|\__,_|_| |_|\___/|_|    \___\_\"
-!!!     Write(out_%iunit,'(a)') " "
-!!!     Write(out_%iunit,out_%sticks) 
-!!!     Write(out_%iunit,'(a)') " "
-!!!     Write(out_%iunit,'(25x,a)') "Program by Tommaso Giovannini"
-!!!     Write(out_%iunit,'(23x,a)') "with contributions by Luca Bonatti"
-!!!     Write(out_%iunit,'(31x,a)') "and Piero Lafiosca"
-!!!     Write(out_%iunit,'(a)') " "
-!!!     Write(out_%iunit,out_%sticks) 
-!!!     Write(out_%iunit,'(a)') " "
-!!!     Flush(out_%iunit)
-!!!!
-!!!!
-!!!   end subroutine print_banner
-!!!!----------------------------------------------------------------------
+   subroutine print_banner(out_)
+!
+     implicit none
+!     
+!    print banner nanoFQ  
+!
+     class(out_type)  :: out_
+!
+     Write(out_%iunit,out_%sticks) 
+     Write(out_%iunit,'(22x,a)') "                                      "
+     Write(out_%iunit,'(22x,a)') "           =============              "
+     Write(out_%iunit,'(22x,a)') "           FRET EMBEDLAB              "
+     Write(out_%iunit,'(22x,a)') "           =============              "
+     Write(out_%iunit,'(22x,a)') "                                      "
+     Write(out_%iunit,'(22x,a)') "                                      "
+     Write(out_%iunit,'(a)') " "
+     Write(out_%iunit,out_%sticks) 
+     Write(out_%iunit,'(a)') " "
+     Write(out_%iunit,'(25x,a)') "Program by Pablo Grobas Illobre"
+     Write(out_%iunit,'(23x,a)') "with contributions by Sveva Sodomaco"
+     Write(out_%iunit,'(a)') " "
+     Write(out_%iunit,out_%sticks) 
+     Write(out_%iunit,'(a)') " "
+     Flush(out_%iunit)
+!
+!
+   end subroutine print_banner
+!----------------------------------------------------------------------
 !!!   subroutine print_matrix(out_,string,matrix,idim1,idim2)
 !!!!
 !!!     implicit none
@@ -177,29 +176,29 @@ module output_module
 !!!     flush(out_%iunit)
 !!!!    
 !!!   end subroutine print_matrix
-!!!!----------------------------------------------------------------------
-!!!   subroutine warning(out_,string)
-!!!!
-!!!     implicit none
-!!!!     
-!!!!    define the name of output file  
-!!!!
-!!!     class(out_type)  :: out_
-!!!     character(len=*) :: string
-!!!!
-!!!     integer          :: unit_
-!!!!    
-!!!!    check if the file is opened
-!!!!
-!!!     inquire(file=out_%filename,number=unit_)
-!!!!     
-!!!     if (unit_.eq.out_%iunit) then
-!!!        write(out_%iunit,'(/1x,a/)') "Warning! "//trim(string)
-!!!     else
-!!!        write(*,'(/1x,a/)') "Warning! "//trim(string)
-!!!     endif
-!!!!       
-!!!   end subroutine warning
+!----------------------------------------------------------------------
+   subroutine warning(out_,string)
+!
+     implicit none
+!     
+!    define the name of output file  
+!
+     class(out_type)  :: out_
+     character(len=*) :: string
+!
+     integer          :: unit_
+!    
+!    check if the file is opened
+!
+     inquire(file=out_%filename,number=unit_)
+!     
+     if (unit_.eq.out_%iunit) then
+        write(out_%iunit,'(/1x,a/)') "Warning! "//trim(string)
+     else
+        write(*,'(/1x,a/)') "Warning! "//trim(string)
+     endif
+!       
+   end subroutine warning
 !----------------------------------------------------------------------
    subroutine error(out_,string)
 !

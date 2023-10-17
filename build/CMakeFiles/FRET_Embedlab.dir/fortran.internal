@@ -1,0 +1,9 @@
+# The fortran modules provided by this target.
+provides
+ input_module.mod
+ output_module.mod
+ parallel_module.mod
+ parameters_module.mod
+ string_manipulation_module.mod
+ target_module.mod
+ time_module.mod

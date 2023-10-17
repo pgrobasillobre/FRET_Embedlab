@@ -7,9 +7,9 @@ module input_module
     use output_module
     use parallel_module
     !!!use parameters_module
-    !!!use string_manipulation_module
+    use string_manipulation_module
     !!!use array_manipulation_module
-    !!!use target_module
+    use target_module
     !!!use bem_module
     !!!use fq_module
     !!!use fqfmu_module
@@ -39,10 +39,10 @@ module input_module
       contains
 !
       procedure :: get_arguments
-      !!procedure :: check_input_file
-      !!procedure :: read_
+      procedure :: check_input_file
+      procedure :: read_
       !!procedure :: get_section_what
-      !!procedure :: get_target
+      procedure :: get_target
       !!procedure :: get_section_forcefield
       !!procedure :: get_section_algorithm
       !!procedure :: get_section_field
@@ -53,7 +53,7 @@ module input_module
       !!procedure :: get_section_general
       !!procedure :: get_section_geometry
       !!procedure :: get_number_of_atoms
-      !!procedure :: print_input_info
+      procedure :: print_input_info
 !
     end type inp_type
 !    
@@ -152,385 +152,198 @@ module input_module
      inp_%filename = trim(inp_%filename)
 !  
    end subroutine get_arguments
-!!!!!-----------------------------------------------------------------------
-!!!!   subroutine check_input_file(inp_)
-!!!!!   
-!!!!!    Check if file correctly exists and has the right exstension
-!!!!!   
-!!!!     implicit none
-!!!!!
-!!!!     class(inp_type)  :: inp_
-!!!!!
-!!!!     integer          :: NLen
-!!!!     character(len=3) :: check
-!!!!     logical          :: exists
-!!!!!    
-!!!!     Inquire(file=inp_%filename,exist=exists)
-!!!!!    
-!!!!     If(.not.exists) call out_%error("File "//trim(inp_%filename)//" Does Not Exist. Check the name")
-!!!!!    
-!!!!     NLen = len_trim(inp_%filename)
-!!!!!    
-!!!!     Write(check,'(a)') inp_%filename(Nlen-2:Nlen)
-!!!!!    
-!!!!     call lower(check)
-!!!!!    
-!!!!     If(check.ne.'mfq') call out_%warning("The extension of your file is wrong. Use .mfq")
-!!!!!  
-!!!!   end subroutine check_input_file
-!!!!!---------------------------------------------------------------------------
-!!!!   subroutine read_(inp_)
-!!!!!  
-!!!!!    Reading input_file
-!!!!!     
-!!!!     implicit none
-!!!!     class(inp_type)  :: inp_
-!!!!!
-!!!!!    stuff for new input
-!!!!!
-!!!!     integer :: nlines
-!!!!     integer :: num_string_input
-!!!!     logical :: found_string
-!!!!!
-!!!!     character(len=200), dimension(:), allocatable             :: AtomName_geometry
-!!!!!
-!!!!     integer :: iost
-!!!!!
-!!!!!
-!!!!     inp_%iunit                = 10! file
-!!!!     
-!!!!!    paramters for Iterative defaults
-!!!!!
-!!!!     open(unit=inp_%iunit,file=trim(inp_%filename),status="old",iostat=iost,err=01) 
-!!!!!
-!!!!          Rewind(inp_%iunit) 
-!!!!          call get_number_lines(inp_%iunit,nlines)
-!!!!!
-!!!!          call inp_%get_target(nlines)
-!!!!!
-!!!!          if(target_%name_.ne."bem") then
-!!!!!        
-!!!!             Rewind(inp_%iunit) 
-!!!!             call go_to_string(inp_%iunit,"input geometry",found_string,nlines,num_string_input)
-!!!!!
-!!!!             if(.not.found_string) then 
-!!!!                call out_%error('No input geometry section in input')
-!!!!             endif
-!!!!!
-!!!!          else 
-!!!!!
-!!!!              num_string_input = nlines
-!!!!!
-!!!!          endif
-!!!!!
-!!!!          rewind(inp_%iunit)
-!!!!!
-!!!!          call inp_%get_section_what(num_string_input)
-!!!!!
-!!!!          if(target_%name_.ne."bem") &
-!!!!             call inp_%get_section_forcefield(num_string_input)
-!!!!!
-!!!!          call inp_%get_section_algorithm(num_string_input)
-!!!!!
-!!!!          call inp_%get_section_field(num_string_input)
-!!!!!
-!!!!          call inp_%get_section_output(num_string_input)
-!!!!!
-!!!!          call inp_%get_section_general(num_string_input)
-!!!!!
-!!!!          call inp_%get_section_bem(num_string_input)         
-!!!!!
-!!!!          if(target_%name_.ne."bem") then
-!!!!!
-!!!!              call inp_%get_section_atomtypes(num_string_input)
-!!!!!
-!!!!              call inp_%get_section_parameters(num_string_input)
-!!!!!
-!!!!              call inp_%get_section_geometry(nlines,AtomName_geometry)
-!!!!!
-!!!!              call assign_parameters(AtomName_geometry)
-!!!!!
-!!!!             if(target_%name_.eq.'wfq'          .or. &
-!!!!                target_%name_.eq.'wfqfmu'       .or. &
-!!!!                target_%name_.eq.'wfqib'        .or. &
-!!!!                target_%name_.eq.'wfq_bem'      .or. &
-!!!!                target_%name_.eq.'wfqfmu_bem'   .or. &
-!!!!                target_%name_.eq.'wfqib_bem') then
-!!!!!                
-!!!!                call target_%assign_model_parameters()
-!!!!!
-!!!!!lookhere
-!!!!                if(target_%name_.eq.'wfqfmu' .or.    &
-!!!!                   target_%name_.eq.'wfqfmu_bem') call wfqfmu%read_alpha()
-!!!!!end here
-!!!!!          
-!!!!              endif
-!!!!!          
-!!!!              allocate(fq%n_atoms_per_molecule(fq%n_mol))
-!!!!!
-!!!!              call check_inconsistencies_input_file()
-!!!!!
-!!!!              call array_scale(tobohr,3*target_%n_atoms,target_%coord)
-!!!!!                                   
-!!!!              deallocate(AtomName_geometry)
-!!!!!              
-!!!!          endif
-!!!!!
-!!!!          If(bem%exists) call bem%create_tesserae()
-!!!!!
-!!!!          if(target_%name_.eq.'wfq_bem'   .or. &
-!!!!             target_%name_.eq.'wfqfmu_bem'.or. &
-!!!!             target_%name_.eq.'wfqib_bem') then
-!!!!             target_%n_var = target_%n_var + bem%n_var
-!!!!             call wfq_bem%check_boundaries()
-!!!!          endif             
-!!!!!     
-!!!!     01 continue 
-!!!!     close(10) 
-!!!!!
-!!!!   end subroutine read_
-!!!!!-----------------------------------------------------------------------
-!!!!   subroutine get_section_what(inp_,nlines)
-!!!!!
-!!!!!    get section what
-!!!!!
-!!!!     implicit none
-!!!!!
-!!!!!    input variables
-!!!!!
-!!!!     class(inp_type)  :: inp_
-!!!!     integer, intent(in)             :: nlines
-!!!!!
-!!!!!    input/output variables
-!!!!!
-!!!!!
-!!!!!    internal variables
-!!!!!
-!!!!     integer :: num_string_initial, num_string_end, num_keywords
-!!!!     logical :: found_string
-!!!!     integer :: i
-!!!!     character(len=200) :: line
-!!!!     character(len=200) :: line_what
-!!!!!
-!!!!     out_%what = ""
-!!!!     call go_to_string(inp_%iunit,"what"    ,found_string,nlines,num_string_initial)
-!!!!!
-!!!!     if(.not.found_string) call out_%error('No what section in input')
-!!!!!
-!!!!     rewind(inp_%iunit)
-!!!!     call go_to_string(inp_%iunit,"end what",found_string,nlines,num_string_end)
-!!!!!
-!!!!     if(.not.found_string) then
-!!!!        call out_%error('No end for what section in input')
-!!!!     endif
-!!!!!
-!!!!     num_keywords = num_string_end - num_string_initial - 1
-!!!!!
-!!!!     rewind(inp_%iunit)
-!!!!     call go_to_string(inp_%iunit,"what"    ,found_string,nlines,num_string_initial)
-!!!!!
-!!!!     do i = 1, num_keywords
-!!!!!
-!!!!       read(inp_%iunit,'(a)') line
-!!!!!     
-!!!!       if(len_trim(line).eq.0) then 
-!!!!!          
-!!!!          call out_%error("There is a blank line (what)")
-!!!!!          
-!!!!       else if(.not.commented_line(line)) then
-!!!!!     
-!!!!         call LoWeR(line)
-!!!!!       
-!!!!         line_what = trim(adjustl(line))
-!!!!!     
-!!!!         if(line_what.eq.'restart') then 
-!!!!            out_%what = line_what
-!!!!            general%restart = .true.
-!!!!         else
-!!!!            out_%what = line_what
-!!!!!            
-!!!!            if(out_%what.ne.'energy'.and.&
-!!!!               out_%what.ne.'static response'.and.&
-!!!!               out_%what.ne.'cross section'.and.&
-!!!!               out_%what.ne.'restart'.and.&
-!!!!               out_%what.ne.'current') then
-!!!!               write(out_%iunit,'(1x,a/)') 'Keyword: "'//trim(out_%what)//'" in what section not recognized'
-!!!!               write(out_%iunit,'(1x,a)' ) 'Possible keywords in what section:'
-!!!!               write(out_%iunit,'(1x,a)' ) '  - energy'
-!!!!               write(out_%iunit,'(1x,a)' ) '  - static response'
-!!!!               write(out_%iunit,'(1x,a)' ) '  - cross section'
-!!!!               write(out_%iunit,'(1x,a)' ) '  - current'
-!!!!               write(out_%iunit,'(1x,a)' ) '  - restart'
-!!!!               stop
-!!!!            endif
-!!!!!            
-!!!!         endif
-!!!!!
-!!!!       endif
-!!!!!     
-!!!!     end do
-!!!!!
-!!!!!
-!!!!   end subroutine get_section_what
-!!!!!-----------------------------------------------------------------------
-!!!!   subroutine get_target(inp_,nlines)
-!!!!!
-!!!!!    get section forcefield
-!!!!!
-!!!!     implicit none
-!!!!!
-!!!!!    input variables
-!!!!!
-!!!!     class(inp_type)  :: inp_
-!!!!     integer, intent(in)             :: nlines
-!!!!!
-!!!!!
-!!!!!    internal variables
-!!!!!
-!!!!     integer :: num_string_initial, num_string_end, num_keywords
-!!!!     logical :: found_string
-!!!!     integer :: i
-!!!!     character(len=200) :: line
-!!!!     character(len=200) :: line_what
-!!!!     character(len=200) :: line_keyword
-!!!!     character(len=200) :: target_name = ""
-!!!!!
-!!!!     logical :: forcefield_present = .false.
-!!!!     logical :: dynamic_ff = .true.
-!!!!!
-!!!!     rewind(inp_%iunit)
-!!!!     call go_to_string(inp_%iunit,"forcefield"    ,found_string,nlines,num_string_initial)
-!!!!!
-!!!!     if(.not.found_string) then ! let's just see if it is a bem calculation
-!!!!        rewind(inp_%iunit)
-!!!!        call go_to_string(inp_%iunit,"bem",found_string,nlines,num_string_initial)
-!!!!        if(found_string) then 
-!!!!           bem%exists  = .true.
-!!!!        else
-!!!!           call out_%error( 'No forcefield or bem section in input')
-!!!!        endif
-!!!!     else 
-!!!!        forcefield_present = .true.
-!!!!     endif
-!!!!!
-!!!!     if(forcefield_present) then
-!!!!!
-!!!!        rewind(inp_%iunit)
-!!!!        call go_to_string(inp_%iunit,"end forcefield",found_string,nlines,num_string_end)
-!!!!!
-!!!!        if(.not.found_string) &
-!!!!           call out_%error( 'No end for forcefield section in input')
-!!!!!
-!!!!        num_keywords = num_string_end - num_string_initial - 1
-!!!!!
-!!!!        rewind(inp_%iunit)
-!!!!        call go_to_string(inp_%iunit,"forcefield"    ,found_string,nlines,num_string_initial)
-!!!!!
-!!!!        do i = 1, num_keywords
-!!!!!
-!!!!          read(inp_%iunit,'(a)') line
-!!!!!        
-!!!!          if(len_trim(line).eq.0) then 
-!!!!!             
-!!!!             call out_%error( "There is a blank line (forcefield)")
-!!!!!             
-!!!!          else if(.not.commented_line(line)) then
-!!!!!        
-!!!!            call lower(line)
-!!!!!          
-!!!!            if(index(line,":").gt.0) then ! : in input
-!!!!!        
-!!!!              line_what = trim(adjustl(line(1:index(line,":")-1) ))
-!!!!!            
-!!!!              line_keyword = trim(adjustl( line(index(line,":")+1:200) ))
-!!!!!        
-!!!!              if(line_what.eq.'static')  then 
-!!!!                 target_name  = trim(adjustl(line_keyword))
-!!!!                 if(target_name.ne.'fq'.and. &
-!!!!                    target_name.ne.'fq_pqeq'.and. &
-!!!!                    target_name.ne.'fqfmu'.and.   &
-!!!!                    target_name.ne.'fqfmu_pqeq') &
-!!!!                    call out_%error( "ForceField "//trim(target_name)//" not recognised")
-!!!!              else if(line_what.eq.'dynamic') then 
-!!!!                 dynamic_ff = .true.
-!!!!                 target_name  = trim(adjustl(line_keyword))
-!!!!                 if(line_keyword.ne.'wfq'   .and.&
-!!!!                    line_keyword.ne.'wfqfmu'.and.&
-!!!!                    line_keyword.ne.'wfqib') &
-!!!!                    call out_%error( "wForceField = "//trim(line_keyword)//" not recognized")
-!!!!              endif
-!!!!!
-!!!!              if(line_what.ne.'static'.and.&
-!!!!                 line_what.ne.'dynamic'.and.&
-!!!!                 line_what.ne.'kernel') then
-!!!!                 write(out_%iunit,'(1x,a/)') 'Keyword : "'//trim(line_what)//'" in ForceField section not recognized'
-!!!!                 write(out_%iunit,'(1x,a)' ) 'Possible Keywords in ForceField section:'
-!!!!                 write(out_%iunit,'(1x,a)' ) '  - static:  [fq,fqfmu,fq_pqeq,fqfmu_pqeq]'
-!!!!                 write(out_%iunit,'(1x,a)' ) '  - dynamic: [wfq,wfqfmu,wfqib]'
-!!!!                 write(out_%iunit,'(1x,a)' ) '  - kernel:  [coulomb,ohno,gaussian]'
-!!!!                 stop
-!!!!              endif
-!!!!!        
-!!!!            else ! : in input
-!!!!!          
-!!!!              call out_%error( "I am not able to find : in keyword (forcefield)")
-!!!!!            
-!!!!            endif
-!!!!!
-!!!!          endif
-!!!!!        
-!!!!        end do
-!!!!!     
-!!!!        rewind(inp_%iunit)
-!!!!        call go_to_string(inp_%iunit,"bem",found_string,nlines,num_string_initial)
-!!!!        if(found_string) bem%exists = .true.
-!!!!!
-!!!!     endif
-!!!!!     
-!!!!!    assign the different targets
-!!!!!
-!!!!     if(target_name.eq.'fq'.or.target_name.eq.'fq_pqeq') then         
-!!!!        target_ => fq
-!!!!        target_%name_ = "fq"
-!!!!     else if(target_name.eq.'fqfmu'.or.target_name.eq.'fqfmu_pqeq') then         
-!!!!        target_ => fqfmu
-!!!!        target_%name_ = "fqfmu"
-!!!!     else if(target_name.eq.'wfq') then 
-!!!!        if(bem%exists) then 
-!!!!           target_ => wfq_bem
-!!!!           target_%name_ = "wfq_bem"
-!!!!        else
-!!!!           target_ => wfq
-!!!!           target_%name_ = "wfq"
-!!!!        endif
-!!!!     else if(target_name.eq.'wfqfmu') then 
-!!!!        if(bem%exists) then 
-!!!!           target_ => wfqfmu_bem
-!!!!           target_%name_ = "wfqfmu_bem"
-!!!!        else
-!!!!           target_ => wfqfmu
-!!!!           target_%name_ = "wfqfmu"
-!!!!        endif
-!!!!     else if(target_name.eq.'wfqib') then 
-!!!!        if(bem%exists) then 
-!!!!           target_ => wfq_bem
-!!!!           target_%name_ = "wfqib_bem"
-!!!!        else
-!!!!           target_ => wfq
-!!!!           target_%name_ = "wfqib"
-!!!!        endif
-!!!!     else if (target_name.eq."") then
-!!!!        if(bem%exists) then
-!!!!           target_ => bem
-!!!!           target_%name_ = "bem"
-!!!!        else 
-!!!!           call out_%error( "No target model defined")
-!!!!        endif
-!!!!     endif
-!!!!!
-!!!!!
-!!!!   end subroutine get_target
-!!!!!-----------------------------------------------------------------------
+!-----------------------------------------------------------------------
+   subroutine check_input_file(inp_)
+!   
+!    Check if file correctly exists and has the right extension
+!   
+     implicit none
+!
+     class(inp_type)  :: inp_
+!
+     integer          :: NLen
+     character(len=3) :: check
+     logical          :: exists
+!    
+     Inquire(file=inp_%filename,exist=exists)
+!    
+     If(.not.exists) call out_%error("File "//trim(inp_%filename)//" does not exist. Check the name")
+!    
+     NLen = len_trim(inp_%filename)
+!    
+     Write(check,'(a)') inp_%filename(Nlen-2:Nlen)
+!    
+     call lower(check)
+!    
+     If(check.ne.'inp') call out_%warning("The extension of your file is wrong. Use .inp")
+!  
+   end subroutine check_input_file
+!---------------------------------------------------------------------------
+   subroutine read_(inp_)
+!  
+!    Reading input_file
+!     
+     implicit none
+     class(inp_type)  :: inp_
+!
+!    stuff for new input
+!
+     integer :: nlines
+     integer :: num_string_input
+     logical :: found_string
+!
+     character(len=200), dimension(:), allocatable             :: AtomName_geometry
+!
+     integer :: iost
+!
+!
+     inp_%iunit                = 10! file
+     
+!    paramters for Iterative defaults
+!
+     open(unit=inp_%iunit,file=trim(inp_%filename),status="old",iostat=iost,err=01) 
+!
+          Rewind(inp_%iunit) 
+          call get_number_lines(inp_%iunit,nlines)
+!
+          call inp_%get_target(nlines)
+!
+!!!          if(target_%name_.ne."bem") then
+!!!!        
+!!!             Rewind(inp_%iunit) 
+!!!             call go_to_string(inp_%iunit,"input geometry",found_string,nlines,num_string_input)
+!!!!
+!!!             if(.not.found_string) then 
+!!!                call out_%error('No input geometry section in input')
+!!!             endif
+!!!!
+!!!          else 
+!!!!
+!!!              num_string_input = nlines
+!!!!
+!!!          endif
+!!!!
+!!!          rewind(inp_%iunit)
+!!!!
+!!!          call inp_%get_section_what(num_string_input)
+!!!!
+!!!!!          call check_inconsistencies_input_file()
+!!!!!!
+!!!!!          call array_scale(tobohr,3*target_%n_atoms,target_%coord)
+!!!!                                   
+!!!          endif
+!!!!
+     01 continue 
+!!!     close(10) 
+!
+   end subroutine read_
+!-----------------------------------------------------------------------
+   subroutine get_target(inp_,nlines)
+!
+!    get target 
+!
+     implicit none
+!
+!    input variables
+!
+     class(inp_type)        :: inp_
+     integer, intent(in)    :: nlines
+!
+!
+!    internal variables
+!
+     integer :: num_string_initial, num_string_end, num_keywords
+     logical :: found_string
+     integer :: i
+     character(len=200) :: line
+     character(len=200) :: line_what
+     character(len=200) :: line_keyword
+     character(len=200) :: target_name = ""
+!
+     logical :: integrate_cube        = .false.
+     logical :: fret_donor_aceptor    = .false.
+     logical :: fret_donor_aceptor_NP = .false.
+     logical :: fret_aceptor_NP       = .false.
+     logical :: aceptor_density       = .false.
+     logical :: donor_density         = .false.
+     logical :: nanoparticle          = .false.
+!
+     rewind(inp_%iunit)
+!
+        do i = 1, nlines
+!
+          read(inp_%iunit,'(a)') line
+!        
+          if(.not.commented_line(line)) then
+!        
+            call lower(line)
+!          
+            if(index(line,":").gt.0) then ! : in input
+!        
+              line_what = trim(adjustl(line(1:index(line,":")-1) ))
+!            
+              line_keyword = trim(adjustl( line(index(line,":")+1:200) ))
+!        
+              if(line_what.eq.'integrate cube file')  then 
+                 integrate_cube  = .true.
+
+              elseif(line_what.eq.'aceptor density') then
+                 aceptor_density = .true.
+
+              elseif(line_what.eq.'donor density') then
+                 donor_density = .true.
+
+              elseif(line_what.eq.'nanoparticle') then
+                 nanoparticle = .true.
+
+              else  
+                 call out_%error( 'Input entry "'//trim(line)//'" not recognized')
+              endif
+!
+            else ! : in input
+!          
+              call out_%error( 'I am not able to find : in entry "'//trim(line)//'"')
+!            
+            endif
+!
+          endif
+!        
+        end do
+!
+!    assign the different targets
+!
+     if(integrate_cube .and. aceptor_density .or. integrate_cube .and. donor_density .or. integrate_cube .and. nanoparticle) then         
+! 
+        call out_%error( "You are requesting a cube integration with other type of calculation")
+!
+     elseif(integrate_cube) then
+!
+!!        target_ => integrate_density
+        target_%name_ = "integrate_density"
+!
+     elseif(donor_density .and. aceptor_density .and. .not. nanoparticle) then
+!
+!!        target_ => aceptor_donor
+        target_%name_ = "aceptor_donor"
+!
+     elseif(aceptor_density .and. nanoparticle .and. .not. donor_density) then
+!
+!!        target_ => aceptor_np
+        target_%name_ = "aceptor_np"
+!
+     elseif(aceptor_density .and. nanoparticle .and. donor_density) then
+!
+!!        target_ => aceptor_np_donor
+        target_%name_ = "aceptor_np_donor"
+!
+     else
+!         
+        call out_%error( "You are requesting an unkown calculation")
+!
+     endif
+!
+   end subroutine get_target
+!-----------------------------------------------------------------------
 !!!!  subroutine get_section_forcefield(inp_,nlines)
 !!!!!
 !!!!!   get section forcefield
@@ -2352,139 +2165,33 @@ module input_module
 !!!!!
 !!!!!
 !!!!  end subroutine check_inconsistencies_input_file
-!!!!!---------------------------------------------------------------------------
-!!!!  subroutine print_input_info(inp_)
-!!!!!
-!!!!!   Printing input information on output
-!!!!!
-!!!!    implicit none
-!!!!
-!!!!    class(inp_type) :: inp_
-!!!!!
-!!!!    integer :: i
-!!!!!    
-!!!!     ! 
-!!!!     ! !$omp parallel do private(i)
-!!!!     ! do i = 1, field_%n_freq
-!!!!     !    call  freqnmtoev(field_%freq(i),field_%freq(i))
-!!!!     ! enddo
-!!!!     ! !$omp end parallel do
-!!!!     write(out_%iunit,'(23x,a)') "Input File:  "//trim(inp_%filename)
-!!!!     write(out_%iunit,'(23x,a)') "Output File: "//trim(out_%filename)
-!!!!     if(general%save_info) write(out_%iunit,'(23x,a)') &
-!!!!       "Info File:   "//out_%filename(1:len_trim(out_%filename))//'tar.gz'
-!!!!     write(out_%iunit,'(/,23x,a,i5)') "OMP Threads: ", algorithm%n_threads_OMP
-!!!!!
-!!!!!    general informations
-!!!!!
-!!!!     write(out_%iunit,out_%sticks) 
-!!!!     write(out_%iunit,'(23x,a)') "What          : "//trim(out_%what)
-!!!!     write(out_%iunit,'(23x,a,i1)') "Verbose       : ", out_%ivrb
-!!!!     write(out_%iunit,'(23x,a,l1)') "Principal Axis: ",general%principal_axis
-!!!!     write(out_%iunit,'(23x,a,l1)') "Restart       : ",general%restart
-!!!!     write(out_%iunit,out_%sticks) 
-!!!!!     
-!!!!!    field informations
-!!!!!
-!!!!     if (field_%static) then
-!!!!!     
-!!!!        write(out_%iunit,'(23x,a)') "Static External Field"
-!!!!        write(out_%iunit,'(23x,a,e11.4,a)') "Field Intensity :", field_%e_0, " au"
-!!!!!     
-!!!!     else if (field_%dynamic) then
-!!!!!     
-!!!!        write(out_%iunit,'(23x,a)') "Dynamic External Field"
-!!!!        write(out_%iunit,'(23x,a,e11.4,a)') "Field Intensity :", field_%e_0, " au"
-!!!!!     
-!!!!     else
-!!!!!     
-!!!!        write(out_%iunit,'(23x,a)') "Ground State"
-!!!!!     
-!!!!     endif
-!!!!!     
-!!!!     if (field_%n_freq.ge.1) write(out_%iunit,'(23x,a,i5)') "Num. Freq.      :", field_%n_freq
-!!!!!     
-!!!!     if (field_%n_freq.gt.1) then 
-!!!!!     
-!!!!        write(out_%iunit,'(23x,a,e11.4,a)') "Min. Freq.      :", field_%min_freq," eV"
-!!!!        write(out_%iunit,'(23x,a,e11.4,a)') "Max. Freq.      :", field_%max_freq," eV"
-!!!!        if (out_%ivrb.ge.2) then
-!!!!           do i = 1, field_%n_freq
-!!!!              write(out_%iunit,'(23x,a,i5,a,e10.3,a)') "Freq (",i,")    :",field_%freq(i), " eV"
-!!!!           enddo
-!!!!        endif
-!!!!!
-!!!!     else if(field_%n_freq.eq.1) then
-!!!!!
-!!!!        write(out_%iunit,'(23x,a,e11.4,a)') "Freq.           :", field_%freq(1), " nm"
-!!!!!
-!!!!     endif
-!!!!!
-!!!!     write(out_%iunit,out_%sticks)
-!!!!!     
-!!!!!    algorithm informations
-!!!!!
-!!!!     write(out_%iunit,'(23x,a,l1)') "Matrix in parallel : ", algorithm%matrix_in_parallel
-!!!!     write(out_%iunit,'(23x,a,l1)') "Freq in parallel   : ", algorithm%freq_in_parallel
-!!!!     if (algorithm%inversion) then
-!!!!        write(out_%iunit,'(23x,a)') "Inversion Solution "
-!!!!     else if (algorithm%iterative) then
-!!!!        write(out_%iunit,'(23x,a,/)') "Iterative Solution "
-!!!!        if(algorithm%on_the_fly) write(out_%iunit,'(23x,a/)') "On the Fly algorithm"
-!!!!        write(out_%iunit,'(23x,a,l1)') "Do Not Change Thresholds : ", algorithm%do_not_change_thresholds
-!!!!        write(out_%iunit,'(23x,a,l1)') "Changed Thresholds       : ", algorithm%changed_thresholds
-!!!!        write(out_%iunit,'(23x,a,i5)') "Number of Iterations     :", algorithm%n_iter
-!!!!        write(out_%iunit,'(23x,a,i5)') "Number of DIIS cycles    :", algorithm%n_diis
-!!!!        write(out_%iunit,'(23x,a,i5)') "Norm to check converge   :", algorithm%norm_for_convergence
-!!!!        write(out_%iunit,'(23x,a,e10.3)') "Threshold to converge    :", algorithm%threshold
-!!!!     endif
-!!!!     write(out_%iunit,out_%sticks) 
-!!!!!
-!!!!!    Force Field informations
-!!!!!
-!!!!     if(target_%name_.eq.'fq'        .or. &
-!!!!        target_%name_.eq.'fqfmu'     .or. &
-!!!!        target_%name_.eq.'wfq'       .or. &
-!!!!        target_%name_.eq.'wfqfmu'    .or. &
-!!!!        target_%name_.eq.'wfqib'     .or. &
-!!!!        target_%name_.eq.'wfq_bem'   .or. &
-!!!!        target_%name_.eq.'wfqfmu_bem'.or. &
-!!!!        target_%name_.eq.'wfqib_bem') then
-!!!!!        
-!!!!        write(out_%iunit,'(23x,a,/)') "Target     : "// trim(target_%name_)
-!!!!!        
-!!!!        write(out_%iunit,'(23x,a)') "ForceField : "// trim(target_%forcefield)
-!!!!        write(out_%iunit,'(23x,a)') "Kernel     : "// trim(target_%kernel)
-!!!!!        
-!!!!        if(target_%forcefield.eq.'fq_pqeq') then
-!!!!           write(out_%iunit,'(23x,a,l1)') "PQEq       : ",fq%pqeq
-!!!!        else if(target_%forcefield.eq.'fqfmu_pqeq') then
-!!!!           write(out_%iunit,'(23x,a,l1)') "PQEq       : ",fqfmu%pqeq
-!!!!        endif
-!!!!!
-!!!!        if(field_%static.or.field_%dynamic) &
-!!!!           write(out_%iunit,'(23x,a)') "RHS        : "// trim(field_%rhs_form)
-!!!!!
-!!!!!       atomtypes informations
-!!!!!
-!!!!        write(out_%iunit,'(/,23x,a,i3)') "Num. AtomTypes : ", target_%n_atomtypes
-!!!!!        
-!!!!        call target_%print_atomtypes()
-!!!!!
-!!!!        write(out_%iunit,out_%sticks)
-!!!!!
-!!!!     endif
-!!!!!
-!!!!     if(bem%exists) call bem%print_parameters()
-!!!!!
-!!!!     if(target_%name_.ne.'bem') call target_%print_coord("Input")
-!!!!!
-!!!!     if(bem%exists) call bem%print_coord_bem("Input")
-!!!!!
-!!!!     flush(out_%iunit)
-!!!!! 
-!!!!  end subroutine print_input_info
-!!!!!----------------------------------------------------------------------
+!---------------------------------------------------------------------------
+  subroutine print_input_info(inp_)
+!
+!   Printing input information on output
+!
+    implicit none
+
+    class(inp_type) :: inp_
+!
+    integer :: i
+!    
+     write(out_%iunit,'(23x,a)') "Input File:  "//trim(inp_%filename)
+     write(out_%iunit,'(23x,a)') "Output File: "//trim(out_%filename)
+     write(out_%iunit,'(/,23x,a,i5)') "OMP Threads: ", parallel%n_threads_OMP
+     write(out_%iunit,*) ''
+!
+!    general informations
+!
+     write(out_%iunit,out_%sticks) 
+     write(out_%iunit,'(23x,a)') "Calculation          : "//trim(target_%name_)
+     !write(out_%iunit,'(23x,a,i1)') "Verbose       : ", out_%ivrb
+     write(out_%iunit,out_%sticks) 
+!     
+     flush(out_%iunit)
+! 
+  end subroutine print_input_info
+!----------------------------------------------------------------------
 !!!!  subroutine initialize_save_info()
 !!!!!
 !!!!!
