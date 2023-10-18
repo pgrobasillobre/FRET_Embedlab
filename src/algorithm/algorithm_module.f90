@@ -75,9 +75,12 @@ module algorithm_module
                              donor_density%nelectrons, header=' Donor Density Information')
 !
      call eet_aceptor_donor_integral(integrals_calc,aceptor=aceptor_density,donor=donor_density)
+!
+     call out_%print_results_integrals(aceptor_donor_coulomb=integrals_calc%aceptor_donor_coulomb)
+!
 
-!
-!
+
+
 
      call delete_density(aceptor_density)
      call delete_density(donor_density)

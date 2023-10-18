@@ -16,7 +16,8 @@ module integrals_module
 !
     type integrals_type
 ! 
-      real(dp)                                :: aceptor_donor
+      real(dp)                  :: aceptor_donor_coulomb
+!      real(dp)                  :: aceptor_donor_overlap
 !
     end type integrals_type
 !
@@ -46,7 +47,7 @@ module integrals_module
 !
      integer  :: i,j,k,l,m,n
 !
-     integrals%aceptor_donor = zero
+     integrals%aceptor_donor_coulomb = zero
 !
      r   = zero
 !
@@ -88,8 +89,8 @@ module integrals_module
 !
 !                      Integrate charges as rho_aceptor * rho_donor * (1/dist) * screening
 !                        --> the density has been already weigthed by the cube volume
-                       integrals%aceptor_donor = integrals%aceptor_donor + &
-                                                 aceptor%rho(i,j,k) * donor%rho(l,m,n) * invdst * screen_pot
+                       integrals%aceptor_donor_coulomb = integrals%aceptor_donor_coulomb + &
+                                                         aceptor%rho(i,j,k) * donor%rho(l,m,n) * invdst * screen_pot
 !
                        10 continue                  
 !
@@ -100,7 +101,7 @@ module integrals_module
         enddo
      enddo
 !
-print *, 'integral -->', integrals%aceptor_donor
+print *, 'integral -->', integrals%aceptor_donor_coulomb
 !
   end subroutine eet_aceptor_donor_integral 
 !----------------------------------------------------------------------

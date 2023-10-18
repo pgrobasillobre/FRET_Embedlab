@@ -22,6 +22,7 @@ module output_module
 !!      integer  :: ivrb  = 0  ! Verbose modality 
 !
       character (len=12)  :: sticks = "(1x,80(1h-))"
+
       character (len=200) :: filename
 !
       contains
@@ -29,6 +30,7 @@ module output_module
       procedure :: out_file_fill
       procedure :: print_banner
       procedure :: print_density
+      procedure :: print_results_integrals
 !!      procedure :: print_matrix
       procedure :: warning
       procedure :: error
@@ -289,5 +291,33 @@ module output_module
 !
 !
    end subroutine print_density
+!-----------------------------------------------------------------------
+   subroutine print_results_integrals(out_,aceptor_donor_coulomb)
+!
+!
+     implicit none
+!     
+!    print integral results
+!
+!
+     real(dp), optional  :: aceptor_donor_coulomb
+!
+     class(out_type)  :: out_
+!
+     Write(out_%iunit,'(a)') " " 
+     Write(out_%iunit,'(18x,a)') '              RESULTS (a.u.)                    ' 
+     Write(out_%iunit,'(a)') " " 
+     Write(out_%iunit,out_%sticks) 
+     if(PRESENT(aceptor_donor_coulomb)) then
+        Write(out_%iunit,'(a)') " "
+        Write(out_%iunit,'(a52,e15.6)') "   Aceptor-Donor Coulomb Potential: ", aceptor_donor_coulomb
+        Write(out_%iunit,'(a)') " " 
+     endif
+     Write(out_%iunit,out_%sticks) 
+
+     Flush(out_%iunit)
+!
+!
+   end subroutine print_results_integrals
 !----------------------------------------------------------------------
 end module output_module
