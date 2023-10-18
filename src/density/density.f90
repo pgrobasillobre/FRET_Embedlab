@@ -117,10 +117,6 @@ module density_module
                                      cube%xmin,cube%ymin,cube%zmin, &
                                      cube%nelectrons,integral)
 !
-print *, cube%nelectrons
-print *, integral
-!
-!
   end subroutine int_density 
 !----------------------------------------------------------------------
 end module density_module

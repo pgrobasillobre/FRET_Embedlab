@@ -120,9 +120,9 @@ module input_module
      else If (inp_%NArg .eq. 0) then 
 !
         Write(*,'(/a/)') "Type the inp filename (e.g. filename.inp)"
-        Read(*,*) inp_%filename(1:99)
+        Read(*,*) inp_%filename
         Write(*,'(/a/)') "Type the log filename (e.g. filename.log)"
-        Read(*,*) out_%filename(1:99)
+        Read(*,*) out_%filename
         inp_%NArg = 2
 !
      endIf
