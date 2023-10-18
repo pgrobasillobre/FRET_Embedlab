@@ -40,10 +40,8 @@ module algorithm_module
 !
      call int_density(density)
 !
-!     call print_density_integral(density)
+     call delete_density(density)
 !
-
-
 
 
    end subroutine integrate_density

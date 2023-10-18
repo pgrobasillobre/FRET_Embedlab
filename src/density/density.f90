@@ -33,7 +33,7 @@ module density_module
 !
    contains
 !----------------------------------------------------------------------
-   subroutine read_density (infile, cube)
+   subroutine read_density(infile, cube)
 !
 !    Read input cube file
 !
@@ -87,6 +87,24 @@ module density_module
 !
    end subroutine read_density
 !----------------------------------------------------------------------
+   subroutine delete_density(cube)
+!
+!    Read input cube file
+!
+     implicit none
+!
+     type (density_type), intent(inout)  :: cube
+!
+     deallocate(cube%atomic_number)
+     deallocate(cube%atomic_charge)
+     deallocate(cube%x)
+     deallocate(cube%y)
+     deallocate(cube%z)
+     deallocate(cube%rho)
+!
+   end subroutine delete_density
+!----------------------------------------------------------------------
+ 
    subroutine int_density(cube)
 !
 !    Integrate density from cube file

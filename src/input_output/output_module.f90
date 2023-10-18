@@ -267,12 +267,12 @@ module output_module
      Write(out_%iunit, 1000) ny, zero,   dy, zero
      Write(out_%iunit, 1000) nz, zero, zero,   dz
      Write(out_%iunit,'(a)') " " 
-     Write(out_%iunit,*)     "     Total number of grid points: ", nx*ny*nz
+     Write(out_%iunit,*)     "    Total number of grid points: ", nx*ny*nz
      Write(out_%iunit,'(a)') " " 
-     Write(out_%iunit,'(a)') "    ============================================================"
+     Write(out_%iunit,'(a)') "    ======================================================="
      Write(out_%iunit,*) "    Integrated electron density --> ", integral
      Write(out_%iunit,*) "    Total electrons in molecule --> ", nelectrons
-     Write(out_%iunit,'(a)') "    ============================================================"
+     Write(out_%iunit,'(a)') "    ======================================================="
      Write(out_%iunit,'(a)') " " 
      Write(out_%iunit,out_%sticks) 
 
