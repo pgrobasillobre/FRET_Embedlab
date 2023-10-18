@@ -188,7 +188,7 @@ module time_module
      character(len=4)  :: Year
      character(len=2)  :: Hour, Minute, Month, Day
 !     
-     1343 Format(55X,'Mensa?',&
+     1343 Format(45X,'Andiamo a mensa?',&
          /,60X,'-- S. Sodomaco')
      1004 Format(43X,'     CPU Time: ',i5,' h ',i2,' min ',i2,' sec')
      1005 Format(43X,' Elapsed Time: ',i5,' h ',i2,' min ',i2,' sec')
