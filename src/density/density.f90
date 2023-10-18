@@ -15,8 +15,6 @@ module density_module
 !
     type density_type
 ! 
-      private
-!
       character (len=200)                     :: str1,str2
 !
       integer                                 :: natoms,nx,ny,nz
@@ -82,6 +80,8 @@ module density_module
         enddo
      enddo  
 !
+     cube%rho = cube%rho*cube%dx*cube%dy*cube%dz ! weight density by cube volume
+!
      01 continue
      close(IIn)
 !
@@ -124,16 +124,18 @@ module density_module
      do i = 1,cube%nx
         do j = 1,cube%ny
            do k = 1,cube%nz
-              integral = integral + cube%rho(i,j,k)*cube%dx*cube%dy*cube%dz
+              integral = integral + cube%rho(i,j,k)!*cube%dx*cube%dy*cube%dz
            enddo
         enddo
      enddo
 !
-    call out_%print_density_integral(cube%natoms,                   &
-                                     cube%nx,cube%ny,cube%nz,       &
-                                     cube%dx,cube%dy,cube%dz,       &
-                                     cube%xmin,cube%ymin,cube%zmin, &
-                                     cube%nelectrons,integral)
+    call out_%print_density(target_%density_file, cube%natoms,&
+                            cube%nx,cube%ny,cube%nz,          &
+                            cube%dx,cube%dy,cube%dz,          &
+                            cube%xmin,cube%ymin,cube%zmin,    &
+                            cube%nelectrons,integral=integral)
+!
+!!    call out_%print_density(cube)
 !
   end subroutine int_density 
 !----------------------------------------------------------------------

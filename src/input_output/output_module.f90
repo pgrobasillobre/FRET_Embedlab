@@ -28,7 +28,7 @@ module output_module
 !
       procedure :: out_file_fill
       procedure :: print_banner
-      procedure :: print_density_integral
+      procedure :: print_density
 !!      procedure :: print_matrix
       procedure :: warning
       procedure :: error
@@ -231,8 +231,8 @@ module output_module
 !       
    end subroutine error
 !-----------------------------------------------------------------------
-   subroutine print_density_integral(out_,natoms,nx,ny,nz,dx,dy,dz,xmin,ymin,zmin,nelectrons,integral)
-!   subroutine print_density_integral(out_,cube)
+   subroutine print_density(out_,cube_file,natoms,nx,ny,nz,dx,dy,dz,xmin,ymin,zmin,nelectrons,integral,header)
+!   subroutine print_density(out_,cube)
 !
 !
      implicit none
@@ -240,13 +240,16 @@ module output_module
 !    print density integral
 !
 !
-!    type (density_type), intent(in)  :: cube 
+!!    type (density_type), intent(in)  :: cube 
+!!
+     character(len=*), intent(in)  :: cube_file
+     integer,  intent(in)          :: natoms,nelectrons,nx,ny,nz
+     real(dp), intent(in)          :: dx,dy,dz
+     real(dp), intent(in)          :: xmin,ymin,zmin
 
-     integer,  intent(in)         :: natoms,nelectrons,nx,ny,nz
-     real(dp), intent(in)         :: dx,dy,dz
-     real(dp), intent(in)         :: xmin,ymin,zmin
-     real(dp), intent(in)         :: integral
-!
+     real(dp),         intent(in), optional  :: integral
+     character(len=*), intent(in), optional  :: header
+
      class(out_type)  :: out_
 !
 !    formats
@@ -254,11 +257,15 @@ module output_module
      1000 Format(3x,I5,1x,E15.7,1x,E15.7,1x,E15.7)
 !
      Write(out_%iunit,'(a)') " "
-     Write(out_%iunit,'(22x,a)') '       Density Information                    ' 
+     if(PRESENT(header)) then
+        Write(out_%iunit,'(22x,a)') header
+     else
+        Write(out_%iunit,'(22x,a)') '       Density Information                    ' 
+     endif
      Write(out_%iunit,'(a)') " "
      Write(out_%iunit,out_%sticks) 
      Write(out_%iunit,'(a)') " "
-     Write(out_%iunit,'(3x,a)') "Density File: "//trim(target_%density_file)
+     Write(out_%iunit,'(3x,a)') "Density File: "//trim(cube_file)
      Write(out_%iunit,'(a)') " "
      Write(out_%iunit,'(3x,a)') "Density Grid (CUBE format): "
      Write(out_%iunit,'(a)') " "
@@ -269,16 +276,18 @@ module output_module
      Write(out_%iunit,'(a)') " " 
      Write(out_%iunit,*)     "    Total number of grid points: ", nx*ny*nz
      Write(out_%iunit,'(a)') " " 
-     Write(out_%iunit,'(a)') "    ======================================================="
-     Write(out_%iunit,*) "    Integrated electron density --> ", integral
-     Write(out_%iunit,*) "    Total electrons in molecule --> ", nelectrons
-     Write(out_%iunit,'(a)') "    ======================================================="
-     Write(out_%iunit,'(a)') " " 
+     if(PRESENT(integral)) then
+        Write(out_%iunit,'(a)') "    ======================================================="
+        Write(out_%iunit,*) "    Integrated electron density --> ", integral
+        Write(out_%iunit,*) "    Total electrons in molecule --> ", nelectrons
+        Write(out_%iunit,'(a)') "    ======================================================="
+        Write(out_%iunit,'(a)') " " 
+     endif
      Write(out_%iunit,out_%sticks) 
 
      Flush(out_%iunit)
 !
 !
-   end subroutine print_density_integral
+   end subroutine print_density
 !----------------------------------------------------------------------
 end module output_module

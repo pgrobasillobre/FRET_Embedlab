@@ -3,6 +3,7 @@ module integrals_module
 !      
 !   Module integrals
 !
+    use density_module
 !!    use output_module
 !!    use target_module
     use parameters_module
@@ -15,17 +16,7 @@ module integrals_module
 !
     type integrals_type
 ! 
-      private
-!
-      character (len=200)                     :: str1,str2
-!
-      integer                                 :: natoms,nx,ny,nz
-      integer                                 :: nelectrons
-      integer, dimension(:), allocatable      :: atomic_number
-!
-      real(dp)                                :: xmin,ymin,zmin,dx,dy,dz,dummy_real
-      real(dp), dimension(:), allocatable     :: atomic_charge,x,y,z
-      real(dp), dimension(:,:,:), allocatable :: rho 
+      real(dp)                                :: aceptor_donor
 !
     end type integrals_type
 !
@@ -33,37 +24,85 @@ module integrals_module
 !
    contains
 !----------------------------------------------------------------------
-!!   subroutine int_density(cube)
-!!!
-!!!    Integrate density from cube file
-!!!
-!!     implicit none
-!!!
-!!     type (density_type), intent(in)  :: cube
-!!!
-!!!
-!!!    internal variables
-!!!
-!!     real (dp) :: integral
-!!     integer   :: i,j,k
-!!!
-!!     integral = zero
-!!!
-!!     do i = 1,cube%nx
-!!        do j = 1,cube%ny
-!!           do k = 1,cube%nz
-!!              integral = integral + cube%rho(i,j,k)*cube%dx*cube%dy*cube%dz
-!!           enddo
-!!        enddo
-!!     enddo
-!!!
-!!    call out_%print_density_integral(cube%natoms,                   &
-!!                                     cube%nx,cube%ny,cube%nz,       &
-!!                                     cube%dx,cube%dy,cube%dz,       &
-!!                                     cube%xmin,cube%ymin,cube%zmin, &
-!!                                     cube%nelectrons,integral)
-!!!
-!!  end subroutine int_density 
+   subroutine eet_aceptor_donor_integral(integrals,aceptor,donor)
+!
+!    Compute donor-aceptor potential for EET rate calculation
+!
+     implicit none
+!
+     type (density_type), intent(in)  :: aceptor, donor 
+!
+     type (integrals_type), intent(out) :: integrals
+!
+!
+!    internal variables
+!
+     real(dp) :: x_a,y_a,z_a !position of aceptor
+     real(dp) :: x_d,y_d,z_d !position of donor
+     real(dp) :: r(3)        !aceptor-donor position     
+     real(dp) :: dist        
+     real(dp) :: invdst 
+     real(dp) :: sf,sf0,screen_pot !for screening
+!
+     integer  :: i,j,k,l,m,n
+!
+     integrals%aceptor_donor = zero
+!
+     r   = zero
+!
+!    aceptor
+     do i = 1, aceptor%nx
+        print *, i, 'out of', aceptor%nx
+        x_a = aceptor%xmin + aceptor%dx*(i-1)
+        do j = 1, aceptor%ny
+           y_a = aceptor%ymin + aceptor%dy*(j-1)
+           do k = 1, aceptor%nz
+              z_a = aceptor%zmin + aceptor%dz*(k-1)
+!
+!             donor
+              do l = 1, donor%nx
+                 x_d = donor%xmin + donor%dx*(l-1)
+                 do m = 1, donor%ny
+                    y_d = donor%ymin + donor%dy*(m-1)
+                    do n = 1, donor%nz
+                       z_d = donor%zmin + donor%dz*(n-1)
+!
+                       r(1) = (x_a-x_d)
+                       r(2) = (y_a-y_d)
+                       r(3) = (z_a-z_d)
+!
+                       dist = dsqrt(DOT_PRODUCT(r,r))
+!
+!                      Skip when grid points are coincident to avoid instabilities
+                       if (dist.le.1.0e-14) then
+                          go to 10
+                       else
+                          invdst = one/dist
+                       endif
+!
+!                      Screening function 
+                       sf  = dist / QMscrnFact
+
+                       sf0        = erf(sf)
+                       screen_pot = sf0
+!
+!                      Integrate charges as rho_aceptor * rho_donor * (1/dist) * screening
+!                        --> the density has been already weigthed by the cube volume
+                       integrals%aceptor_donor = integrals%aceptor_donor + &
+                                                 aceptor%rho(i,j,k) * donor%rho(l,m,n) * invdst * screen_pot
+!
+                       10 continue                  
+!
+                    enddo
+                 enddo
+              enddo
+           enddo
+        enddo
+     enddo
+!
+print *, 'integral -->', integrals%aceptor_donor
+!
+  end subroutine eet_aceptor_donor_integral 
 !----------------------------------------------------------------------
 end module integrals_module
 

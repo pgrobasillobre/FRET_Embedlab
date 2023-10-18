@@ -53,13 +53,22 @@ open(unit=out_%iunit,file=out_%filename,status="unknown")
 !
 !
     if(target_%name_.eq.'integrate_density') then 
-
-       call algorithm%integrate_density()
-
-    else 
 !
-       call out_%error("Only integration is suported")
-       Stop
+       call algorithm%integrate_density()
+!
+    elseif(target_%name_.eq.'aceptor_donor') then
+!
+       call algorithm%eet_aceptor_donor()
+!
+    elseif(target_%name_.eq.'aceptor_np') then
+!
+       !call algorithm%FRET_aceptor_donor()
+       call out_%error("aceptor_np not supported")
+!
+    elseif(target_%name_.eq.'aceptor_np_donor') then
+!
+       !call algorithm%FRET_aceptor_donor()
+       call out_%error("aceptor_np_donor not supported")
 !
     endif
 !

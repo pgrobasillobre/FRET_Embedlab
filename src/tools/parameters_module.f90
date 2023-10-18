@@ -17,6 +17,8 @@ module parameters_module
     real(dp), parameter                      :: six    = 6.0d0
     real(dp), parameter                      :: seven  = 7.0d0
     real(dp), parameter                      :: eight  = 8.0d0
+!
+    real(dp), parameter                      :: QMscrnFact = 0.2d0
 !    
     real(dp), parameter                      :: pi     = four*atan(one)
 !    
