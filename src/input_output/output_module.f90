@@ -3,7 +3,8 @@ module output_module
 !      
 !   Module output
 !
-!!!    use parameters_module
+    use target_module
+    use parameters_module
 !!!    use string_manipulation_module
 !!!    use array_manipulation_module
 !
@@ -17,26 +18,20 @@ module output_module
 !
     type out_type
 !
-!!      integer  :: unit_info = 8 ! unit of the info file
       integer  :: iunit = 12 ! unit of the file
 !!      integer  :: ivrb  = 0  ! Verbose modality 
-!!!
-!!      logical  :: exists = .false.
-!!!
+!
       character (len=12)  :: sticks = "(1x,80(1h-))"
       character (len=200) :: filename
-!!      character (len=200) :: info_file
-!!      character (len=200) :: what
-!!!
+!
       contains
-!!!
+!
       procedure :: out_file_fill
       procedure :: print_banner
+      procedure :: print_density_integral
 !!      procedure :: print_matrix
       procedure :: warning
       procedure :: error
-!!      procedure :: clean_up_scratch
-!!      procedure :: make_targz
 !
     end type out_type
 !    
@@ -66,7 +61,7 @@ module output_module
 !
      implicit none
 !     
-!    print banner nanoFQ  
+!    print banner FRET Embedlab 
 !
      class(out_type)  :: out_
 !
@@ -78,7 +73,7 @@ module output_module
      Write(out_%iunit,'(11x,a)') "      | |    | | \ \| |____   | |                      "
      Write(out_%iunit,'(11x,a)') "      |_|    |_|  \_\______|  |_|                      "
      Write(out_%iunit,'(a)') " "
-     Write(out_%iunit,'(11x,a)') "       ______           _              _ _             "
+     Write(out_%iunit,'(11x,a)') "       ______           _              _ _       _     "
      Write(out_%iunit,'(11x,a)') "      |  ____|         | |            | | |     | |    "
      Write(out_%iunit,'(11x,a)') "      | |__   _ __ ___ | |__   ___  __| | | __ _| |__  "
      Write(out_%iunit,'(11x,a)') "      |  __| | '_ ` _ \| '_ \ / _ \/ _` | |/ _` | '_ \ "
@@ -235,104 +230,55 @@ module output_module
      endif
 !       
    end subroutine error
-!----------------------------------------------------------------------
-!!!   subroutine clean_up_scratch(out_)
-!!!!   
-!!!     implicit none
-!!!!
-!!!!    cleaning up scratch
-!!!!
-!!!     class(out_type)  :: out_
-!!!!
-!!!     write(out_%iunit,out_%sticks)
-!!!     write(out_%iunit,'(/ a /)') ' I am cleaning up the backup (*.nanofq.bk)'
-!!!     write(out_%iunit,out_%sticks)
-!!!     call system('rm *.nanofq.bk')
-!!!!    
-!!!   end subroutine clean_up_scratch
-!!!!-----------------------------------------------------------------------
-!!!   subroutine make_targz(out_)
-!!!!   
-!!!     implicit none 
-!!!!
-!!!!    create tar.gz archive 
-!!!!
-!!!     class(out_type)  :: out_
-!!!!     
-!!!!    internal variables
-!!!!     
-!!!     integer :: iost
-!!!     integer :: unit_freq
-!!!     integer :: unit_info = 8
-!!!!     
-!!!     character(len=100)  :: line_file_freq
-!!!     character(len=100)  :: file_csv
-!!!     character(len=100)  :: file_info
-!!!     character(len=100)  :: file_tar
-!!!     character(len=318)  :: command
-!!!!     
-!!!     logical             :: exist_csv
-!!!     logical             :: exist_freq =.false.
-!!!     logical             :: info_freq_exist =.false.
-!!!!
-!!!     write(file_info,'(a)') out_%filename(1:len_trim(out_%filename)-4) // '.info'
-!!!     write(file_csv,'(a)') out_%filename(1:len_trim(out_%filename)-4) // '.csv'
-!!!     Inquire(file=file_csv,exist=exist_csv)     
-!!!!     
-!!!!    check if freq file exists
-!!!!     
-!!!     call execute_command_line('for i in *.freq ; do test -f "$i" '// &
-!!!                               '&& echo "exists one or more files" > info_freq.txt && break; done')
-!!!     inquire(file="info_freq.txt",exist=info_freq_exist)
-!!!     if(info_freq_exist) then
-!!!        unit_freq = 13
-!!!        Open(unit=unit_freq,file="info_freq.txt",status="OLD",IOSTAT=IOST,ERR=02)
-!!!!
-!!!             read(unit_freq,'(a)') line_file_freq
-!!!             if(index(line_file_freq,"exists one or more files").gt.0) exist_freq = .true.
-!!!!    
-!!!        02   Continue      
-!!!        Close(unit_freq)
-!!!        call execute_command_line("rm info_freq.txt")
-!!!     endif
-!!!!
-!!!!      
-!!!     Open(unit=unit_info,file=file_info,status="OLD",IOSTAT=IOST, &
-!!!          ACCESS='APPEND',ERR=03)
-!!!!
-!!!          write(unit_info,out_%sticks)
-!!!          write(unit_info,'(24x,a)') 'Normal termination of nanoFQ'
-!!!          write(unit_info,out_%sticks)
-!!!!    
-!!!     03   Continue      
-!!!     Close(unit_info)
-!!!!
-!!!     write(file_tar,'(a)') out_%filename(1:len_trim(out_%filename)-4) // '.tar.gz'
-!!!!
-!!!     if(exist_csv) then 
-!!!        if(exist_freq) then
-!!!           command = "tar -czf "//file_tar//" "//file_info//" "//file_csv//" *.freq"
-!!!        else
-!!!           command = "tar -czf "//file_tar//" "//file_info//" "//file_csv
-!!!        endif
-!!!     else
-!!!        if(exist_freq) then
-!!!           command = "tar -czf "//file_tar//" "//file_info//" *.freq"
-!!!        else
-!!!           command = "tar -czf "//file_tar//" "//file_info
-!!!        endif
-!!!     endif
-!!!!
-!!!     call execute_command_line(trim(command))
-!!!     call execute_command_line("rm "//file_info)
-!!!     if(exist_freq) call execute_command_line("rm *freq")
-!!!!
-!!!     If(out_%ivrb.ge.1) then
-!!!        write(out_%iunit,'(1x,a)') "Created file tar  : "//file_tar
-!!!        write(out_%iunit,out_%sticks) 
-!!!     endif
-!!!!
-!!!!
-!!!   end subroutine make_targz
 !-----------------------------------------------------------------------
+   subroutine print_density_integral(out_,natoms,nx,ny,nz,dx,dy,dz,xmin,ymin,zmin,nelectrons,integral)
+!   subroutine print_density_integral(out_,cube)
+!
+!
+     implicit none
+!     
+!    print density integral
+!
+!
+!    type (density_type), intent(in)  :: cube 
+
+     integer,  intent(in)         :: natoms,nelectrons,nx,ny,nz
+     real(dp), intent(in)         :: dx,dy,dz
+     real(dp), intent(in)         :: xmin,ymin,zmin
+     real(dp), intent(in)         :: integral
+!
+     class(out_type)  :: out_
+!
+!    formats
+!
+     1000 Format(3x,I5,1x,E15.7,1x,E15.7,1x,E15.7)
+!
+     Write(out_%iunit,'(a)') " "
+     Write(out_%iunit,'(22x,a)') '       Density Information                    ' 
+     Write(out_%iunit,'(a)') " "
+     Write(out_%iunit,out_%sticks) 
+     Write(out_%iunit,'(a)') " "
+     Write(out_%iunit,'(3x,a)') "Density File: "//trim(target_%density_file)
+     Write(out_%iunit,'(a)') " "
+     Write(out_%iunit,'(3x,a)') "Density Grid (CUBE format): "
+     Write(out_%iunit,'(a)') " "
+     Write(out_%iunit, 1000) natoms, xmin, ymin, zmin
+     Write(out_%iunit, 1000) nx,   dx, zero, zero
+     Write(out_%iunit, 1000) ny, zero,   dy, zero
+     Write(out_%iunit, 1000) nz, zero, zero,   dz
+     Write(out_%iunit,'(a)') " " 
+     Write(out_%iunit,*)     "     Total number of grid points: ", nx*ny*nz
+     Write(out_%iunit,'(a)') " " 
+     Write(out_%iunit,'(a)') "    ============================================================"
+     Write(out_%iunit,*) "    Integrated electron density --> ", integral
+     Write(out_%iunit,*) "    Total electrons in molecule --> ", nelectrons
+     Write(out_%iunit,'(a)') "    ============================================================"
+     Write(out_%iunit,'(a)') " " 
+     Write(out_%iunit,out_%sticks) 
+
+     Flush(out_%iunit)
+!
+!
+   end subroutine print_density_integral
+!----------------------------------------------------------------------
 end module output_module

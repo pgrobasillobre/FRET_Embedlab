@@ -4,6 +4,7 @@ use input_module
 use output_module
 use time_module
 use target_module
+use algorithm_module
 !
 !$ use omp_lib
 !
@@ -27,9 +28,9 @@ use target_module
 !                       Program by Pablo Grobas Illobre
 !                    with contributions by Sveva Sodomaco
 !                             
-!                       For any problem write to:
-!                          pgrobasillobre@sns.it
-! 
+!                         For any problem write to:
+!                            pgrobasillobre@sns.it
+!   
 !---------------------------------------------------------------------------
 !
 implicit none
@@ -50,21 +51,17 @@ open(unit=out_%iunit,file=out_%filename,status="unknown")
 !
     call inp_%print_input_info()
 !
-! CASES FRET
 !
-!!!    if(field_%static) then 
-!!!!
-!!!       call algorithm%solve_static_field()
-!!!!
-!!!    else if(field_%dynamic) then
-!!!!
-!!!       call algorithm%solve_dynamic_field()
-!!!!
-!!!    else 
-!!!!
-!!!       call algorithm%solve_ground_state()
-!!!!
-!!!    endif
+    if(target_%name_.eq.'integrate_density') then 
+
+       call algorithm%integrate_density()
+
+    else 
+!
+       call out_%error("Only integration is suported")
+       Stop
+!
+    endif
 !
 !
     call time%finish("total")
