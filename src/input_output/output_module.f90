@@ -71,12 +71,19 @@ module output_module
      class(out_type)  :: out_
 !
      Write(out_%iunit,out_%sticks) 
-     Write(out_%iunit,'(22x,a)') "                                      "
-     Write(out_%iunit,'(22x,a)') "           =============              "
-     Write(out_%iunit,'(22x,a)') "           FRET EMBEDLAB              "
-     Write(out_%iunit,'(22x,a)') "           =============              "
-     Write(out_%iunit,'(22x,a)') "                                      "
-     Write(out_%iunit,'(22x,a)') "                                      "
+     Write(out_%iunit,'(11x,a)') "       ______ _____  ______ _______                    " 
+     Write(out_%iunit,'(11x,a)') "      |  ____|  __ \|  ____|__   __|                   "                           
+     Write(out_%iunit,'(11x,a)') "      | |__  | |__) | |__     | |                      "
+     Write(out_%iunit,'(11x,a)') "      |  __| |  _  /|  __|    | |                      "
+     Write(out_%iunit,'(11x,a)') "      | |    | | \ \| |____   | |                      "
+     Write(out_%iunit,'(11x,a)') "      |_|    |_|  \_\______|  |_|                      "
+     Write(out_%iunit,'(a)') " "
+     Write(out_%iunit,'(11x,a)') "       ______           _              _ _             "
+     Write(out_%iunit,'(11x,a)') "      |  ____|         | |            | | |     | |    "
+     Write(out_%iunit,'(11x,a)') "      | |__   _ __ ___ | |__   ___  __| | | __ _| |__  "
+     Write(out_%iunit,'(11x,a)') "      |  __| | '_ ` _ \| '_ \ / _ \/ _` | |/ _` | '_ \ "
+     Write(out_%iunit,'(11x,a)') "      | |____| | | | | | |_) |  __/ (_| | | (_| | |_) |"
+     Write(out_%iunit,'(11x,a)') "      |______|_| |_| |_|_.__/ \___|\__,_|_|\__,_|_.__/ "
      Write(out_%iunit,'(a)') " "
      Write(out_%iunit,out_%sticks) 
      Write(out_%iunit,'(a)') " "

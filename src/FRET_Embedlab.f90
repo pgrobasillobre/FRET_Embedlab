@@ -4,16 +4,24 @@ use input_module
 use output_module
 use time_module
 use target_module
-!!use general_module
-!$ use omp_lib
-!---------------------------------------------------------------------------
-!                                                        
-!                             FRET EMBEDLAB                                                      
-!                                                        
-!                                                        
-!                                                        
-!                                                        
 !
+!$ use omp_lib
+!
+!---------------------------------------------------------------------------
+!                ______ _____  ______ _______                    
+!               |  ____|  __ \|  ____|__   __|                   
+!               | |__  | |__) | |__     | |                      
+!               |  __| |  _  /|  __|    | |                      
+!               | |    | | \ \| |____   | |                      
+!               |_|    |_|  \_\______|  |_|                      
+!
+!                ______           _              _ _       _
+!               |  ____|         | |            | | |     | |    
+!               | |__   _ __ ___ | |__   ___  __| | | __ _| |__  
+!               |  __| | '_ ` _ \| '_ \ / _ \/ _` | |/ _` | '_ \ 
+!               | |____| | | | | | |_) |  __/ (_| | | (_| | |_) |
+!               |______|_| |_| |_|_.__/ \___|\__,_|_|\__,_|_.__/ 
+!                                                    
 !---------------------------------------------------------------------------
 !
 !                       Program by Pablo Grobas Illobre
@@ -23,6 +31,7 @@ use target_module
 !                          pgrobasillobre@sns.it
 ! 
 !---------------------------------------------------------------------------
+!
 implicit none
 !
 call inp_%get_arguments()
@@ -39,10 +48,10 @@ open(unit=out_%iunit,file=out_%filename,status="unknown")
 !
     call inp_%read_() 
 !
-!
     call inp_%print_input_info()
 !
 ! CASES FRET
+!
 !!!    if(field_%static) then 
 !!!!
 !!!       call algorithm%solve_static_field()
