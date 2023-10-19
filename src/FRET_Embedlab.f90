@@ -66,8 +66,7 @@ open(unit=out_%iunit,file=out_%filename,status="unknown")
 !
     elseif(target_%name_.eq.'aceptor_np_donor') then
 !
-       !call algorithm%FRET_aceptor_donor()
-       call out_%error("aceptor_np_donor not supported")
+       call algorithm%aceptor_np_donor()
 !
     endif
 !

@@ -365,28 +365,34 @@ module output_module
      Write(out_%iunit,'(18x,a)') '                  RESULTS                    ' 
      Write(out_%iunit,'(a)') " " 
      Write(out_%iunit,out_%sticks) 
+     Write(out_%iunit,'(a)') " "
 !
      if(PRESENT(aceptor_donor_coulomb)) then
-        Write(out_%iunit,'(a)') " "
         Write(out_%iunit,'(5x,a,e15.6,a)') "Aceptor-Donor Coulomb :  ", aceptor_donor_coulomb, '  a.u.'
         Write(out_%iunit,'(5x,a,e15.6,a)') "Aceptor-Donor Overlap :  ", aceptor_donor_overlap, '  a.u.'
         v_tot(1) = aceptor_donor_coulomb + aceptor_donor_overlap
-        Write(out_%iunit,'(30x,a)') " -------------------------------------------"
      endif
 !
      if(PRESENT(aceptor_np_int)) then
-        Write(out_%iunit,'(a)') " "
+        !Write(out_%iunit,'(a)') " "
         Write(out_%iunit,'(5x,a,e15.6,a,e15.6,a)') "Aceptor-NP Interaction:  ", aceptor_np_int(1), '    + ',&
-                                                                                aceptor_np_int(2) , ' j  a.u.'
-        v_tot(1) = aceptor_np_int(1)
-        v_tot(2) = aceptor_np_int(2)
+                                                                                aceptor_np_int(2) , ' i  a.u.'
+        v_tot(1) = v_tot(1) + aceptor_np_int(1)
+        v_tot(2) = v_tot(2) + aceptor_np_int(2)
      endif
 !
      v_mod = dsqrt(DOT_PRODUCT(v_tot,v_tot))
 !
-     if (.not.PRESENT(aceptor_np_int)) &
-         Write(out_%iunit,'(5x,a,e15.6,a,e15.6,a)') "Total Potential       :  ", v_tot(1), '    + ', v_tot(2), ' i  a.u.'
-     !Write(out_%iunit,'(5x,a,e15.6,a)') "Total Potential Modulus:", v_mod, ' a.u.'
+     if (target_%name_.ne.'aceptor_np') then
+         if (target_%name_.eq.'aceptor_np_donor') then 
+            Write(out_%iunit,'(30x,a)') " --------------------------------------------"
+            Write(out_%iunit,'(5x,a,e15.6,a,e15.6,a)') "Total Potential       :  ", v_tot(1), '    + ', v_tot(2), ' i  a.u.'
+         elseif (target_%name_.eq.'aceptor_donor') then 
+            Write(out_%iunit,'(30x,a)') " ---------------------"
+            Write(out_%iunit,'(5x,a,e15.6,a)') "Total Potential       :  ", v_tot(1), '  a.u.'
+         endif
+         !Write(out_%iunit,'(5x,a,e15.6,a)') "Total Potential Modulus:", v_mod, ' a.u.'
+     endif
 !
      Write(out_%iunit,'(a)') " " 
      if(target_%name_.ne.'aceptor_np') then

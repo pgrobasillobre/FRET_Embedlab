@@ -355,8 +355,6 @@ module input_module
      write(out_%iunit,'(a)') ""
      !write(out_%iunit,'(23x,a,i1)') "Verbose       : ", out_%ivrb
 
-
-
      if(target_%name_.eq."integrate_density") then
         write(out_%iunit,'(23x,a)') "Density File: "//trim(target_%density_file)
 
@@ -367,7 +365,6 @@ module input_module
         write(out_%iunit,'(23x,a,e11.4)') "Omega_0          = ", target_%omega_0
         write(out_%iunit,'(23x,a,e11.4)') "Spectral Overlap = ", target_%spectral_overlap
 
-
      elseif(target_%name_.eq."aceptor_np") then
         write(out_%iunit,'(23x,a)') "Aceptor Density  : "//trim(target_%aceptor_density)
         write(out_%iunit,'(23x,a)') "Nanoparticle File: "//trim(target_%nanoparticle)
@@ -377,8 +374,8 @@ module input_module
         write(out_%iunit,'(23x,a)') "Donor   Density   : "//trim(target_%donor_density)
         write(out_%iunit,'(23x,a)') "Nanoparticle File : "//trim(target_%nanoparticle)
         write(out_%iunit,'(a)')
-        write(out_%iunit,'(23x,a)') "Omega_0           = ", target_%omega_0
-        write(out_%iunit,'(23x,a)') "Spectral Overlap  = ", target_%spectral_overlap
+        write(out_%iunit,'(23x,a,e11.4)') "Omega_0           = ", target_%omega_0
+        write(out_%iunit,'(23x,a,e11.4)') "Spectral Overlap  = ", target_%spectral_overlap
 
      endif
 
