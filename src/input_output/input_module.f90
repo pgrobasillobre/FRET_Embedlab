@@ -221,8 +221,10 @@ module input_module
      logical :: donor_density         = .false.
      logical :: nanoparticle          = .false.
      logical :: omega_0               = .false.
+     logical :: spectral_overlap      = .false.
 !
      target_%omega_0 = zero
+     target_%spectral_overlap = zero
 !
      rewind(inp_%iunit)
 !
@@ -266,6 +268,13 @@ module input_module
                  call check_float(out_%iunit,line_what,line_keyword)
                  read(line_keyword,'(f25.16)') target_%omega_0
 
+              elseif(line_what.eq.'spectral overlap') then
+                 spectral_overlap = .true.
+
+                 call check_float(out_%iunit,line_what,line_keyword)
+                 read(line_keyword,'(f25.16)') target_%spectral_overlap
+
+
               else  
                  call out_%error( 'Input entry "'//trim(line)//'" not recognized')
 
@@ -297,6 +306,10 @@ module input_module
         if (target_%omega_0 < zero) call out_%error("Omega_0 cannot be negative")
         if (target_%omega_0 < 1E-14) call out_%error("Aceptor-donor calculation requested but no Omega_0 in input")
 !
+        if (target_%spectral_overlap < zero) call out_%error("Spectral overlap cannot be negative")
+        if (target_%spectral_overlap < 1E-14)&
+           call out_%error("Aceptor-donor calculation requested but no spectral overlap in input")
+!
      elseif(aceptor_density .and. nanoparticle .and. .not. donor_density) then
 !
         target_%name_ = "aceptor_np"
@@ -306,6 +319,10 @@ module input_module
         target_%name_ = "aceptor_np_donor"
         if (target_%omega_0 < zero) call out_%error("Omega_0 cannot be negative")
         if (target_%omega_0 < 1E-14) call out_%error("Aceptor-NP-donor calculation requested but no Omega_0 in input")
+!
+        if (target_%spectral_overlap < zero) call out_%error("Spectral overlap cannot be negative")
+        if (target_%spectral_overlap < 1E-14)&
+           call out_%error("Aceptor-NP-donor calculation requested but no spectral overlap in input")
 !
      else
 !         
@@ -328,36 +345,44 @@ module input_module
      write(out_%iunit,'(23x,a)') "Input  File: "//trim(inp_%filename)
      write(out_%iunit,'(23x,a)') "Output File: "//trim(out_%filename)
      write(out_%iunit,'(/,23x,a,i5)') "OMP Threads: ", parallel%n_threads_OMP
-     !write(out_%iunit,'(a)') ""
+     write(out_%iunit,'(a)') ""
      write(out_%iunit,out_%sticks) 
-     !write(out_%iunit,'(a)') ""
+!
+!    general informations
+!
+     write(out_%iunit,'(a)') ""
+     write(out_%iunit,'(23x,a)') "Calculation --> "//trim(target_%name_)
+     write(out_%iunit,'(a)') ""
+     !write(out_%iunit,'(23x,a,i1)') "Verbose       : ", out_%ivrb
+
 
 
      if(target_%name_.eq."integrate_density") then
         write(out_%iunit,'(23x,a)') "Density File: "//trim(target_%density_file)
 
      elseif(target_%name_.eq."aceptor_donor") then
-        write(out_%iunit,'(23x,a)') "Aceptor Density: "//trim(target_%aceptor_density)
-        write(out_%iunit,'(23x,a)') "Donor   Density: "//trim(target_%donor_density)
+        write(out_%iunit,'(23x,a)') "Aceptor Density : "//trim(target_%aceptor_density)
+        write(out_%iunit,'(23x,a)') "Donor   Density : "//trim(target_%donor_density)
+        write(out_%iunit,'(a)')
+        write(out_%iunit,'(23x,a,e11.4)') "Omega_0          = ", target_%omega_0
+        write(out_%iunit,'(23x,a,e11.4)') "Spectral Overlap = ", target_%spectral_overlap
+
 
      elseif(target_%name_.eq."aceptor_np") then
         write(out_%iunit,'(23x,a)') "Aceptor Density  : "//trim(target_%aceptor_density)
         write(out_%iunit,'(23x,a)') "Nanoparticle File: "//trim(target_%nanoparticle)
 
      elseif(target_%name_.eq."aceptor_np_donor") then
-        write(out_%iunit,'(23x,a)') "Aceptor Density  : "//trim(target_%aceptor_density)
-        write(out_%iunit,'(23x,a)') "Donor   Density  : "//trim(target_%donor_density)
-        write(out_%iunit,'(23x,a)') "Nanoparticle File: "//trim(target_%nanoparticle)
+        write(out_%iunit,'(23x,a)') "Aceptor Density   : "//trim(target_%aceptor_density)
+        write(out_%iunit,'(23x,a)') "Donor   Density   : "//trim(target_%donor_density)
+        write(out_%iunit,'(23x,a)') "Nanoparticle File : "//trim(target_%nanoparticle)
+        write(out_%iunit,'(a)')
+        write(out_%iunit,'(23x,a)') "Omega_0           = ", target_%omega_0
+        write(out_%iunit,'(23x,a)') "Spectral Overlap  = ", target_%spectral_overlap
 
      endif
 
      write(out_%iunit,'(a)') ""
-!
-!    general informations
-!
-!     write(out_%iunit,out_%sticks) 
-     write(out_%iunit,'(23x,a)') "Calculation --> "//trim(target_%name_)
-     !write(out_%iunit,'(23x,a,i1)') "Verbose       : ", out_%ivrb
      write(out_%iunit,out_%sticks) 
 !     
      flush(out_%iunit)

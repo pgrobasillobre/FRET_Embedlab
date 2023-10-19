@@ -307,23 +307,32 @@ module output_module
 !
 !
 !    internal variables
+! 
+     real(dp), dimension(2)  :: v_tot ! 1: real, 2: imaginary
 !
-     real(dp)            :: v_tot
+     real(dp)                :: v_mod
 !
      v_tot = zero
 !
      Write(out_%iunit,'(a)') " " 
-     Write(out_%iunit,'(18x,a)') '              RESULTS (a.u.)                    ' 
+     Write(out_%iunit,'(18x,a)') '                  RESULTS                    ' 
      Write(out_%iunit,'(a)') " " 
      Write(out_%iunit,out_%sticks) 
      if(PRESENT(aceptor_donor_coulomb)) then
         Write(out_%iunit,'(a)') " "
-        Write(out_%iunit,'(5x,a,e15.6)') "Aceptor-Donor Coulomb: ", aceptor_donor_coulomb
-        Write(out_%iunit,'(5x,a,e15.6)') "Aceptor-Donor Overlap: ", aceptor_donor_overlap
-        v_tot = v_tot + aceptor_donor_coulomb + aceptor_donor_overlap
+        Write(out_%iunit,'(5x,a,e15.6,a)') "Aceptor-Donor Coulomb:  ", aceptor_donor_coulomb, '  a.u.'
+        Write(out_%iunit,'(5x,a,e15.6,a)') "Aceptor-Donor Overlap:  ", aceptor_donor_overlap, '  a.u.'
+        v_tot(1) = aceptor_donor_coulomb + aceptor_donor_overlap
      endif
-     Write(out_%iunit,'(5x,a)') "---------------"
-     Write(out_%iunit,'(5x,a,e15.6)') "Total Potential: ", v_tot
+!
+     v_mod = dsqrt(DOT_PRODUCT(v_tot,v_tot))
+     Write(out_%iunit,'(30x,a)') " ------------------------------------"
+     Write(out_%iunit,'(5x,a,e15.6,e15.6,a)') "Total Potential      :  ", v_tot(1), v_tot(2), ' i  a.u.'
+     !Write(out_%iunit,'(5x,a,e15.6,a)') "Total Potential Modulus:", v_mod, ' a.u.'
+     Write(out_%iunit,'(a)') " " 
+     if(target_%name_.ne.'aceptor_np') then
+        Write(out_%iunit,'(5x,a,e15.6,a)') "Keet:", two * pi * (v_mod**two) * target_%spectral_overlap, '  a.u.'
+     endif
      Write(out_%iunit,'(a)') " " 
      Write(out_%iunit,out_%sticks) 
      Flush(out_%iunit)
