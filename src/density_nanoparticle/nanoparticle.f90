@@ -3,8 +3,9 @@ module nanoparticle_module
 !      
 !   Module nanoparticle
 !
-!!    use output_module
+    use output_module
 !!    use target_module
+    use string_manipulation_module
     use parameters_module
 !
     Implicit None
@@ -15,11 +16,11 @@ module nanoparticle_module
 !
     type nanoparticle_type
 ! 
-      integer                                :: natoms
+      integer                                   :: natoms
 !
-      real(dp), dimension(:),   allocatable  :: q
-      real(dp), dimension(:,:), allocatable  :: mu
-      real(dp), dimension(:,:), allocatable  :: xyz
+      real(dp), dimension(:,:),   allocatable  :: q
+      real(dp), dimension(:,:,:), allocatable  :: mu
+      real(dp), dimension(:,:), allocatable    :: xyz
 !
       logical :: charges, dipoles
 !
@@ -29,78 +30,132 @@ module nanoparticle_module
 !
    contains
 !----------------------------------------------------------------------
-!!!   subroutine read_nanoparticle(infile, np)
-!!!!
-!!!!    Read input np file
-!!!!
-!!!     implicit none
-!!!!
-!!!     character(len=*),    intent(in)   :: infile
-!!!     type (nanoparticle_type), intent(out)  :: np
-!!!!
-!!!!
-!!!!    internal variables
-!!!!
-!!!     integer                         :: IIn
-!!!     integer                         :: i,j
-!!!     integer                         :: iost
-!!!!
-!!!     IIn = 21
-!!!!
-!!!!    Read variables
-!!!     open (unit=IIn, file=trim(infile), status="old", action="read", iostat=iost,err=01)
-!!!     read(IIn,'(A)') np%str1
-!!!     read(IIn,'(A)') np%str2
-!!!     read(IIn,*)     np%natoms, np%xmin,       np%ymin,       np%zmin
-!!!     read(IIn,*)     np%nx,     np%dx
-!!!     read(IIn,*)     np%ny,     np%dummy_real, np%dy
-!!!     read(IIn,*)     np%nz,     np%dummy_real, np%dummy_real, np%dz
-!!!!
-!!!     allocate(np%atomic_number(np%natoms),np%atomic_charge(np%natoms),&
-!!!              np%x(np%natoms),np%y(np%natoms),np%z(np%natoms),np%rho(np%nx,np%ny,np%nz))
-!!!!
-!!!     np%atomic_number = zero
-!!!     np%atomic_charge = zero
-!!!     np%x = zero 
-!!!     np%y = zero
-!!!     np%z = zero
-!!!     np%rho = zero
-!!!     np%nelectrons = 0
-!!!!
-!!!     do i=1,np%natoms
-!!!        read(IIn,*) np%atomic_number(i),np%atomic_charge(i),np%x(i),np%y(i),np%z(i) 
-!!!        np%nelectrons = np%nelectrons + np%atomic_number(i)
-!!!     enddo
-!!!!
-!!!     do i=1,np%nx
-!!!        do j=1,np%ny
-!!!           read(IIn,*) np%rho(i,j,:)
-!!!        enddo
-!!!     enddo  
-!!!!
-!!!     np%rho = np%rho*np%dx*np%dy*np%dz ! weight nanoparticle by np volume
-!!!!
-!!!     01 continue
-!!!     close(IIn)
-!!!!
-!!!   end subroutine read_nanoparticle
+   subroutine read_nanoparticle(infile, np)
+!
+!    Read input np file
+!
+     implicit none
+!
+     character(len=*),    intent(in)        :: infile
+     type (nanoparticle_type), intent(out)  :: np
+!
+!
+!    internal variables
+!
+     character(len=200) :: line
+!
+     integer :: nlines
+     integer :: num_string_initial, num_string_end, dum
+     integer :: IIn
+     integer :: i,j
+     integer :: iost
+!
+     logical :: found_string
+!
+     np%charges = .false.
+     np%dipoles = .false.
+!
+     IIn = 21
+!
+     open (unit=IIn, file=trim(infile), status="old", action="read", iostat=iost,err=01)
+!
+!      Check number of lines
+       Rewind(IIn) 
+       call get_number_lines(IIn,nlines)
+!
+!      Check number of entries for FRET quantities
+       Rewind(IIn) 
+       call go_to_string(IIn,fret_start,found_string,nlines,num_string_initial)
+!
+       if(.not.found_string) then
+          call out_%error('No FRET charges/dipoles found in "'//trim(infile)//'" input')
+       endif
+!
+       Rewind(IIn) 
+       call go_to_string(IIn,fret_end,found_string,nlines,num_string_end)
+!
+       if(.not.found_string) then
+          call out_%error('No end for FRET charges/dipoles found in "'//trim(infile)//'" input')
+       endif
+!
+       np%natoms = num_string_end - num_string_initial - 2
+!
+!      Check if we have charges or charges + dipoles
+       Rewind(IIn) 
+       call go_to_string(IIn,charges_header,np%charges,nlines,dum)
+       if (.not.np%charges) call out_%error("ONLY CHARGES ARE SUPPORTED || NOT DIPOLES YET ")
+!
+       call allocate_nanoparticle(np)
+!
+       Rewind(IIn) 
+       call go_to_string(IIn,charges_header,found_string,nlines,dum)
+!
+       do i = 1, np%natoms
+!
+         read(IIn,'(a)') line
+!       
+         if(len_trim(line).eq.0) then
+            call out_%error("Blank line found in corrupt FRET charges/dipoles file: "//trim(infile))
+         endif
+!
+         !print *, line
+         if(np%charges) then
+            read(line,'(5(e20.10, 5x))') np%q(i,1), np%q(i,2), np%xyz(1,i), np%xyz(2,i), np%xyz(3,i)
+         elseif(np%dipoles) then
+            call out_%error("charges+dipoles not yet supported")
+         endif
+         !write(*,'(a,5(e20.10, 5x))'), ' ', np%q(i,1), np%q(i,2), np%xyz(1,i), np%xyz(2,i), np%xyz(3,i)
+         !print *, ''
+         !print *, ''
+!
+       enddo
+!
+     01 continue
+     close(IIn)
+!
+   end subroutine read_nanoparticle
 !----------------------------------------------------------------------
-!!   subroutine delete_nanoparticle(np)
-!!!
-!!!    Read input np file
-!!!
-!!     implicit none
-!!!
-!!     type (nanoparticle_type), intent(inout)  :: np
-!!!
-!!     deallocate(np%atomic_number)
-!!     deallocate(np%atomic_charge)
-!!     deallocate(np%x)
-!!     deallocate(np%y)
-!!     deallocate(np%z)
-!!     deallocate(np%rho)
-!!!
-!!   end subroutine delete_nanoparticle
+   subroutine allocate_nanoparticle(np)
+!
+!    Read input np file
+!
+     implicit none
+!
+     type (nanoparticle_type), intent(inout)  :: np
+!
+     allocate(np%xyz(3,np%natoms))
+!
+     if (np%charges .and. .not. np%dipoles) then 
+        allocate(np%q(np%natoms,2))
+
+     elseif (np%dipoles .and. .not. np%charges) then
+        allocate(np%mu(3,np%natoms,2))
+
+     else
+        call out_%error("Not recognised whether a charges or charges + dipoles is requested")
+     endif
+!
+   end subroutine allocate_nanoparticle
+!----------------------------------------------------------------------
+   subroutine delete_nanoparticle(np)
+!
+!    Read input np file
+!
+     implicit none
+!
+     type (nanoparticle_type), intent(inout)  :: np
+!
+     deallocate(np%xyz)
+!
+     if (np%charges .and. .not. np%dipoles) then 
+        deallocate(np%q)
+
+     elseif (np%dipoles .and. .not. np%charges) then
+        deallocate(np%mu)
+
+     endif
+!
+   end subroutine delete_nanoparticle
 !----------------------------------------------------------------------
 end module nanoparticle_module
 

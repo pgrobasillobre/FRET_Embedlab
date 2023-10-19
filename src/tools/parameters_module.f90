@@ -41,5 +41,10 @@ module parameters_module
 !
     real(dp), parameter                      :: fermi_velocity = 0.4573138778d0
 !
+    character(len=200), parameter            :: fret_start = '# fret quantities ------------------------#'
+    character(len=200), parameter            :: fret_end   = '# end fret quantities ------------------------'
+    character(len=200), parameter            :: charges_header ='#        q_re                     q_im                    coords_x&
+                                                                           &                 coords_y                 coords_z'
+!
 !-----------------------------------------------------------------------
 end module parameters_module

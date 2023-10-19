@@ -4,6 +4,7 @@ module integrals_module
 !   Module integrals
 !
     use density_module
+    use nanoparticle_module
     use target_module
     use parameters_module
 !
@@ -17,6 +18,7 @@ module integrals_module
 ! 
       real(dp)                  :: aceptor_donor_coulomb
       real(dp)                  :: aceptor_donor_overlap
+      real(dp), dimension(2)    :: aceptor_np_int !1: real, 2: imaginary
 !
     end type integrals_type
 !
@@ -109,6 +111,83 @@ module integrals_module
      integrals%aceptor_donor_overlap = -target_%omega_0 * integrals%aceptor_donor_overlap
 !
   end subroutine eet_aceptor_donor_integral 
+!----------------------------------------------------------------------
+   subroutine aceptor_nanoparticle_interaction_integral(integrals,aceptor,np)
+!
+!    Compute donor-aceptor potential for EET rate calculation
+!
+     implicit none
+!
+     type (density_type), intent(in)      :: aceptor
+     type (nanoparticle_type), intent(in) :: np
+!
+     type (integrals_type), intent(out)   :: integrals
+!
+!
+!    internal variables
+!
+     real(dp) :: x_a,y_a,z_a !position of aceptor
+     real(dp) :: r(3)        !aceptor-np position     
+     real(dp) :: dist        
+     real(dp) :: invdst 
+     real(dp) :: sf,sf0,screen_pot !for screening
+!
+     integer  :: i,j,k,l
+!
+     integrals%aceptor_np_int = zero
+!
+     r   = zero
+!
+!    aceptor
+     do i = 1, aceptor%nx
+        !Write(*,'(4x,a6,i6,a7,i6)') ' Cycle ', i, ' out of ', aceptor%nx
+        x_a = aceptor%xmin + aceptor%dx*(i-1)
+        do j = 1, aceptor%ny
+           y_a = aceptor%ymin + aceptor%dy*(j-1)
+           do k = 1, aceptor%nz
+              z_a = aceptor%zmin + aceptor%dz*(k-1)
+!
+!             nanoparticle
+              do l = 1, np%natoms
+!
+                 r(1) = (x_a-np%xyz(1,l))
+                 r(2) = (y_a-np%xyz(2,l))
+                 r(3) = (z_a-np%xyz(3,l))
+!
+                 dist = dsqrt(DOT_PRODUCT(r,r))
+!
+!                Skip when grid points are coincident to avoid instabilities
+                 if (dist.le.1.0e-14) then
+                    go to 10
+                 else
+                    invdst = one/dist
+                 endif
+!
+!                Screening function 
+                 sf  = dist / QMscrnFact
+!
+                 sf0        = erf(sf)
+                 screen_pot = sf0
+!
+!                Integrate rho * q (imaginary charges)
+!                  --> the density has been already weigthed by the cube volume
+!
+!                WE HAVE TO UNDERSTAND IF THE DENSITY HAS THE PROPER SIGN
+!
+                 integrals%aceptor_np_int(1) = integrals%aceptor_np_int(1) +&
+                                               aceptor%rho(i,j,k) * np%q(l,1) * invdst * screen_pot
+!
+                 integrals%aceptor_np_int(2) = integrals%aceptor_np_int(2) +&
+                                               aceptor%rho(i,j,k) * np%q(l,2) * invdst * screen_pot
+!
+                 10 continue                  
+!
+              enddo
+           enddo
+        enddo
+     enddo
+!
+  end subroutine aceptor_nanoparticle_interaction_integral 
 !----------------------------------------------------------------------
 end module integrals_module
 

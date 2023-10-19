@@ -30,6 +30,7 @@ module output_module
       procedure :: out_file_fill
       procedure :: print_banner
       procedure :: print_density
+      procedure :: print_nanoparticle
       procedure :: print_results_integrals
 !!      procedure :: print_matrix
       procedure :: warning
@@ -239,7 +240,7 @@ module output_module
 !
      implicit none
 !     
-!    print density integral
+!    print density information
 !
 !
 !!    type (density_type), intent(in)  :: cube 
@@ -292,7 +293,52 @@ module output_module
 !
    end subroutine print_density
 !-----------------------------------------------------------------------
-   subroutine print_results_integrals(out_,aceptor_donor_coulomb,aceptor_donor_overlap)
+   subroutine print_nanoparticle(out_,natoms,xyz)
+!
+     implicit none
+!     
+!    print nanoparticle information
+!
+!
+     integer,  intent(in)                       :: natoms
+     real(dp), dimension(3,natoms), intent(in)  :: xyz
+
+     class(out_type)  :: out_
+!
+!    internal variables
+!
+     integer :: i
+!
+!    formats
+!
+     character(len=76) :: format_1 = "(13x,'Atom',15x,'X',19x,'Y',19x,'Z')"
+     character(len=50) :: format_2 = "(12x,a4,1x,3(f20.6))"
+!
+     Write(out_%iunit,'(a)') " "
+     Write(out_%iunit,'(21x,a)') '     Nanoparticle Geometry (Ang)                    ' 
+     Write(out_%iunit,'(a)') " "
+
+     Write(out_%iunit,out_%sticks) 
+     Write(out_%iunit,format_1)
+     Write(out_%iunit,out_%sticks) 
+
+     Write(out_%iunit,'(a)') " "
+     do i = 1, natoms
+        write(out_%iunit,format_2) 'Xx', xyz(1,i)*ToAng, &
+                                         xyz(2,i)*ToAng, &
+                                         xyz(3,i)*ToAng
+     enddo
+     Write(out_%iunit,'(a)') " "
+     Write(out_%iunit,out_%sticks) 
+
+     Flush(out_%iunit)
+!
+!
+   end subroutine print_nanoparticle
+!-----------------------------------------------------------------------
+ 
+   subroutine print_results_integrals(out_,aceptor_donor_coulomb,aceptor_donor_overlap,&
+                                      aceptor_np_int)
 !
 !    print integral results
 !
@@ -302,8 +348,9 @@ module output_module
 !     
      class(out_type)  :: out_
 !
-     real(dp), optional  :: aceptor_donor_coulomb
-     real(dp), optional  :: aceptor_donor_overlap
+     real(dp), optional                :: aceptor_donor_coulomb
+     real(dp), optional                :: aceptor_donor_overlap
+     real(dp), dimension(2), optional  :: aceptor_np_int
 !
 !
 !    internal variables
@@ -318,22 +365,34 @@ module output_module
      Write(out_%iunit,'(18x,a)') '                  RESULTS                    ' 
      Write(out_%iunit,'(a)') " " 
      Write(out_%iunit,out_%sticks) 
+!
      if(PRESENT(aceptor_donor_coulomb)) then
         Write(out_%iunit,'(a)') " "
-        Write(out_%iunit,'(5x,a,e15.6,a)') "Aceptor-Donor Coulomb:  ", aceptor_donor_coulomb, '  a.u.'
-        Write(out_%iunit,'(5x,a,e15.6,a)') "Aceptor-Donor Overlap:  ", aceptor_donor_overlap, '  a.u.'
+        Write(out_%iunit,'(5x,a,e15.6,a)') "Aceptor-Donor Coulomb :  ", aceptor_donor_coulomb, '  a.u.'
+        Write(out_%iunit,'(5x,a,e15.6,a)') "Aceptor-Donor Overlap :  ", aceptor_donor_overlap, '  a.u.'
         v_tot(1) = aceptor_donor_coulomb + aceptor_donor_overlap
+        Write(out_%iunit,'(30x,a)') " -------------------------------------------"
+     endif
+!
+     if(PRESENT(aceptor_np_int)) then
+        Write(out_%iunit,'(a)') " "
+        Write(out_%iunit,'(5x,a,e15.6,a,e15.6,a)') "Aceptor-NP Interaction:  ", aceptor_np_int(1), '    + ',&
+                                                                                aceptor_np_int(2) , ' j  a.u.'
+        v_tot(1) = aceptor_np_int(1)
+        v_tot(2) = aceptor_np_int(2)
      endif
 !
      v_mod = dsqrt(DOT_PRODUCT(v_tot,v_tot))
-     Write(out_%iunit,'(30x,a)') " ------------------------------------"
-     Write(out_%iunit,'(5x,a,e15.6,e15.6,a)') "Total Potential      :  ", v_tot(1), v_tot(2), ' i  a.u.'
+!
+     if (.not.PRESENT(aceptor_np_int)) &
+         Write(out_%iunit,'(5x,a,e15.6,a,e15.6,a)') "Total Potential       :  ", v_tot(1), '    + ', v_tot(2), ' i  a.u.'
      !Write(out_%iunit,'(5x,a,e15.6,a)') "Total Potential Modulus:", v_mod, ' a.u.'
+!
      Write(out_%iunit,'(a)') " " 
      if(target_%name_.ne.'aceptor_np') then
         Write(out_%iunit,'(5x,a,e15.6,a)') "Keet:", two * pi * (v_mod**two) * target_%spectral_overlap, '  a.u.'
+        Write(out_%iunit,'(a)') " " 
      endif
-     Write(out_%iunit,'(a)') " " 
      Write(out_%iunit,out_%sticks) 
      Flush(out_%iunit)
 !
