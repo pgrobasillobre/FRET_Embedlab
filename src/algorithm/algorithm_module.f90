@@ -76,7 +76,8 @@ module algorithm_module
 !
      call eet_aceptor_donor_integral(integrals_calc,aceptor=aceptor_density,donor=donor_density)
 !
-     call out_%print_results_integrals(aceptor_donor_coulomb=integrals_calc%aceptor_donor_coulomb)
+     call out_%print_results_integrals(aceptor_donor_coulomb=integrals_calc%aceptor_donor_coulomb,&
+                                       aceptor_donor_overlap=integrals_calc%aceptor_donor_overlap)
 !
 
 

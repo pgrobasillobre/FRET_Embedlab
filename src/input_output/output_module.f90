@@ -292,17 +292,25 @@ module output_module
 !
    end subroutine print_density
 !-----------------------------------------------------------------------
-   subroutine print_results_integrals(out_,aceptor_donor_coulomb)
+   subroutine print_results_integrals(out_,aceptor_donor_coulomb,aceptor_donor_overlap)
 !
-!
-     implicit none
-!     
 !    print integral results
 !
+     implicit none
+!
+!    input variables
+!     
+     class(out_type)  :: out_
 !
      real(dp), optional  :: aceptor_donor_coulomb
+     real(dp), optional  :: aceptor_donor_overlap
 !
-     class(out_type)  :: out_
+!
+!    internal variables
+!
+     real(dp)            :: v_tot
+!
+     v_tot = zero
 !
      Write(out_%iunit,'(a)') " " 
      Write(out_%iunit,'(18x,a)') '              RESULTS (a.u.)                    ' 
@@ -310,11 +318,14 @@ module output_module
      Write(out_%iunit,out_%sticks) 
      if(PRESENT(aceptor_donor_coulomb)) then
         Write(out_%iunit,'(a)') " "
-        Write(out_%iunit,'(a52,e15.6)') "   Aceptor-Donor Coulomb Potential: ", aceptor_donor_coulomb
-        Write(out_%iunit,'(a)') " " 
+        Write(out_%iunit,'(5x,a,e15.6)') "Aceptor-Donor Coulomb: ", aceptor_donor_coulomb
+        Write(out_%iunit,'(5x,a,e15.6)') "Aceptor-Donor Overlap: ", aceptor_donor_overlap
+        v_tot = v_tot + aceptor_donor_coulomb + aceptor_donor_overlap
      endif
+     Write(out_%iunit,'(5x,a)') "---------------"
+     Write(out_%iunit,'(5x,a,e15.6)') "Total Potential: ", v_tot
+     Write(out_%iunit,'(a)') " " 
      Write(out_%iunit,out_%sticks) 
-
      Flush(out_%iunit)
 !
 !

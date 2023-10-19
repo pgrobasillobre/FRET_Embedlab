@@ -17,7 +17,7 @@ module integrals_module
     type integrals_type
 ! 
       real(dp)                  :: aceptor_donor_coulomb
-!      real(dp)                  :: aceptor_donor_overlap
+      real(dp)                  :: aceptor_donor_overlap
 !
     end type integrals_type
 !
@@ -48,12 +48,13 @@ module integrals_module
      integer  :: i,j,k,l,m,n
 !
      integrals%aceptor_donor_coulomb = zero
+     integrals%aceptor_donor_overlap = zero
 !
      r   = zero
 !
 !    aceptor
      do i = 1, aceptor%nx
-        print *, i, 'out of', aceptor%nx
+        Write(*,'(4x,a6,i6,a7,i6)') ' Cycle ', i, ' out of ', aceptor%nx
         x_a = aceptor%xmin + aceptor%dx*(i-1)
         do j = 1, aceptor%ny
            y_a = aceptor%ymin + aceptor%dy*(j-1)
@@ -89,8 +90,12 @@ module integrals_module
 !
 !                      Integrate charges as rho_aceptor * rho_donor * (1/dist) * screening
 !                        --> the density has been already weigthed by the cube volume
-                       integrals%aceptor_donor_coulomb = integrals%aceptor_donor_coulomb + &
+                       integrals%aceptor_donor_coulomb = integrals%aceptor_donor_coulomb +&
                                                          aceptor%rho(i,j,k) * donor%rho(l,m,n) * invdst * screen_pot
+!
+!                      Aceptor-donor overlap 
+                       integrals%aceptor_donor_overlap = integrals%aceptor_donor_overlap +&
+                                                         aceptor%rho(i,j,k) * donor%rho(l,m,n)
 !
                        10 continue                  
 !
@@ -101,7 +106,8 @@ module integrals_module
         enddo
      enddo
 !
-print *, 'integral -->', integrals%aceptor_donor_coulomb
+!    Weight overlap by -omega_0
+     integrals%aceptor_donor_overlap = -target_%omega_0 * integrals%aceptor_donor_overlap
 !
   end subroutine eet_aceptor_donor_integral 
 !----------------------------------------------------------------------

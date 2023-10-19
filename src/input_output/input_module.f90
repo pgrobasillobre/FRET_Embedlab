@@ -220,6 +220,9 @@ module input_module
      logical :: aceptor_density       = .false.
      logical :: donor_density         = .false.
      logical :: nanoparticle          = .false.
+     logical :: omega_0               = .false.
+!
+     target_%omega_0 = zero
 !
      rewind(inp_%iunit)
 !
@@ -257,8 +260,15 @@ module input_module
                  target_%nanoparticle = line_keyword
                  if (.not. file_exists(line_keyword)) call out_%error('File "'//trim(line_keyword)//'" not found')
 
+              elseif(line_what.eq.'omega_0') then
+                 omega_0 = .true.
+
+                 call check_float(out_%iunit,line_what,line_keyword)
+                 read(line_keyword,'(f25.16)') target_%omega_0
+
               else  
                  call out_%error( 'Input entry "'//trim(line)//'" not recognized')
+
               endif
 !
             else ! : in input
@@ -284,6 +294,8 @@ module input_module
      elseif(donor_density .and. aceptor_density .and. .not. nanoparticle) then
 !
         target_%name_ = "aceptor_donor"
+        if (target_%omega_0 < zero) call out_%error("Omega_0 cannot be negative")
+        if (target_%omega_0 < 1E-14) call out_%error("Aceptor-donor calculation requested but no Omega_0 in input")
 !
      elseif(aceptor_density .and. nanoparticle .and. .not. donor_density) then
 !
@@ -292,6 +304,8 @@ module input_module
      elseif(aceptor_density .and. nanoparticle .and. donor_density) then
 !
         target_%name_ = "aceptor_np_donor"
+        if (target_%omega_0 < zero) call out_%error("Omega_0 cannot be negative")
+        if (target_%omega_0 < 1E-14) call out_%error("Aceptor-NP-donor calculation requested but no Omega_0 in input")
 !
      else
 !         
