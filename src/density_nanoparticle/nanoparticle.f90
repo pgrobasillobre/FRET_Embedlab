@@ -100,7 +100,7 @@ module nanoparticle_module
 !
          !print *, line
          if(np%charges) then
-            read(line,'(5(e20.10, 5x))') np%q(i,1), np%q(i,2), np%xyz(1,i), np%xyz(2,i), np%xyz(3,i)
+            read(line,'(5(f25.16, 5x))') np%q(i,1), np%q(i,2), np%xyz(1,i), np%xyz(2,i), np%xyz(3,i)
          elseif(np%dipoles) then
             call out_%error("charges+dipoles not yet supported")
          endif
