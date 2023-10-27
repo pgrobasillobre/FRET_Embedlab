@@ -15,15 +15,16 @@ module density_module
 !
     type density_type
 ! 
-      character (len=200)                     :: str1,str2
+      character (len=200)                       :: str1,str2
 !
-      integer                                 :: natoms,nx,ny,nz
-      integer                                 :: nelectrons
-      integer, dimension(:), allocatable      :: atomic_number
+      integer                                   :: natoms,nx,ny,nz
+      integer                                   :: nelectrons
+      integer, dimension(:), allocatable        :: atomic_number
 !
-      real(dp)                                :: xmin,ymin,zmin,dx,dy,dz,dummy_real
-      real(dp), dimension(:), allocatable     :: atomic_charge,x,y,z
-      real(dp), dimension(:,:,:), allocatable :: rho 
+      real(dp)                                  :: xmin,ymin,zmin,dx,dy,dz,dummy_real
+      real(dp), dimension(:), allocatable       :: atomic_charge,x,y,z
+      real(dp), dimension(:,:,:), allocatable   :: rho
+      real(dp), dimension(:,:,:,:), allocatable :: xyz 
 !
     end type density_type
 !
@@ -44,8 +45,10 @@ module density_module
 !    internal variables
 !
      integer                         :: IIn
-     integer                         :: i,j
+     integer                         :: i,j,k
      integer                         :: iost
+!
+     real(dp)                        :: x_tmp, y_tmp, z_tmp
 !
      IIn = 21
 !
@@ -59,7 +62,8 @@ module density_module
      read(IIn,*)     cube%nz,     cube%dummy_real, cube%dummy_real, cube%dz
 !
      allocate(cube%atomic_number(cube%natoms),cube%atomic_charge(cube%natoms),&
-              cube%x(cube%natoms),cube%y(cube%natoms),cube%z(cube%natoms),cube%rho(cube%nx,cube%ny,cube%nz))
+              cube%x(cube%natoms),cube%y(cube%natoms),cube%z(cube%natoms),cube%rho(cube%nx,cube%ny,cube%nz), &
+              cube%xyz(3,cube%nx,cube%ny,cube%nz))
 !
      cube%atomic_number = zero
      cube%atomic_charge = zero
@@ -81,6 +85,26 @@ module density_module
      enddo  
 !
      cube%rho = cube%rho*cube%dx*cube%dy*cube%dz ! weight density by cube volume
+!
+!    Calculate coordinates of the cube (otherwise parallelization problems)
+!
+     cube%xyz = zero
+!
+     do i = 1, cube%nx
+        x_tmp = cube%xmin + cube%dx*(i-1)
+        do j = 1, cube%ny
+           y_tmp = cube%ymin + cube%dy*(j-1)
+           do k = 1, cube%nz
+              z_tmp = cube%zmin + cube%dz*(k-1)
+!
+              cube%xyz(1,i,j,k) = x_tmp 
+              cube%xyz(2,i,j,k) = y_tmp
+              cube%xyz(3,i,j,k) = z_tmp
+!
+           enddo
+        enddo
+     enddo
+!
 !
      01 continue
      close(IIn)

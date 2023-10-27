@@ -20,6 +20,8 @@ module algorithm_module
 !
     type :: algorithm_type
 !
+       integer :: n_threads_OMP
+!
        contains
 !
        procedure :: integrate_density
