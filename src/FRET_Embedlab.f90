@@ -39,7 +39,8 @@ call inp_%get_arguments()
 call time%initialize()
 call time%start("total")
 
-!$ call omp_set_num_threads(algorithm%n_threads_OMP) 
+!$ call omp_set_num_threads(parallel%n_threads_OMP) 
+print *, parallel%n_threads_OMP
 
 open(unit=out_%iunit,file=out_%filename,status="unknown")
 !

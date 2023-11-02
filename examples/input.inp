@@ -20,11 +20,13 @@
 !     1. Calculate integral of a cube file 
 !      
 !        integrate cube file: density_file 
+!        cutoff: float
 !
 !     2. Calculate aceptor_donor K_eet
 !      
 !        aceptor density: aceptor_density_file
 !        donor density: donor_density_file
+!        cutoff: float
 !        omega_0: float
 !        spectral_overlap: float
 !
@@ -32,12 +34,14 @@
 !      
 !        aceptor density: aceptor_density_file
 !        nanoparticle: np_adf.log
+!        cutoff: float
 !
 !
 !     4. calculate aceptor_np_donor K_eet
 !      
 !        aceptor density: aceptor_density_file
 !        donor density: donor_density_file
+!        cutoff: float
 !        nanoparticle: np_adf.log
 !        omega_0: float
 !        spectral_overlap: float
@@ -47,5 +51,6 @@
 !aceptor density: 
 !donor density: 
 !nanoparticle: 
+!cutoff:
 !omega_0: 
 !spectral overlap: 

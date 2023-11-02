@@ -18,6 +18,7 @@ module target_module
 !
       character(len=200) :: name_, density_file, aceptor_density, donor_density, nanoparticle      
 !
+      real(dp)           :: cutoff 
       real(dp)           :: omega_0                  
       real(dp)           :: spectral_overlap
 !      

@@ -31,15 +31,8 @@ module parameters_module
 !
 !   nearest neighbour distances
 !
-    real(dp), parameter                      :: RAg0 = 2.885d0 * ToBohr
-    real(dp), parameter                      :: RAu0 = 2.885d0 * ToBohr
-    real(dp), parameter                      :: RNa0 = 6.9226100144600462d0 ! 3.66328d0 * ToBohr
-    real(dp), parameter                      :: RC0  = 1.418d0 * ToBohr
-    real(dp), parameter                      :: ROH0 = 1.65d0
-    real(dp), parameter                      :: RAl0 = 2.861d0 * ToBohr
-    real(dp), parameter                      :: RCu0 = 2.543463d0 * ToBohr
 !
-    real(dp), parameter                      :: fermi_velocity = 0.4573138778d0
+    real(dp), parameter                      :: ncellmax = 1000000 
 !
     character(len=200), parameter            :: fret_start = '# fret quantities ------------------------#'
     character(len=200), parameter            :: fret_end   = '# end fret quantities ------------------------'

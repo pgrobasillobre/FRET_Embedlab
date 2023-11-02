@@ -213,6 +213,7 @@ module input_module
      character(len=200) :: line_keyword
      character(len=200) :: target_name = ""
 !
+     logical :: cutoff                = .false.
      logical :: integrate_cube        = .false.
      logical :: fret_donor_aceptor    = .false.
      logical :: fret_donor_aceptor_NP = .false.
@@ -223,6 +224,7 @@ module input_module
      logical :: omega_0               = .false.
      logical :: spectral_overlap      = .false.
 !
+     target_%cutoff  = zero
      target_%omega_0 = zero
      target_%spectral_overlap = zero
 !
@@ -243,39 +245,51 @@ module input_module
               line_keyword = trim(adjustl( line(index(line,":")+1:200) ))
 !        
               if(line_what.eq.'integrate cube file')  then 
+!
                  integrate_cube  = .true.
                  target_%density_file = line_keyword
                  if (.not. file_exists(line_keyword)) call out_%error('File "'//trim(line_keyword)//'" not found')
-
+!
               elseif(line_what.eq.'aceptor density') then
+!
                  aceptor_density = .true.
                  target_%aceptor_density = line_keyword
                  if (.not. file_exists(line_keyword)) call out_%error('File "'//trim(line_keyword)//'" not found')
-
+!
               elseif(line_what.eq.'donor density') then
+!
                  donor_density = .true.
                  target_%donor_density = line_keyword
                  if (.not. file_exists(line_keyword)) call out_%error('File "'//trim(line_keyword)//'" not found')
-
+!
               elseif(line_what.eq.'nanoparticle') then
+!
                  nanoparticle = .true.
                  target_%nanoparticle = line_keyword
                  if (.not. file_exists(line_keyword)) call out_%error('File "'//trim(line_keyword)//'" not found')
-
+!
+              elseif(line_what.eq.'cutoff') then
+                 cutoff = .true.
+!
+                 call check_float(out_%iunit,line_what,line_keyword)
+                 read(line_keyword,'(f25.16)') target_%cutoff
+!
+                 if (target_%cutoff .lt. zero) call out_%error("Cutoff cannot be negative")
+!
               elseif(line_what.eq.'omega_0') then
                  omega_0 = .true.
-
+!
                  call check_float(out_%iunit,line_what,line_keyword)
                  read(line_keyword,'(f25.16)') target_%omega_0
-
+!
               elseif(line_what.eq.'spectral overlap') then
                  spectral_overlap = .true.
-
+!
                  call check_float(out_%iunit,line_what,line_keyword)
                  read(line_keyword,'(f25.16)') target_%spectral_overlap
-
-
+!
               else  
+!
                  call out_%error( 'Input entry "'//trim(line)//'" not recognized')
 
               endif
@@ -292,7 +306,12 @@ module input_module
 !
 !    assign the different targets
 !
-     if(integrate_cube .and. aceptor_density .or. integrate_cube .and. donor_density .or. integrate_cube .and. nanoparticle) then         
+     if (.not. cutoff) then
+        call out_%error("Cutoff needed in input")
+!
+     elseif(integrate_cube .and. aceptor_density .or. &
+            integrate_cube .and. donor_density   .or. &
+            integrate_cube .and. nanoparticle) then         
 ! 
         call out_%error( "You are requesting a cube integration with other type of calculation")
 !
