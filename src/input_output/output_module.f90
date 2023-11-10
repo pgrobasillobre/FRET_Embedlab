@@ -368,8 +368,8 @@ module output_module
      Write(out_%iunit,'(a)') " "
 !
      if(PRESENT(aceptor_donor_coulomb)) then
-        Write(out_%iunit,'(5x,a,e15.6,a)') "Aceptor-Donor Coulomb :  ", aceptor_donor_coulomb, '  a.u.'
-        Write(out_%iunit,'(5x,a,e15.6,a)') "Aceptor-Donor Overlap :  ", aceptor_donor_overlap, '  a.u.'
+        Write(out_%iunit,'(5x,a,f25.16,a)') "Aceptor-Donor Coulomb :  ", aceptor_donor_coulomb, '  a.u.'
+        Write(out_%iunit,'(5x,a,f25.16,a)') "Aceptor-Donor Overlap :  ", aceptor_donor_overlap, '  a.u.'
         v_tot(1) = aceptor_donor_coulomb + aceptor_donor_overlap
      endif
 !

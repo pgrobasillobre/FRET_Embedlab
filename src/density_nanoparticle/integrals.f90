@@ -51,7 +51,6 @@ module integrals_module
      real(dp), dimension(:), allocatable   :: rho_aceptor, rho_donor
      real(dp), dimension(:,:), allocatable :: xyz_aceptor, xyz_donor
 !
-     integer :: vector_index
      integer  :: i,j,k,l,m,n
 !
 !    To allocate these quantities internally requires more memory but makes the calculation
@@ -78,6 +77,7 @@ module integrals_module
      !$omp reduction(+:int_coulomb,int_overlap) 
 !    aceptor
      do i = 1, aceptor%n_points_reduced
+!       donor
         do j = 1, donor%n_points_reduced
 !
            r(1) = (xyz_aceptor(1,i)-xyz_donor(1,j))
@@ -146,60 +146,77 @@ module integrals_module
      real(dp) :: invdst 
      real(dp) :: sf,sf0,screen_pot !for screening
 !
-     integer  :: i,j,k,l
+     real(dp), dimension(2) :: aceptor_np_int 
+     real(dp), dimension(:), allocatable   :: rho_aceptor
+     real(dp), dimension(:,:), allocatable :: xyz_aceptor, xyz_np
+     real(dp), dimension(:,:), allocatable :: mm
 !
+     integer  :: i,j,k,l, count_
+!
+!    To allocate these quantities internally requires more memory but makes the calculation
+!    in parallel faster. FORTRAN is slower accessing object-types. 
+     if (np%charges) then
+        allocate(rho_aceptor(aceptor%nx*aceptor%ny*aceptor%nz),   mm(np%natoms,2),&
+                 xyz_aceptor(3,aceptor%n_points_reduced), xyz_np(3,np%natoms))
+     else
+        call out_%error("Aceptor-NP int: ONLY CHARGES SUPORTED")
+     endif
+!
+     xyz_aceptor(1:3,1:aceptor%n_points_reduced) = aceptor%xyz(1:3,1:aceptor%n_points_reduced)
+     xyz_np(1:3,1:np%natoms) = np%xyz(1:3,1:np%natoms)
+!
+     rho_aceptor(1:aceptor%n_points_reduced) = aceptor%rho_reduced(1:aceptor%n_points_reduced)
+!
+     mm(1:np%natoms,1:2) = np%q(1:np%natoms,1:2)
+     if(np%dipoles) then
+        call out_%error("Aceptor-NP int: ONLY CHARGES SUPORTED")
+     endif
+!
+     aceptor_np_int = zero
      integrals%aceptor_np_int = zero
 !
      r   = zero
 !
 !    aceptor
-     do i = 1, aceptor%nx
-        !Write(*,'(4x,a6,i6,a7,i6)') ' Cycle ', i, ' out of ', aceptor%nx
-        x_a = aceptor%xmin + aceptor%dx*(i-1)
-        do j = 1, aceptor%ny
-           y_a = aceptor%ymin + aceptor%dy*(j-1)
-           do k = 1, aceptor%nz
-              z_a = aceptor%zmin + aceptor%dz*(k-1)
+     do i = 1, aceptor%n_points_reduced
+!       nanoparticle
+        do l = 1, np%natoms
 !
-!             nanoparticle
-              do l = 1, np%natoms
+           r(1) = (xyz_aceptor(1,i)-xyz_np(1,l))
+           r(2) = (xyz_aceptor(2,i)-xyz_np(2,l))
+           r(3) = (xyz_aceptor(3,i)-xyz_np(3,l))
 !
-                 r(1) = (x_a-np%xyz(1,l))
-                 r(2) = (y_a-np%xyz(2,l))
-                 r(3) = (z_a-np%xyz(3,l))
+           dist = dsqrt(DOT_PRODUCT(r,r))
 !
-                 dist = dsqrt(DOT_PRODUCT(r,r))
+!          Skip when grid points are coincident to avoid instabilities
+           if (dist.le.1.0e-14) go to 10
 !
-!                Skip when grid points are coincident to avoid instabilities
-                 if (dist.le.1.0e-14) then
-                    go to 10
-                 else
-                    invdst = one/dist
-                 endif
+           invdst = one/dist
 !
-!                Screening function 
-                 sf  = dist / QMscrnFact
+!          Screening function 
+           sf  = dist / QMscrnFact
 !
-                 sf0        = erf(sf)
-                 screen_pot = sf0
+           sf0        = erf(sf)
+           screen_pot = sf0
 !
-!                Integrate rho * q (imaginary charges)
-!                  --> the density has been already weigthed by the cube volume
+!          Integrate rho * q (imaginary charges)
+!            --> the density has been already weigthed by the cube volume
 !
-!                WE HAVE TO UNDERSTAND IF THE DENSITY HAS THE PROPER SIGN
+!          WE HAVE TO UNDERSTAND IF THE DENSITY HAS THE PROPER SIGN
 !
-                 integrals%aceptor_np_int(1) = integrals%aceptor_np_int(1) +&
-                                               aceptor%rho(i,j,k) * np%q(l,1) * invdst * screen_pot
+           aceptor_np_int(1) = aceptor_np_int(1) +&
+                               rho_aceptor(i) * mm(l,1) * invdst * screen_pot
 !
-                 integrals%aceptor_np_int(2) = integrals%aceptor_np_int(2) +&
-                                               aceptor%rho(i,j,k) * np%q(l,2) * invdst * screen_pot
+           aceptor_np_int(2) = aceptor_np_int(2) +&
+                               rho_aceptor(i) * mm(l,2) * invdst * screen_pot
 !
-                 10 continue                  
+           10 continue                  
 !
-              enddo
-           enddo
         enddo
      enddo
+!
+     integrals%aceptor_np_int(1:2) = aceptor_np_int(1:2)
+!
 !
   end subroutine aceptor_nanoparticle_interaction_integral 
 !----------------------------------------------------------------------

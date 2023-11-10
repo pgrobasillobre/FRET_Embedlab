@@ -28,7 +28,7 @@
 !        donor density: donor_density_file
 !        cutoff: float
 !        omega_0: float
-!        spectral_overlap: float
+!        spectral overlap: float
 !
 !     3. Calculate aceptor_np V_int
 !      
@@ -44,7 +44,7 @@
 !        cutoff: float
 !        nanoparticle: np_adf.log
 !        omega_0: float
-!        spectral_overlap: float
+!        spectral overlap: float
 !
 !
 !integrate cube file: 
