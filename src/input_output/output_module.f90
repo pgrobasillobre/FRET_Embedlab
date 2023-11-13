@@ -379,8 +379,8 @@ module output_module
 !
      if(PRESENT(aceptor_np_int)) then
         !Write(out_%iunit,'(a)') " "
-        Write(out_%iunit,'(5x,a,e15.6,a,e15.6,a)') "Aceptor-NP Interaction:  ", aceptor_np_int(1), '    + ',&
-                                                                                aceptor_np_int(2) , ' i  a.u.'
+        Write(out_%iunit,'(5x,a,f25.16,a,f25.16,a)') "Aceptor-NP Interaction:  ", aceptor_np_int(1), '    + ',&
+                                                                                  aceptor_np_int(2) , ' i  a.u.'
         v_tot(1) = v_tot(1) + aceptor_np_int(1)
         v_tot(2) = v_tot(2) + aceptor_np_int(2)
      endif
@@ -389,18 +389,19 @@ module output_module
 !
      if (target_%name_.ne.'aceptor_np') then
          if (target_%name_.eq.'aceptor_np_donor') then 
-            Write(out_%iunit,'(30x,a)') " --------------------------------------------"
-            Write(out_%iunit,'(5x,a,e15.6,a,e15.6,a)') "Total Potential       :  ", v_tot(1), '    + ', v_tot(2), ' i  a.u.'
+            Write(out_%iunit,'(34x,a)') " -------------------------------------------------------------"
+            Write(out_%iunit,'(5x,a,f25.16,a,f25.16,a)') "Total Potential       :  ", v_tot(1), '    + ', v_tot(2), ' i  a.u.'
          elseif (target_%name_.eq.'aceptor_donor') then 
-            Write(out_%iunit,'(30x,a)') " ---------------------"
-            Write(out_%iunit,'(5x,a,e15.6,a)') "Total Potential       :  ", v_tot(1), '  a.u.'
+            Write(out_%iunit,'(35x,a)') " --------------------------"
+            Write(out_%iunit,'(5x,a,f25.16,a)') "Total Potential       :  ", v_tot(1), '  a.u.'
          endif
-         !Write(out_%iunit,'(5x,a,e15.6,a)') "Total Potential Modulus:", v_mod, ' a.u.'
+         Write(out_%iunit,'(a)') " "
+         Write(out_%iunit,'(5x,a,f25.16,a)') "Total Potential Modulus:", v_mod, ' a.u.'
      endif
 !
      Write(out_%iunit,'(a)') " " 
      if(target_%name_.ne.'aceptor_np') then
-        Write(out_%iunit,'(5x,a,e15.6,a)') "Keet:", two * pi * (v_mod**two) * target_%spectral_overlap, '  a.u.'
+        Write(out_%iunit,'(5x,a,f25.16,a)') "Keet:", two * pi * (v_mod**two) * target_%spectral_overlap, '  a.u.'
         Write(out_%iunit,'(a)') " " 
      endif
      Write(out_%iunit,out_%sticks) 
