@@ -118,6 +118,7 @@ module integrals_module
 !    Weigth overlap by -omega_0
      integrals%aceptor_donor_overlap = -target_%omega_0 * int_overlap
 !
+!    Deallocate and exit
 !
      deallocate(rho_aceptor)
      deallocate(rho_donor)
@@ -145,13 +146,13 @@ module integrals_module
      real(dp) :: dist        
      real(dp) :: invdst 
      real(dp) :: sf,sf0,screen_pot !for screening
+     real(dp) :: aceptor_np_int_re, aceptor_np_int_im 
 !
-     real(dp), dimension(2) :: aceptor_np_int 
      real(dp), dimension(:), allocatable   :: rho_aceptor
      real(dp), dimension(:,:), allocatable :: xyz_aceptor, xyz_np
      real(dp), dimension(:,:), allocatable :: mm
 !
-     integer  :: i,j,k,l, count_
+     integer  :: i,j
 !
 !    To allocate these quantities internally requires more memory but makes the calculation
 !    in parallel faster. FORTRAN is slower accessing object-types. 
@@ -172,19 +173,23 @@ module integrals_module
         call out_%error("Aceptor-NP int: ONLY CHARGES SUPORTED")
      endif
 !
-     aceptor_np_int = zero
+     aceptor_np_int_re = zero
+     aceptor_np_int_im = zero
      integrals%aceptor_np_int = zero
 !
      r   = zero
 !
+     !$omp parallel do private(i,j,r,dist,invdst,sf,sf0,screen_pot) &
+     !$omp collapse(1) & 
+     !$omp reduction(+:aceptor_np_int_re,aceptor_np_int_im) 
 !    aceptor
      do i = 1, aceptor%n_points_reduced
 !       nanoparticle
-        do l = 1, np%natoms
+        do j = 1, np%natoms
 !
-           r(1) = (xyz_aceptor(1,i)-xyz_np(1,l))
-           r(2) = (xyz_aceptor(2,i)-xyz_np(2,l))
-           r(3) = (xyz_aceptor(3,i)-xyz_np(3,l))
+           r(1) = (xyz_aceptor(1,i)-xyz_np(1,j))
+           r(2) = (xyz_aceptor(2,i)-xyz_np(2,j))
+           r(3) = (xyz_aceptor(3,i)-xyz_np(3,j))
 !
            dist = dsqrt(DOT_PRODUCT(r,r))
 !
@@ -204,19 +209,28 @@ module integrals_module
 !
 !          WE HAVE TO UNDERSTAND IF THE DENSITY HAS THE PROPER SIGN
 !
-           aceptor_np_int(1) = aceptor_np_int(1) +&
-                               rho_aceptor(i) * mm(l,1) * invdst * screen_pot
+           aceptor_np_int_re = aceptor_np_int_re +&
+                               rho_aceptor(i) * mm(j,1) * invdst * screen_pot
 !
-           aceptor_np_int(2) = aceptor_np_int(2) +&
-                               rho_aceptor(i) * mm(l,2) * invdst * screen_pot
+           aceptor_np_int_im = aceptor_np_int_im +&
+                               rho_aceptor(i) * mm(j,2) * invdst * screen_pot
 !
            10 continue                  
 !
         enddo
      enddo
+     !$omp end parallel do
 !
-     integrals%aceptor_np_int(1:2) = aceptor_np_int(1:2)
+     integrals%aceptor_np_int(1) = aceptor_np_int_re
+     integrals%aceptor_np_int(2) = aceptor_np_int_im
 !
+!
+!    Deallocate and exit
+!
+     deallocate(rho_aceptor)
+     deallocate(mm)
+     deallocate(xyz_aceptor)
+     deallocate(xyz_np)
 !
   end subroutine aceptor_nanoparticle_interaction_integral 
 !----------------------------------------------------------------------

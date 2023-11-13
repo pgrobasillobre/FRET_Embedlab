@@ -112,7 +112,7 @@ module density_module
            do k = 1, cube%nz
               z_tmp = cube%zmin + cube%dz*(k-1)
 !
-              if (cube%n_points_reduced .gt. ncellmax) call out_%error("Increase threshold, huge density to be managed")
+              if (cube%n_points_reduced .gt. ncellmax) call out_%error("Increase cutoff, huge density to be managed")
 !
               if (abs(cube%rho(i,j,k)) .gt. cube%maxdens * target_%cutoff) then
 !
@@ -129,8 +129,6 @@ module density_module
            enddo
         enddo
      enddo
-!
-print *, 'points used:', cube%n_points_reduced
 !
      01 continue
      close(IIn)
@@ -179,10 +177,10 @@ print *, 'points used:', cube%n_points_reduced
         enddo
      enddo
 !
-    call out_%print_density(target_%density_file, cube%natoms,&
-                            cube%nx,cube%ny,cube%nz,          &
-                            cube%dx,cube%dy,cube%dz,          &
-                            cube%xmin,cube%ymin,cube%zmin,    &
+    call out_%print_density(target_%density_file,cube%natoms,cube%n_points_reduced, &
+                            cube%nx,cube%ny,cube%nz,                                &
+                            cube%dx,cube%dy,cube%dz,                                &
+                            cube%xmin,cube%ymin,cube%zmin,                          &
                             cube%nelectrons,integral=integral)
 !
 !!    call out_%print_density(cube)

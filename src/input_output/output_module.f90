@@ -234,7 +234,8 @@ module output_module
 !       
    end subroutine error
 !-----------------------------------------------------------------------
-   subroutine print_density(out_,cube_file,natoms,nx,ny,nz,dx,dy,dz,xmin,ymin,zmin,nelectrons,integral,header)
+   subroutine print_density(out_,cube_file,natoms,n_points_reduced,nx,ny,nz,&
+                            dx,dy,dz,xmin,ymin,zmin,nelectrons,integral,header)
 !   subroutine print_density(out_,cube)
 !
 !
@@ -246,7 +247,7 @@ module output_module
 !!    type (density_type), intent(in)  :: cube 
 !!
      character(len=*), intent(in)  :: cube_file
-     integer,  intent(in)          :: natoms,nelectrons,nx,ny,nz
+     integer,  intent(in)          :: natoms,n_points_reduced,nelectrons,nx,ny,nz
      real(dp), intent(in)          :: dx,dy,dz
      real(dp), intent(in)          :: xmin,ymin,zmin
 
@@ -278,6 +279,7 @@ module output_module
      Write(out_%iunit, 1000) nz, zero, zero,   dz
      Write(out_%iunit,'(a)') " " 
      Write(out_%iunit,*)     "    Total number of grid points: ", nx*ny*nz
+     Write(out_%iunit,*)     "    ---> Reduced density points:", n_points_reduced
      Write(out_%iunit,'(a)') " " 
      if(PRESENT(integral)) then
         Write(out_%iunit,'(a)') "    ======================================================="

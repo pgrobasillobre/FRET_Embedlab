@@ -71,26 +71,26 @@ module algorithm_module
 !
 !    Print aceptor / donor density characteristics
 !
-     call out_%print_density(target_%aceptor_density,aceptor_density%natoms,                 &
-                             aceptor_density%nx,aceptor_density%ny,aceptor_density%nz,       &
-                             aceptor_density%dx,aceptor_density%dy,aceptor_density%dz,       &
-                             aceptor_density%xmin,aceptor_density%ymin,aceptor_density%zmin, &
+     call out_%print_density(target_%aceptor_density,aceptor_density%natoms,aceptor_density%n_points_reduced, &
+                             aceptor_density%nx,aceptor_density%ny,aceptor_density%nz,                        &
+                             aceptor_density%dx,aceptor_density%dy,aceptor_density%dz,                        &
+                             aceptor_density%xmin,aceptor_density%ymin,aceptor_density%zmin,                  &
                              aceptor_density%nelectrons,header='   Aceptor Density Information')
 !
-     call out_%print_density(target_%donor_density,donor_density%natoms,                 &
-                             donor_density%nx,donor_density%ny,donor_density%nz,       &
-                             donor_density%dx,donor_density%dy,donor_density%dz,       &
-                             donor_density%xmin,donor_density%ymin,donor_density%zmin, &
+     call out_%print_density(target_%donor_density,donor_density%natoms,donor_density%n_points_reduced,       &
+                             donor_density%nx,donor_density%ny,donor_density%nz,                              &
+                             donor_density%dx,donor_density%dy,donor_density%dz,                              &
+                             donor_density%xmin,donor_density%ymin,donor_density%zmin,                        &
                              donor_density%nelectrons, header='    Donor Density Information')
 !
 !    Calculate integrals
 !
      call eet_aceptor_donor_integral(integrals_calc,aceptor=aceptor_density,donor=donor_density)
 !
+!    Print results and deallocate
+!
      call out_%print_results_integrals(aceptor_donor_coulomb=integrals_calc%aceptor_donor_coulomb,&
                                        aceptor_donor_overlap=integrals_calc%aceptor_donor_overlap)
-!
-!    Print results and deallocate
 !
      call delete_density(aceptor_density)
      call delete_density(donor_density)
@@ -118,19 +118,19 @@ module algorithm_module
 !
      call out_%print_nanoparticle(nanoparticle%natoms,nanoparticle%xyz)
 !
-     call out_%print_density(target_%aceptor_density,aceptor_density%natoms,                 &
-                             aceptor_density%nx,aceptor_density%ny,aceptor_density%nz,       &
-                             aceptor_density%dx,aceptor_density%dy,aceptor_density%dz,       &
-                             aceptor_density%xmin,aceptor_density%ymin,aceptor_density%zmin, &
+     call out_%print_density(target_%aceptor_density,aceptor_density%natoms,aceptor_density%n_points_reduced, &
+                             aceptor_density%nx,aceptor_density%ny,aceptor_density%nz,                        &
+                             aceptor_density%dx,aceptor_density%dy,aceptor_density%dz,                        &
+                             aceptor_density%xmin,aceptor_density%ymin,aceptor_density%zmin,                  &
                              aceptor_density%nelectrons,header='   Aceptor Density Information')
 !
 !    Calculate integrals
 !
      call aceptor_nanoparticle_interaction_integral(integrals_calc,aceptor=aceptor_density,np=nanoparticle)
 !
-     call out_%print_results_integrals(aceptor_np_int=integrals_calc%aceptor_np_int)
-!
 !    Print results and deallocate
+!
+     call out_%print_results_integrals(aceptor_np_int=integrals_calc%aceptor_np_int)
 !
      call delete_nanoparticle(nanoparticle)
      call delete_density(aceptor_density)
@@ -159,16 +159,16 @@ module algorithm_module
 !
      call out_%print_nanoparticle(nanoparticle%natoms,nanoparticle%xyz)
 !
-     call out_%print_density(target_%aceptor_density,aceptor_density%natoms,                 &
-                             aceptor_density%nx,aceptor_density%ny,aceptor_density%nz,       &
-                             aceptor_density%dx,aceptor_density%dy,aceptor_density%dz,       &
-                             aceptor_density%xmin,aceptor_density%ymin,aceptor_density%zmin, &
+     call out_%print_density(target_%aceptor_density,aceptor_density%natoms,aceptor_density%n_points_reduced, &
+                             aceptor_density%nx,aceptor_density%ny,aceptor_density%nz,                        &
+                             aceptor_density%dx,aceptor_density%dy,aceptor_density%dz,                        &
+                             aceptor_density%xmin,aceptor_density%ymin,aceptor_density%zmin,                  &
                              aceptor_density%nelectrons,header='   Aceptor Density Information')
 !
-     call out_%print_density(target_%donor_density,donor_density%natoms,                 &
-                             donor_density%nx,donor_density%ny,donor_density%nz,       &
-                             donor_density%dx,donor_density%dy,donor_density%dz,       &
-                             donor_density%xmin,donor_density%ymin,donor_density%zmin, &
+     call out_%print_density(target_%donor_density,donor_density%natoms,donor_density%n_points_reduced,       &
+                             donor_density%nx,donor_density%ny,donor_density%nz,                              &
+                             donor_density%dx,donor_density%dy,donor_density%dz,                              &
+                             donor_density%xmin,donor_density%ymin,donor_density%zmin,                        &
                              donor_density%nelectrons, header='    Donor Density Information')
 !
 !    Calculate integrals

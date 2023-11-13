@@ -32,7 +32,7 @@ module parameters_module
 !   nearest neighbour distances
 !
 !
-    real(dp), parameter                      :: ncellmax = 1000000 
+    real(dp), parameter                      :: ncellmax = 10000000 ! Fretty has 1.0E06, we have 1.0E07 
 !
     character(len=200), parameter            :: fret_start = '# fret quantities ------------------------#'
     character(len=200), parameter            :: fret_end   = '# end fret quantities ------------------------'
