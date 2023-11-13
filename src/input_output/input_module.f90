@@ -306,7 +306,7 @@ module input_module
 !
 !    assign the different targets
 !
-     if (.not. cutoff) then
+     if (.not. cutoff .and. .not. integrate_cube) then
         call out_%error("Cutoff needed in input")
 !
      elseif(integrate_cube .and. aceptor_density .or. &
@@ -381,18 +381,22 @@ module input_module
         write(out_%iunit,'(23x,a)') "Aceptor Density : "//trim(target_%aceptor_density)
         write(out_%iunit,'(23x,a)') "Donor   Density : "//trim(target_%donor_density)
         write(out_%iunit,'(a)')
+        write(out_%iunit,'(23x,a,e11.4)') "Cutoff            = ", target_%cutoff
         write(out_%iunit,'(23x,a,e11.4)') "Omega_0          = ", target_%omega_0
         write(out_%iunit,'(23x,a,e11.4)') "Spectral Overlap = ", target_%spectral_overlap
 
      elseif(target_%name_.eq."aceptor_np") then
         write(out_%iunit,'(23x,a)') "Aceptor Density  : "//trim(target_%aceptor_density)
         write(out_%iunit,'(23x,a)') "Nanoparticle File: "//trim(target_%nanoparticle)
+        write(out_%iunit,'(a)')
+        write(out_%iunit,'(23x,a,e11.4)') "Cutoff            = ", target_%cutoff
 
      elseif(target_%name_.eq."aceptor_np_donor") then
         write(out_%iunit,'(23x,a)') "Aceptor Density   : "//trim(target_%aceptor_density)
         write(out_%iunit,'(23x,a)') "Donor   Density   : "//trim(target_%donor_density)
         write(out_%iunit,'(23x,a)') "Nanoparticle File : "//trim(target_%nanoparticle)
         write(out_%iunit,'(a)')
+        write(out_%iunit,'(23x,a,e11.4)') "Cutoff            = ", target_%cutoff
         write(out_%iunit,'(23x,a,e11.4)') "Omega_0           = ", target_%omega_0
         write(out_%iunit,'(23x,a,e11.4)') "Spectral Overlap  = ", target_%spectral_overlap
 

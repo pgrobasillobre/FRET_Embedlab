@@ -21,7 +21,7 @@ grid_points   = 1000  # Number of energy points in the spectral range
 fwhm          = 0.8   # Full Width at Half Maximum (FWHM) in eV 
 
 # --> Conversion factors
-ev_to_cm_min1 = 4.55633E-6 
+ev_to_hartree = 1.0/27.211399
 
 
 # ==============================
@@ -168,7 +168,7 @@ energies_2, gaussian_2 = single_gaussian(grid_points, exc_2, osc_2, fwhm, min_en
 
 # --> Calculate the overlap using numerical integration (area under the product of the two Gaussians)
 
-overlap = np.trapz(gaussian_1 * gaussian_2, energies_1) * ev_to_cm_min1
+overlap = np.trapz(gaussian_1 * gaussian_2, energies_1) 
 
 
 # END TIMER
@@ -176,8 +176,11 @@ end = time.time()
 
 
 print('')
-print('   Spectral Overlap (cm-1): ' + str(overlap))
+print('   Spectral Overlap (a.u.): ' + str(overlap * ev_to_hartree))
+print('                            ')
+print('   Omega_0 (a.u.): ' + str((abs(exc_1 - exc_2)/2.0) * ev_to_hartree))
 print('')
+print('   ----------------------------------')
 print('   NORMAL TERMINATION')
 print('')
 print('   COMPUTATIONAL TIME: ', str(round(end-start,2)), ' s')

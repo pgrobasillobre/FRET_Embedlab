@@ -20,7 +20,6 @@
 !     1. Calculate integral of a cube file 
 !      
 !        integrate cube file: density_file 
-!        cutoff: float
 !
 !     2. Calculate aceptor_donor K_eet
 !      

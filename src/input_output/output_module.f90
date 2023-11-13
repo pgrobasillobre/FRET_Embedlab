@@ -279,13 +279,15 @@ module output_module
      Write(out_%iunit, 1000) nz, zero, zero,   dz
      Write(out_%iunit,'(a)') " " 
      Write(out_%iunit,*)     "    Total number of grid points: ", nx*ny*nz
-     Write(out_%iunit,*)     "    ---> Reduced density points:", n_points_reduced
+     If (target_%name_ .ne. "integrate_density") then
+        Write(out_%iunit,*)     "    ---> Reduced density points:", n_points_reduced
+     Endif
      Write(out_%iunit,'(a)') " " 
      if(PRESENT(integral)) then
-        Write(out_%iunit,'(a)') "    ======================================================="
+        Write(out_%iunit,'(a)') "    ============================================================"
         Write(out_%iunit,*) "    Integrated electron density --> ", integral
         Write(out_%iunit,*) "    Total electrons in molecule --> ", nelectrons
-        Write(out_%iunit,'(a)') "    ======================================================="
+        Write(out_%iunit,'(a)') "    ============================================================"
         Write(out_%iunit,'(a)') " " 
      endif
      Write(out_%iunit,out_%sticks) 
