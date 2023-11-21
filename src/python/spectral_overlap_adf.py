@@ -165,10 +165,14 @@ exc_2, osc_2 = read_adf_tddft_log(adf_2, adf_2_state)
 energies_1, gaussian_1 = single_gaussian(grid_points, exc_1, osc_1, fwhm, min_energy, max_energy)
 energies_2, gaussian_2 = single_gaussian(grid_points, exc_2, osc_2, fwhm, min_energy, max_energy)
 
+# Normalize each Gaussian function
+
+normalized_gaussian_1 = gaussian_1 / np.max(gaussian_1)
+normalized_gaussian_2 = gaussian_2 / np.max(gaussian_2)
 
 # --> Calculate the overlap using numerical integration (area under the product of the two Gaussians)
 
-overlap = np.trapz(gaussian_1 * gaussian_2, energies_1) 
+overlap = np.trapz(normalized_gaussian_1 * normalized_gaussian_2, energies_1) 
 
 
 # END TIMER
@@ -218,15 +222,15 @@ if (plot_gaussians):
    plt.title("Gaussian Convolution\nof TDDFT Excitations",fontsize=fontsize_title, pad=12.0)
 
    # Plot
-   plt.plot(energies_1, gaussian_1, color='red',  label = 'State ' + str(adf_1_state))
-   plt.plot(energies_2, gaussian_2, color='blue', label = 'State ' + str(adf_2_state))
+   plt.plot(energies_1, normalized_gaussian_1, color='red',  label = 'State ' + str(adf_1_state))
+   plt.plot(energies_2, normalized_gaussian_2, color='blue', label = 'State ' + str(adf_2_state))
 
    plt.legend(framealpha=1,fontsize=fontsize_labels)
    plt.grid(True)
 
    ### Calculate the maximum y-values for each Gaussian
-   ##max_y1 = max(gaussian_1)
-   ##max_y2 = max(gaussian_2)
+   ##max_y1 = max(normalized_gaussian_1)
+   ##max_y2 = max(normalized_gaussian_2)
    ##
    ### Plot vertical lines (pulses) from the bottom (0.0) to the maximum y-values
    ##plt.vlines(exc_1, 0.0, max_y1, colors='red',  linestyles='dashed', label='Pulse for Gaussian 1', alpha=0.2)
