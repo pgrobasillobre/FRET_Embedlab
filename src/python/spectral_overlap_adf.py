@@ -53,7 +53,9 @@ def read_command_line(command_line):
    elif sys.argv[1] == '-h' or sys.argv[1] == '-help':
       print('')
       print('')
-      print(' Execution --> python3 overlap_adf.py adf1.log #state adf2.log #state plot_gaussians[optional]')
+      print(' Execution --> python3 overlap_adf.py aceptor.log #state donor.log #state plot_gaussians[optional]')
+      print('')
+      print('    NB: The aceptor log has to be first!')
       print('')
       print('')
       sys.exit()
@@ -167,12 +169,19 @@ energies_2, gaussian_2 = single_gaussian(grid_points, exc_2, osc_2, fwhm, min_en
 
 # Normalize each Gaussian function
 
-normalized_gaussian_1 = gaussian_1 / np.max(gaussian_1)
-normalized_gaussian_2 = gaussian_2 / np.max(gaussian_2)
+normalized_gaussian_1 = gaussian_1 / np.sum(gaussian_1)
+normalized_gaussian_2 = gaussian_2 / np.sum(gaussian_2)
+
+# Rescale one Gaussian function by prefactor freq**4 as overlap = int f(A) * f(B) * w**4 
+normalized_gaussian_1_freq = [x*(y)    for x,y in zip(normalized_gaussian_1,energies_1)]
+normalized_gaussian_2_freq = [x*(y**3) for x,y in zip(normalized_gaussian_2,energies_2)]
+
+# Transform to np array to make the numerical integration
+normalized_gaussian_1_freq_np = np.array(normalized_gaussian_1_freq)
+normalized_gaussian_2_freq_np = np.array(normalized_gaussian_2_freq)
 
 # --> Calculate the overlap using numerical integration (area under the product of the two Gaussians)
-
-overlap = np.trapz(normalized_gaussian_1 * normalized_gaussian_2, energies_1) 
+overlap = np.trapz(normalized_gaussian_1_freq_np * normalized_gaussian_2_freq_np, energies_1) 
 
 
 # END TIMER
@@ -180,7 +189,7 @@ end = time.time()
 
 
 print('')
-print('   Spectral Overlap (a.u.): ' + str(overlap * ev_to_hartree))
+print('   Spectral Overlap (a.u.): ' + str(1.0 / (overlap * ev_to_hartree)))
 print('                            ')
 print('   Omega_0 (a.u.): ' + str((abs(exc_1 - exc_2)/2.0) * ev_to_hartree))
 print('')
@@ -217,13 +226,13 @@ if (plot_gaussians):
    plt.tick_params(axis='y', which='major', labelsize=fontsize_axes)
 
    plt.xlabel("Energy (eV)", fontsize=fontsize_labels, labelpad = 8.0)
-   plt.ylabel("Osc. Strength (eV)", fontsize=fontsize_labels, labelpad=18.0)
+   plt.ylabel("Arbitrary Units", fontsize=fontsize_labels, labelpad=18.0)
 
-   plt.title("Gaussian Convolution\nof TDDFT Excitations",fontsize=fontsize_title, pad=12.0)
+   plt.title("Normalized Gaussian Convolution\nof TDDFT Excitations",fontsize=fontsize_title, pad=12.0)
 
    # Plot
-   plt.plot(energies_1, normalized_gaussian_1, color='red',  label = 'State ' + str(adf_1_state))
-   plt.plot(energies_2, normalized_gaussian_2, color='blue', label = 'State ' + str(adf_2_state))
+   plt.plot(energies_1, normalized_gaussian_1, color='red',  label = 'Aceptor')
+   plt.plot(energies_2, normalized_gaussian_2, color='blue', label = 'Donor')
 
    plt.legend(framealpha=1,fontsize=fontsize_labels)
    plt.grid(True)
