@@ -42,7 +42,7 @@ module nanoparticle_module
 !
 !    internal variables
 !
-     character(len=200) :: line
+     character(len=400) :: line
 !
      integer :: nlines
      integer :: num_string_initial, num_string_end, dum
@@ -83,12 +83,21 @@ module nanoparticle_module
 !      Check if we have charges or charges + dipoles
        Rewind(IIn) 
        call go_to_string(IIn,charges_header,np%charges,nlines,dum)
-       if (.not.np%charges) call out_%error("ONLY CHARGES ARE SUPPORTED || NOT DIPOLES YET ")
+!
+       Rewind(IIn)
+       call go_to_string(IIn,dipoles_header,np%dipoles,nlines,dum)
+!
+       if (.not.np%charges .and. .not.np%dipoles) call out_%error("Charges and/or dipoles not found")
 !
        call allocate_nanoparticle(np)
 !
        Rewind(IIn) 
-       call go_to_string(IIn,charges_header,found_string,nlines,dum)
+!
+       if(np%charges) then !BEM of wFQ case
+          call go_to_string(IIn,charges_header,found_string,nlines,dum)
+       elseif(np%dipoles) then ! wFQFMu case
+          call go_to_string(IIn,dipoles_header,found_string,nlines,dum)
+       endif
 !
        do i = 1, np%natoms
 !
@@ -98,15 +107,15 @@ module nanoparticle_module
             call out_%error("Blank line found in corrupt FRET charges/dipoles file: "//trim(infile))
          endif
 !
-         !print *, line
          if(np%charges) then
             read(line,'(5(f25.16, 5x))') np%q(i,1), np%q(i,2), np%xyz(1,i), np%xyz(2,i), np%xyz(3,i)
+!
          elseif(np%dipoles) then
-            call out_%error("charges+dipoles not yet supported")
+            read(line,'(11(f25.16, 5x))') np%q(i,1),    np%q(i,2),                 &
+                                          np%mu(1,i,1), np%mu(2,i,1), np%mu(3,i,1),&
+                                          np%mu(1,i,2), np%mu(2,i,2), np%mu(3,i,2),&
+                                          np%xyz(1,i),  np%xyz(2,i),  np%xyz(3,i)  
          endif
-         !write(*,'(a,5(e20.10, 5x))'), ' ', np%q(i,1), np%q(i,2), np%xyz(1,i), np%xyz(2,i), np%xyz(3,i)
-         !print *, ''
-         !print *, ''
 !
        enddo
 !
@@ -125,12 +134,11 @@ module nanoparticle_module
 !
      allocate(np%xyz(3,np%natoms))
 !
-     if (np%charges .and. .not. np%dipoles) then 
+     if (np%charges) then 
         allocate(np%q(np%natoms,2))
-
-     elseif (np%dipoles .and. .not. np%charges) then
+     elseif (np%dipoles) then
+        allocate(np%q(np%natoms,2))
         allocate(np%mu(3,np%natoms,2))
-
      else
         call out_%error("Not recognised whether a charges or charges + dipoles is requested")
      endif

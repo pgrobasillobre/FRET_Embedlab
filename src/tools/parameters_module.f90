@@ -38,6 +38,8 @@ module parameters_module
     character(len=200), parameter            :: fret_end   = '# end fret quantities ------------------------'
     character(len=200), parameter            :: charges_header ='#        q_re                     q_im                    coords_x&
                                                                            &                 coords_y                 coords_z'
+    character(len=200), parameter            :: dipoles_header ='#  q_re    q_im   mu_re_x   mu_re_y   mu_re_z   mu_im_x   mu_im_y&
+                                                                            &   mu_im_z   coords_x   coords_y   coords_z'
 !
 !-----------------------------------------------------------------------
 end module parameters_module
