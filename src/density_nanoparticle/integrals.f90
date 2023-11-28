@@ -145,22 +145,24 @@ module integrals_module
      real(dp) :: r(3)        !aceptor-np position     
      real(dp) :: dist        
      real(dp) :: invdst 
-     real(dp) :: sf,sf0,screen_pot !for screening
+     real(dp) :: sf,sf0,sf1,screen_pot, screen_fld !for screening
      real(dp) :: aceptor_np_int_re, aceptor_np_int_im 
 !
-     real(dp), dimension(:), allocatable   :: rho_aceptor
-     real(dp), dimension(:,:), allocatable :: xyz_aceptor, xyz_np
-     real(dp), dimension(:,:), allocatable :: mm
+     real(dp), dimension(:), allocatable     :: rho_aceptor
+     real(dp), dimension(:,:), allocatable   :: xyz_aceptor, xyz_np
+     real(dp), dimension(:,:), allocatable   :: mm_q
+     real(dp), dimension(:,:,:), allocatable :: mm_mu
 !
      integer  :: i,j
 !
 !    To allocate these quantities internally requires more memory but makes the calculation
 !    in parallel faster. FORTRAN is slower accessing object-types. 
      if (np%charges) then
-        allocate(rho_aceptor(aceptor%nx*aceptor%ny*aceptor%nz),   mm(np%natoms,2),&
+        allocate(rho_aceptor(aceptor%nx*aceptor%ny*aceptor%nz),   mm_q(np%natoms,2),&
                  xyz_aceptor(3,aceptor%n_points_reduced), xyz_np(3,np%natoms))
-     else
-        call out_%error("Aceptor-NP int: ONLY CHARGES SUPORTED")
+     else if (np%dipoles) then
+        allocate(rho_aceptor(aceptor%nx*aceptor%ny*aceptor%nz), mm_q(np%natoms,2),  mm_mu(3,np%natoms,2),&
+                 xyz_aceptor(3,aceptor%n_points_reduced), xyz_np(3,np%natoms))
      endif
 !
      xyz_aceptor(1:3,1:aceptor%n_points_reduced) = aceptor%xyz(1:3,1:aceptor%n_points_reduced)
@@ -168,9 +170,11 @@ module integrals_module
 !
      rho_aceptor(1:aceptor%n_points_reduced) = aceptor%rho_reduced(1:aceptor%n_points_reduced)
 !
-     mm(1:np%natoms,1:2) = np%q(1:np%natoms,1:2)
-     if(np%dipoles) then
-        call out_%error("Aceptor-NP int: ONLY CHARGES SUPORTED")
+     if (np%charges) then
+        mm_q(1:np%natoms,1:2) = np%q(1:np%natoms,1:2)
+     else if(np%dipoles) then
+        mm_q(1:np%natoms,1:2) = np%q(1:np%natoms,1:2)
+        mm_mu(1:3,1:np%natoms,1:2) = np%mu(1:3,1:np%natoms,1:2)
      endif
 !
      aceptor_np_int_re = zero
@@ -178,6 +182,8 @@ module integrals_module
      integrals%aceptor_np_int = zero
 !
      r   = zero
+!
+     if (np%dipoles) call out_%error('WE HAVE TO DEBUG THE DIPOLES!!')
 !
      !$omp parallel do private(i,j,r,dist,invdst,sf,sf0,screen_pot) &
      !$omp collapse(1) & 
@@ -203,17 +209,35 @@ module integrals_module
 !
            sf0        = erf(sf)
            screen_pot = sf0
+           if (np%dipoles) then
+              sf1 = ( two * sf / sqrtpi ) * EXP(-(sf**2))
+              screen_fld = sf0 - sf1
+           endif
 !
 !          Integrate rho * q (imaginary charges)
 !            --> the density has been already weigthed by the cube volume
 !
 !          WE HAVE TO UNDERSTAND IF THE DENSITY HAS THE PROPER SIGN
 !
-           aceptor_np_int_re = aceptor_np_int_re +&
-                               rho_aceptor(i) * mm(j,1) * invdst * screen_pot
+           if (np%charges) then
+              aceptor_np_int_re = aceptor_np_int_re +&
+                                  rho_aceptor(i) * mm_q(j,1) * invdst * screen_pot
 !
-           aceptor_np_int_im = aceptor_np_int_im +&
-                               rho_aceptor(i) * mm(j,2) * invdst * screen_pot
+              aceptor_np_int_im = aceptor_np_int_im +&
+                                  rho_aceptor(i) * mm_q(j,2) * invdst * screen_pot
+           else if (np%dipoles) then 
+              aceptor_np_int_re = aceptor_np_int_re +&
+                                  rho_aceptor(i) * mm_q(j,1) * invdst * screen_pot -&
+                                  rho_aceptor(i) * mm_mu(1,j,1) * r(1) * (invdst**3) * screen_fld -&
+                                  rho_aceptor(i) * mm_mu(2,j,1) * r(2) * (invdst**3) * screen_fld -&
+                                  rho_aceptor(i) * mm_mu(3,j,1) * r(3) * (invdst**3) * screen_fld 
+!
+              aceptor_np_int_im = aceptor_np_int_im +&
+                                  rho_aceptor(i) * mm_q(j,2) * invdst * screen_pot -&
+                                  rho_aceptor(i) * mm_mu(1,j,2) * r(1) * (invdst**3) * screen_fld -&
+                                  rho_aceptor(i) * mm_mu(2,j,2) * r(2) * (invdst**3) * screen_fld -&
+                                  rho_aceptor(i) * mm_mu(3,j,2) * r(3) * (invdst**3) * screen_fld 
+           end if
 !
            10 continue                  
 !
@@ -227,10 +251,11 @@ module integrals_module
 !
 !    Deallocate and exit
 !
-     deallocate(rho_aceptor)
-     deallocate(mm)
-     deallocate(xyz_aceptor)
-     deallocate(xyz_np)
+     if (allocated(rho_aceptor)) deallocate(rho_aceptor)
+     if (allocated(mm_q)       ) deallocate(mm_q)
+     if (allocated(mm_mu)      ) deallocate(mm_mu)
+     if (allocated(xyz_aceptor)) deallocate(xyz_aceptor)
+     if (allocated(xyz_np)     ) deallocate(xyz_np)       
 !
   end subroutine aceptor_nanoparticle_interaction_integral 
 !----------------------------------------------------------------------
