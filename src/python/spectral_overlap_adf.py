@@ -189,7 +189,7 @@ end = time.time()
 
 
 print('')
-print('   Spectral Overlap (a.u.): ' + str(1.0 / (overlap * ev_to_hartree)))
+print('   Spectral Overlap (a.u.)^-1: ' + str(1.0 / (overlap * ev_to_hartree)))
 print('                            ')
 print('   Omega_0 (a.u.): ' + str((abs(exc_1 - exc_2)/2.0) * ev_to_hartree))
 print('')
