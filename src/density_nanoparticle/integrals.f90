@@ -54,7 +54,7 @@ module integrals_module
      integer  :: i,j,k,l,m,n
 !
 !    To allocate these quantities internally requires more memory but makes the calculation
-!    in parallel faster. FORTRAN is slower accessing object-types. 
+!    in parallel faster. FORTRAN has problems accessing object-types in parallell. 
      allocate(rho_aceptor(aceptor%n_points_reduced),   rho_donor(donor%n_points_reduced),&
               xyz_aceptor(3,aceptor%n_points_reduced), xyz_donor(3,donor%n_points_reduced))
 !
@@ -156,7 +156,7 @@ module integrals_module
      integer  :: i,j
 !
 !    To allocate these quantities internally requires more memory but makes the calculation
-!    in parallel faster. FORTRAN is slower accessing object-types. 
+!    in parallel faster. FORTRAN has problems accessing object-types in parallell. 
      if (np%charges) then
         allocate(rho_aceptor(aceptor%nx*aceptor%ny*aceptor%nz),   mm_q(np%natoms,2),&
                  xyz_aceptor(3,aceptor%n_points_reduced), xyz_np(3,np%natoms))
@@ -182,8 +182,13 @@ module integrals_module
      integrals%aceptor_np_int = zero
 !
      r   = zero
+     sf  = zero
+     sf0 = zero
+     sf1 = zero 
+     screen_pot = zero
+     screen_fld = zero
 !
-     if (np%dipoles) call out_%error('WE HAVE TO DEBUG THE DIPOLES!!')
+     !We are debugging this
 !
      !$omp parallel do private(i,j,r,dist,invdst,sf,sf0,screen_pot) &
      !$omp collapse(1) & 
@@ -193,9 +198,9 @@ module integrals_module
 !       nanoparticle
         do j = 1, np%natoms
 !
-           r(1) = (xyz_aceptor(1,i)-xyz_np(1,j))
-           r(2) = (xyz_aceptor(2,i)-xyz_np(2,j))
-           r(3) = (xyz_aceptor(3,i)-xyz_np(3,j))
+           r(1) = (xyz_np(1,j)-xyz_aceptor(1,i))
+           r(2) = (xyz_np(2,j)-xyz_aceptor(2,i))
+           r(3) = (xyz_np(3,j)-xyz_aceptor(3,i))
 !
            dist = dsqrt(DOT_PRODUCT(r,r))
 !
@@ -237,6 +242,7 @@ module integrals_module
                                   rho_aceptor(i) * mm_mu(1,j,2) * r(1) * (invdst**3) * screen_fld -&
                                   rho_aceptor(i) * mm_mu(2,j,2) * r(2) * (invdst**3) * screen_fld -&
                                   rho_aceptor(i) * mm_mu(3,j,2) * r(3) * (invdst**3) * screen_fld 
+!
            end if
 !
            10 continue                  
@@ -247,6 +253,8 @@ module integrals_module
 !
      integrals%aceptor_np_int(1) = aceptor_np_int_re
      integrals%aceptor_np_int(2) = aceptor_np_int_im
+print *, aceptor_np_int_re
+print *, aceptor_np_int_im
 !
 !
 !    Deallocate and exit
