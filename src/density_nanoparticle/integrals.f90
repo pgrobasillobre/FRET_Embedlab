@@ -147,6 +147,7 @@ module integrals_module
      real(dp) :: invdst 
      real(dp) :: sf,sf0,sf1,screen_pot, screen_fld !for screening
      real(dp) :: aceptor_np_int_re, aceptor_np_int_im 
+     real(dp) :: aceptor_np_int_re_mu, aceptor_np_int_im_mu 
 !
      real(dp), dimension(:), allocatable     :: rho_aceptor
      real(dp), dimension(:,:), allocatable   :: xyz_aceptor, xyz_np
@@ -179,6 +180,9 @@ module integrals_module
 !
      aceptor_np_int_re = zero
      aceptor_np_int_im = zero
+     aceptor_np_int_re_mu = zero
+     aceptor_np_int_im_mu = zero
+!
      integrals%aceptor_np_int = zero
 !
      r   = zero
@@ -190,9 +194,11 @@ module integrals_module
 !
      !We are debugging this
 !
-     !$omp parallel do private(i,j,r,dist,invdst,sf,sf0,screen_pot) &
+     !$omp parallel do private(i,j,r,dist,invdst,sf,sf0,sf1,screen_pot,screen_fld) &
      !$omp collapse(1) & 
-     !$omp reduction(+:aceptor_np_int_re,aceptor_np_int_im) 
+     !$omp reduction(+:aceptor_np_int_re,aceptor_np_int_im) & 
+     !$omp reduction(+:aceptor_np_int_re_mu,aceptor_np_int_im_mu)
+!
 !    aceptor
      do i = 1, aceptor%n_points_reduced
 !       nanoparticle
@@ -231,17 +237,24 @@ module integrals_module
               aceptor_np_int_im = aceptor_np_int_im +&
                                   rho_aceptor(i) * mm_q(j,2) * invdst * screen_pot
            else if (np%dipoles) then 
+!   
+!             Charges
               aceptor_np_int_re = aceptor_np_int_re +&
-                                  rho_aceptor(i) * mm_q(j,1) * invdst * screen_pot -&
-                                  rho_aceptor(i) * mm_mu(1,j,1) * r(1) * (invdst**3) * screen_fld -&
-                                  rho_aceptor(i) * mm_mu(2,j,1) * r(2) * (invdst**3) * screen_fld -&
-                                  rho_aceptor(i) * mm_mu(3,j,1) * r(3) * (invdst**3) * screen_fld 
+                                  rho_aceptor(i) * mm_q(j,1) * invdst * screen_pot
 !
               aceptor_np_int_im = aceptor_np_int_im +&
-                                  rho_aceptor(i) * mm_q(j,2) * invdst * screen_pot -&
-                                  rho_aceptor(i) * mm_mu(1,j,2) * r(1) * (invdst**3) * screen_fld -&
-                                  rho_aceptor(i) * mm_mu(2,j,2) * r(2) * (invdst**3) * screen_fld -&
-                                  rho_aceptor(i) * mm_mu(3,j,2) * r(3) * (invdst**3) * screen_fld 
+                                  rho_aceptor(i) * mm_q(j,2) * invdst * screen_pot
+!
+!             Dipoles
+              aceptor_np_int_re_mu = aceptor_np_int_re_mu +&
+                                  (-rho_aceptor(i) * mm_mu(1,j,1) * r(1) * (invdst**3) * screen_fld -&
+                                    rho_aceptor(i) * mm_mu(2,j,1) * r(2) * (invdst**3) * screen_fld -&
+                                    rho_aceptor(i) * mm_mu(3,j,1) * r(3) * (invdst**3) * screen_fld) 
+!
+              aceptor_np_int_im_mu = aceptor_np_int_im_mu +&
+                                  (-rho_aceptor(i) * mm_mu(1,j,2) * r(1) * (invdst**3) * screen_fld -&
+                                    rho_aceptor(i) * mm_mu(2,j,2) * r(2) * (invdst**3) * screen_fld -&
+                                    rho_aceptor(i) * mm_mu(3,j,2) * r(3) * (invdst**3) * screen_fld)
 !
            end if
 !
@@ -251,10 +264,8 @@ module integrals_module
      enddo
      !$omp end parallel do
 !
-     integrals%aceptor_np_int(1) = aceptor_np_int_re
-     integrals%aceptor_np_int(2) = aceptor_np_int_im
-print *, aceptor_np_int_re
-print *, aceptor_np_int_im
+     integrals%aceptor_np_int(1) = aceptor_np_int_re + aceptor_np_int_re_mu
+     integrals%aceptor_np_int(2) = aceptor_np_int_im + aceptor_np_int_im_mu
 !
 !
 !    Deallocate and exit

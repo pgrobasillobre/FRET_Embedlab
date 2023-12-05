@@ -260,6 +260,7 @@ module output_module
 !
      1000 Format(3x,I5,1x,E15.7,1x,E15.7,1x,E15.7)
 !
+     write(out_%iunit,out_%sticks) 
      Write(out_%iunit,'(a)') " "
      if(PRESENT(header)) then
         Write(out_%iunit,'(22x,a)') header
@@ -290,14 +291,13 @@ module output_module
         Write(out_%iunit,'(a)') "    ============================================================"
         Write(out_%iunit,'(a)') " " 
      endif
-     Write(out_%iunit,out_%sticks) 
 
      Flush(out_%iunit)
 !
 !
    end subroutine print_density
 !-----------------------------------------------------------------------
-   subroutine print_nanoparticle(out_,natoms,xyz)
+   subroutine print_nanoparticle(out_,natoms,xyz,charges,dipoles)
 !
      implicit none
 !     
@@ -305,8 +305,11 @@ module output_module
 !
 !
      integer,  intent(in)                       :: natoms
+!
      real(dp), dimension(3,natoms), intent(in)  :: xyz
-
+!
+     logical :: charges, dipoles
+!
      class(out_type)  :: out_
 !
 !    internal variables
@@ -318,6 +321,12 @@ module output_module
      character(len=76) :: format_1 = "(13x,'Atom',15x,'X',19x,'Y',19x,'Z')"
      character(len=50) :: format_2 = "(12x,a4,1x,3(f20.6))"
 !
+
+     if (charges) write(out_%iunit,'(23x,a)') "NP model = charges"
+     if (dipoles) write(out_%iunit,'(23x,a)') "NP model = charges + dipoles"
+     Write(out_%iunit,'(a)') " "
+
+     write(out_%iunit,out_%sticks) 
      Write(out_%iunit,'(a)') " "
      Write(out_%iunit,'(21x,a)') '     Nanoparticle Geometry (Ang)                    ' 
      Write(out_%iunit,'(a)') " "
@@ -333,7 +342,6 @@ module output_module
                                          xyz(3,i)*ToAng
      enddo
      Write(out_%iunit,'(a)') " "
-     Write(out_%iunit,out_%sticks) 
 
      Flush(out_%iunit)
 !
@@ -365,6 +373,8 @@ module output_module
 !
      v_tot = zero
 !
+
+     Write(out_%iunit,out_%sticks) 
      Write(out_%iunit,'(a)') " " 
      Write(out_%iunit,'(18x,a)') '                  RESULTS                    ' 
      Write(out_%iunit,'(a)') " " 

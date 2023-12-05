@@ -107,7 +107,7 @@ module algorithm_module
 !
      type(density_type)       :: aceptor_density
      type(nanoparticle_type)  :: nanoparticle
-     type(integrals_type)  :: integrals_calc
+     type(integrals_type)     :: integrals_calc
 !
 !    Read input files
 !
@@ -116,7 +116,8 @@ module algorithm_module
 !
 !    Print NP / aceptor density characteristics
 !
-     call out_%print_nanoparticle(nanoparticle%natoms,nanoparticle%xyz)
+     call out_%print_nanoparticle(nanoparticle%natoms, nanoparticle%xyz,       &
+                                  nanoparticle%charges,nanoparticle%dipoles)
 !
      call out_%print_density(target_%aceptor_density,aceptor_density%natoms,aceptor_density%n_points_reduced, &
                              aceptor_density%nx,aceptor_density%ny,aceptor_density%nz,                        &
@@ -157,7 +158,8 @@ module algorithm_module
 !
 !    Print NP / densities characteristics
 !
-     call out_%print_nanoparticle(nanoparticle%natoms,nanoparticle%xyz)
+     call out_%print_nanoparticle(nanoparticle%natoms, nanoparticle%xyz,       &
+                                  nanoparticle%charges,nanoparticle%dipoles)
 !
      call out_%print_density(target_%aceptor_density,aceptor_density%natoms,aceptor_density%n_points_reduced, &
                              aceptor_density%nx,aceptor_density%ny,aceptor_density%nz,                        &

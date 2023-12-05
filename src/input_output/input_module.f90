@@ -403,7 +403,7 @@ module input_module
      endif
 
      write(out_%iunit,'(a)') ""
-     write(out_%iunit,out_%sticks) 
+     !write(out_%iunit,out_%sticks) 
 !     
      flush(out_%iunit)
 ! 
