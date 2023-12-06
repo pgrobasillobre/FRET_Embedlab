@@ -47,7 +47,7 @@ module nanoparticle_module
      integer :: nlines
      integer :: num_string_initial, num_string_end, dum
      integer :: IIn
-     integer :: i,j
+     integer :: i
      integer :: iost
 !
      logical :: found_string
@@ -115,6 +115,7 @@ module nanoparticle_module
                                           np%mu(1,i,1), np%mu(2,i,1), np%mu(3,i,1),&
                                           np%mu(1,i,2), np%mu(2,i,2), np%mu(3,i,2),&
                                           np%xyz(1,i),  np%xyz(2,i),  np%xyz(3,i)  
+!
          endif
 !
        enddo
