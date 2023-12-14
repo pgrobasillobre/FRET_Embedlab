@@ -112,9 +112,12 @@ module density_module
            do k = 1, cube%nz
               z_tmp = cube%zmin + cube%dz*(k-1)
 !
-              if (cube%n_points_reduced .gt. ncellmax) call out_%error("Increase cutoff, huge density to be managed")
+!             If we calculate the overlap integral we should not reduce the density cube
+              if (.not. target_%calc_overlap_int .and.  cube%n_points_reduced .gt. ncellmax) &
+                                     call out_%error("Increase cutoff, huge density to be managed")
 !
-              if (abs(cube%rho(i,j,k)) .gt. cube%maxdens * target_%cutoff) then
+              if (.not. target_%calc_overlap_int .and. abs(cube%rho(i,j,k)) .gt. cube%maxdens * target_%cutoff .or.&
+                  target_%calc_overlap_int) then
 !
                  cube%n_points_reduced = cube%n_points_reduced + 1
 !

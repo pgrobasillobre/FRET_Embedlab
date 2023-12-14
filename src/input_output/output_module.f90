@@ -383,7 +383,9 @@ module output_module
 !
      if(PRESENT(aceptor_donor_coulomb)) then
         Write(out_%iunit,'(5x,a,f25.16,a)') "Aceptor-Donor Coulomb :  ", aceptor_donor_coulomb, '  a.u.'
-        Write(out_%iunit,'(5x,a,f25.16,a)') "Aceptor-Donor Overlap :  ", aceptor_donor_overlap, '  a.u.'
+        if (target_%calc_overlap_int) then
+            Write(out_%iunit,'(5x,a,f25.16,a)') "Aceptor-Donor Overlap :  ", aceptor_donor_overlap, '  a.u.'
+        endif
         v_tot(1) = aceptor_donor_coulomb + aceptor_donor_overlap
      endif
 !

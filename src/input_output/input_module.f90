@@ -228,6 +228,8 @@ module input_module
      target_%omega_0 = zero
      target_%spectral_overlap = zero
 !
+     target_%calc_overlap_int = .false.
+!
      rewind(inp_%iunit)
 !
         do i = 1, nlines
@@ -306,7 +308,7 @@ module input_module
 !
 !    assign the different targets
 !
-     if (.not. cutoff .and. .not. integrate_cube) then
+     if (.not. cutoff .and. .not. integrate_cube .and. .not. cutoff .and. omega_0) then
         call out_%error("Cutoff needed in input")
 !
      elseif(integrate_cube .and. aceptor_density .or. &
@@ -323,7 +325,8 @@ module input_module
 !
         target_%name_ = "aceptor_donor"
         if (target_%omega_0 < zero) call out_%error("Omega_0 cannot be negative")
-        if (target_%omega_0 < 1E-14) call out_%error("Aceptor-donor calculation requested but no Omega_0 in input")
+        if (target_%omega_0 > 1.0E-15) target_%calc_overlap_int = .true.
+        !if (target_%omega_0 < 1E-14) call out_%error("Aceptor-donor calculation requested but no Omega_0 in input")
 !
         if (target_%spectral_overlap < zero) call out_%error("Spectral overlap cannot be negative")
         if (target_%spectral_overlap < 1E-14)&
@@ -337,7 +340,8 @@ module input_module
 !
         target_%name_ = "aceptor_np_donor"
         if (target_%omega_0 < zero) call out_%error("Omega_0 cannot be negative")
-        if (target_%omega_0 < 1E-14) call out_%error("Aceptor-NP-donor calculation requested but no Omega_0 in input")
+        if (target_%omega_0 > 1.0E-15) target_%calc_overlap_int = .true.
+        !if (target_%omega_0 < 1E-14) call out_%error("Aceptor-NP-donor calculation requested but no Omega_0 in input")
 !
         if (target_%spectral_overlap < zero) call out_%error("Spectral overlap cannot be negative")
         if (target_%spectral_overlap < 1E-14)&
@@ -382,7 +386,7 @@ module input_module
         write(out_%iunit,'(23x,a)') "Donor   Density : "//trim(target_%donor_density)
         write(out_%iunit,'(a)')
         write(out_%iunit,'(23x,a,e11.4)') "Cutoff            = ", target_%cutoff
-        write(out_%iunit,'(23x,a,e11.4)') "Omega_0          = ", target_%omega_0
+        if (target_%calc_overlap_int) write(out_%iunit,'(23x,a,e11.4)') "Omega_0          = ", target_%omega_0
         write(out_%iunit,'(23x,a,e11.4)') "Spectral Overlap = ", target_%spectral_overlap
 
      elseif(target_%name_.eq."aceptor_np") then
@@ -397,7 +401,7 @@ module input_module
         write(out_%iunit,'(23x,a)') "Nanoparticle File : "//trim(target_%nanoparticle)
         write(out_%iunit,'(a)')
         write(out_%iunit,'(23x,a,e11.4)') "Cutoff            = ", target_%cutoff
-        write(out_%iunit,'(23x,a,e11.4)') "Omega_0           = ", target_%omega_0
+        if (target_%calc_overlap_int) write(out_%iunit,'(23x,a,e11.4)') "Omega_0           = ", target_%omega_0
         write(out_%iunit,'(23x,a,e11.4)') "Spectral Overlap  = ", target_%spectral_overlap
 
      endif

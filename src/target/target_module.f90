@@ -21,6 +21,8 @@ module target_module
       real(dp)           :: cutoff 
       real(dp)           :: omega_0                  
       real(dp)           :: spectral_overlap
+!
+      logical            :: calc_overlap_int
 !      
       contains
 !

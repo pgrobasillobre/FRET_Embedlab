@@ -80,6 +80,12 @@ module integrals_module
 !       donor
         do j = 1, donor%n_points_reduced
 !
+!          Aceptor-donor overlap 
+           if (i.eq.j .and. target_%calc_overlap_int) then
+              int_overlap = int_overlap +&
+                            rho_aceptor(i) * rho_donor(j)
+           endif 
+!
            r(1) = (xyz_aceptor(1,i)-xyz_donor(1,j))
            r(2) = (xyz_aceptor(2,i)-xyz_donor(2,j))
            r(3) = (xyz_aceptor(3,i)-xyz_donor(3,j))
@@ -102,10 +108,7 @@ module integrals_module
            int_coulomb = int_coulomb +&
                          rho_aceptor(i) * rho_donor(j) * invdst * screen_pot
 !   
-!          Aceptor-donor overlap 
-           int_overlap = int_overlap +&
-                         rho_aceptor(i) * rho_donor(j)
-!   
+   
            01 continue                  
 !
         enddo
@@ -116,7 +119,8 @@ module integrals_module
      integrals%aceptor_donor_coulomb = int_coulomb
 !
 !    Weigth overlap by -omega_0
-     integrals%aceptor_donor_overlap = -target_%omega_0 * int_overlap
+     if (target_%calc_overlap_int) integrals%aceptor_donor_overlap = &
+                                           -target_%omega_0 * int_overlap
 !
 !    Deallocate and exit
 !
