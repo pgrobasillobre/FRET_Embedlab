@@ -25,7 +25,6 @@
 !      
 !        aceptor density: aceptor_density_file
 !        donor density: donor_density_file
-!        cutoff: float
 !        omega_0: float
 !        spectral overlap: float
 !
@@ -46,7 +45,6 @@
 !      
 !        aceptor density: aceptor_density_file
 !        donor density: donor_density_file
-!        cutoff: float
 !        nanoparticle: np_adf.log
 !        omega_0: float
 !        spectral overlap: float
