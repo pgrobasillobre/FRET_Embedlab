@@ -18,13 +18,16 @@ module density_module
       character (len=200)                       :: str1,str2
 !
       integer                                   :: natoms,nx,ny,nz
+      integer                                   :: n_points_reduced
       integer                                   :: nelectrons
       integer, dimension(:), allocatable        :: atomic_number
 !
       real(dp)                                  :: xmin,ymin,zmin,dx,dy,dz,dummy_real
+      real(dp)                                  :: maxdens
       real(dp), dimension(:), allocatable       :: atomic_charge,x,y,z
       real(dp), dimension(:,:,:), allocatable   :: rho
-      real(dp), dimension(:,:,:,:), allocatable :: xyz 
+      real(dp), dimension(:), allocatable       :: rho_reduced
+      real(dp), dimension(:,:), allocatable     :: xyz 
 !
     end type density_type
 !
@@ -63,7 +66,7 @@ module density_module
 !
      allocate(cube%atomic_number(cube%natoms),cube%atomic_charge(cube%natoms),&
               cube%x(cube%natoms),cube%y(cube%natoms),cube%z(cube%natoms),cube%rho(cube%nx,cube%ny,cube%nz), &
-              cube%xyz(3,cube%nx,cube%ny,cube%nz))
+              cube%xyz(3,ncellmax), cube%rho_reduced(ncellmax))
 !
      cube%atomic_number = zero
      cube%atomic_charge = zero
@@ -86,10 +89,22 @@ module density_module
 !
      cube%rho = cube%rho*cube%dx*cube%dy*cube%dz ! weight density by cube volume
 !
-!    Calculate coordinates of the cube (otherwise parallelization problems)
+!    Find the maximum value of the density
+! 
+     cube%maxdens = zero
+     do i=1,cube%nx
+        do j=1,cube%ny
+           do k=1,cube%nz
+              if (abs(cube%rho(i,j,k)) .gt. cube%maxdens) cube%maxdens = abs(cube%rho(i,j,k))
+           enddo
+        enddo
+     enddo  
+!
+!    Save reduce density of the cube, and calculate associated coordinates
 !
      cube%xyz = zero
 !
+     cube%n_points_reduced = 0
      do i = 1, cube%nx
         x_tmp = cube%xmin + cube%dx*(i-1)
         do j = 1, cube%ny
@@ -97,14 +112,26 @@ module density_module
            do k = 1, cube%nz
               z_tmp = cube%zmin + cube%dz*(k-1)
 !
-              cube%xyz(1,i,j,k) = x_tmp 
-              cube%xyz(2,i,j,k) = y_tmp
-              cube%xyz(3,i,j,k) = z_tmp
+!             If we calculate the overlap integral we should not reduce the density cube
+              if (.not. target_%calc_overlap_int .and.  cube%n_points_reduced .gt. ncellmax) &
+                                     call out_%error("Increase cutoff, huge density to be managed")
+!
+              if (.not. target_%calc_overlap_int .and. abs(cube%rho(i,j,k)) .gt. cube%maxdens * target_%cutoff .or.&
+                  target_%calc_overlap_int) then
+!
+                 cube%n_points_reduced = cube%n_points_reduced + 1
+!
+                 cube%rho_reduced(cube%n_points_reduced) = cube%rho(i,j,k)
+!
+                 cube%xyz(1,cube%n_points_reduced) = x_tmp 
+                 cube%xyz(2,cube%n_points_reduced) = y_tmp
+                 cube%xyz(3,cube%n_points_reduced) = z_tmp
+!
+              endif
 !
            enddo
         enddo
      enddo
-!
 !
      01 continue
      close(IIn)
@@ -153,10 +180,10 @@ module density_module
         enddo
      enddo
 !
-    call out_%print_density(target_%density_file, cube%natoms,&
-                            cube%nx,cube%ny,cube%nz,          &
-                            cube%dx,cube%dy,cube%dz,          &
-                            cube%xmin,cube%ymin,cube%zmin,    &
+    call out_%print_density(target_%density_file,cube%natoms,cube%n_points_reduced, &
+                            cube%nx,cube%ny,cube%nz,                                &
+                            cube%dx,cube%dy,cube%dz,                                &
+                            cube%xmin,cube%ymin,cube%zmin,                          &
                             cube%nelectrons,integral=integral)
 !
 !!    call out_%print_density(cube)

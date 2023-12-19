@@ -213,18 +213,24 @@ module input_module
      character(len=200) :: line_keyword
      character(len=200) :: target_name = ""
 !
+     logical :: cutoff                = .false.
      logical :: integrate_cube        = .false.
      logical :: fret_donor_aceptor    = .false.
      logical :: fret_donor_aceptor_NP = .false.
      logical :: fret_aceptor_NP       = .false.
+     logical :: fret_aceptor_solv     = .false.
      logical :: aceptor_density       = .false.
      logical :: donor_density         = .false.
      logical :: nanoparticle          = .false.
+     logical :: solvent               = .false.
      logical :: omega_0               = .false.
      logical :: spectral_overlap      = .false.
 !
+     target_%cutoff  = zero
      target_%omega_0 = zero
      target_%spectral_overlap = zero
+!
+     target_%calc_overlap_int = .false.
 !
      rewind(inp_%iunit)
 !
@@ -243,39 +249,57 @@ module input_module
               line_keyword = trim(adjustl( line(index(line,":")+1:200) ))
 !        
               if(line_what.eq.'integrate cube file')  then 
+!
                  integrate_cube  = .true.
                  target_%density_file = line_keyword
                  if (.not. file_exists(line_keyword)) call out_%error('File "'//trim(line_keyword)//'" not found')
-
+!
               elseif(line_what.eq.'aceptor density') then
+!
                  aceptor_density = .true.
                  target_%aceptor_density = line_keyword
                  if (.not. file_exists(line_keyword)) call out_%error('File "'//trim(line_keyword)//'" not found')
-
+!
               elseif(line_what.eq.'donor density') then
+!
                  donor_density = .true.
                  target_%donor_density = line_keyword
                  if (.not. file_exists(line_keyword)) call out_%error('File "'//trim(line_keyword)//'" not found')
-
+!
               elseif(line_what.eq.'nanoparticle') then
+!
                  nanoparticle = .true.
                  target_%nanoparticle = line_keyword
                  if (.not. file_exists(line_keyword)) call out_%error('File "'//trim(line_keyword)//'" not found')
-
+!
+              elseif(line_what.eq.'solvent') then
+!
+                 solvent = .true.
+                 target_%solvent = line_keyword
+                 if (.not. file_exists(line_keyword)) call out_%error('File "'//trim(line_keyword)//'" not found')
+!
+              elseif(line_what.eq.'cutoff') then
+                 cutoff = .true.
+!
+                 call check_float(out_%iunit,line_what,line_keyword)
+                 read(line_keyword,'(f25.16)') target_%cutoff
+!
+                 if (target_%cutoff .lt. zero) call out_%error("Cutoff cannot be negative")
+!
               elseif(line_what.eq.'omega_0') then
                  omega_0 = .true.
-
+!
                  call check_float(out_%iunit,line_what,line_keyword)
                  read(line_keyword,'(f25.16)') target_%omega_0
-
+!
               elseif(line_what.eq.'spectral overlap') then
                  spectral_overlap = .true.
-
+!
                  call check_float(out_%iunit,line_what,line_keyword)
                  read(line_keyword,'(f25.16)') target_%spectral_overlap
-
-
+!
               else  
+!
                  call out_%error( 'Input entry "'//trim(line)//'" not recognized')
 
               endif
@@ -292,7 +316,13 @@ module input_module
 !
 !    assign the different targets
 !
-     if(integrate_cube .and. aceptor_density .or. integrate_cube .and. donor_density .or. integrate_cube .and. nanoparticle) then         
+     if (.not. cutoff .and. .not. integrate_cube .and. .not. cutoff .and. omega_0) then
+        call out_%error("Cutoff needed in input")
+!
+     elseif(integrate_cube .and. aceptor_density .or. &
+            integrate_cube .and. donor_density   .or. &
+            integrate_cube .and. nanoparticle    .or. &
+            integrate_cube .and. solvent) then         
 ! 
         call out_%error( "You are requesting a cube integration with other type of calculation")
 !
@@ -304,25 +334,51 @@ module input_module
 !
         target_%name_ = "aceptor_donor"
         if (target_%omega_0 < zero) call out_%error("Omega_0 cannot be negative")
-        if (target_%omega_0 < 1E-14) call out_%error("Aceptor-donor calculation requested but no Omega_0 in input")
+        if (target_%omega_0 > 1.0E-15) target_%calc_overlap_int = .true.
+        !if (target_%omega_0 < 1E-14) call out_%error("Aceptor-donor calculation requested but no Omega_0 in input")
 !
         if (target_%spectral_overlap < zero) call out_%error("Spectral overlap cannot be negative")
         if (target_%spectral_overlap < 1E-14)&
            call out_%error("Aceptor-donor calculation requested but no spectral overlap in input")
 !
-     elseif(aceptor_density .and. nanoparticle .and. .not. donor_density) then
+     elseif(aceptor_density .and. nanoparticle .and. .not. donor_density .and. .not. solvent) then
 !
         target_%name_ = "aceptor_np"
+!
+     elseif(aceptor_density .and. solvent .and. .not. donor_density .and. .not. nanoparticle) then
+!
+        target_%name_ = "aceptor_solv"
 !
      elseif(aceptor_density .and. nanoparticle .and. donor_density) then
 !
         target_%name_ = "aceptor_np_donor"
         if (target_%omega_0 < zero) call out_%error("Omega_0 cannot be negative")
-        if (target_%omega_0 < 1E-14) call out_%error("Aceptor-NP-donor calculation requested but no Omega_0 in input")
+        if (target_%omega_0 > 1.0E-15) target_%calc_overlap_int = .true.
+        !if (target_%omega_0 < 1E-14) call out_%error("Aceptor-NP-donor calculation requested but no Omega_0 in input")
 !
         if (target_%spectral_overlap < zero) call out_%error("Spectral overlap cannot be negative")
         if (target_%spectral_overlap < 1E-14)&
            call out_%error("Aceptor-NP-donor calculation requested but no spectral overlap in input")
+!
+     elseif(aceptor_density .and. solvent .and. donor_density) then
+!
+        target_%name_ = "aceptor_solv_donor"
+        if (target_%omega_0 < zero) call out_%error("Omega_0 cannot be negative")
+        if (target_%omega_0 < 1E-14) call out_%error("Aceptor-Solv-donor calculation requested but no Omega_0 in input")
+!
+        if (target_%spectral_overlap < zero) call out_%error("Spectral overlap cannot be negative")
+        if (target_%spectral_overlap < 1E-14)&
+           call out_%error("Aceptor-Solv-donor calculation requested but no spectral overlap in input")
+!
+     elseif(aceptor_density .and. solvent .and. nanoparticle .and. donor_density) then
+!
+        target_%name_ = "aceptor_solv_np_donor"
+        if (target_%omega_0 < zero) call out_%error("Omega_0 cannot be negative")
+        if (target_%omega_0 < 1E-14) call out_%error("Aceptor-Solv-NP-donor calculation requested but no Omega_0 in input")
+!
+        if (target_%spectral_overlap < zero) call out_%error("Spectral overlap cannot be negative")
+        if (target_%spectral_overlap < 1E-14)&
+           call out_%error("Aceptor-Solv-NP-donor calculation requested but no spectral overlap in input")
 !
      else
 !         
@@ -362,25 +418,44 @@ module input_module
         write(out_%iunit,'(23x,a)') "Aceptor Density : "//trim(target_%aceptor_density)
         write(out_%iunit,'(23x,a)') "Donor   Density : "//trim(target_%donor_density)
         write(out_%iunit,'(a)')
-        write(out_%iunit,'(23x,a,e11.4)') "Omega_0          = ", target_%omega_0
+        write(out_%iunit,'(23x,a,e11.4)') "Cutoff            = ", target_%cutoff
+        if (target_%calc_overlap_int) write(out_%iunit,'(23x,a,e11.4)') "Omega_0          = ", target_%omega_0
         write(out_%iunit,'(23x,a,e11.4)') "Spectral Overlap = ", target_%spectral_overlap
 
      elseif(target_%name_.eq."aceptor_np") then
         write(out_%iunit,'(23x,a)') "Aceptor Density  : "//trim(target_%aceptor_density)
         write(out_%iunit,'(23x,a)') "Nanoparticle File: "//trim(target_%nanoparticle)
+        write(out_%iunit,'(a)')
+        write(out_%iunit,'(23x,a,e11.4)') "Cutoff            = ", target_%cutoff
+
+     elseif(target_%name_.eq."aceptor_solv") then
+        write(out_%iunit,'(23x,a)') "Aceptor Density  : "//trim(target_%aceptor_density)
+        write(out_%iunit,'(23x,a)') "Solvent File     : "//trim(target_%solvent)
+        write(out_%iunit,'(a)')
+        write(out_%iunit,'(23x,a,e11.4)') "Cutoff            = ", target_%cutoff
 
      elseif(target_%name_.eq."aceptor_np_donor") then
         write(out_%iunit,'(23x,a)') "Aceptor Density   : "//trim(target_%aceptor_density)
         write(out_%iunit,'(23x,a)') "Donor   Density   : "//trim(target_%donor_density)
         write(out_%iunit,'(23x,a)') "Nanoparticle File : "//trim(target_%nanoparticle)
         write(out_%iunit,'(a)')
+        write(out_%iunit,'(23x,a,e11.4)') "Cutoff            = ", target_%cutoff
+        if (target_%calc_overlap_int) write(out_%iunit,'(23x,a,e11.4)') "Omega_0           = ", target_%omega_0
+        write(out_%iunit,'(23x,a,e11.4)') "Spectral Overlap  = ", target_%spectral_overlap
+
+     elseif(target_%name_.eq."aceptor_solv_donor") then
+        write(out_%iunit,'(23x,a)') "Aceptor Density   : "//trim(target_%aceptor_density)
+        write(out_%iunit,'(23x,a)') "Donor   Density   : "//trim(target_%donor_density)
+        write(out_%iunit,'(23x,a)') "Solvent File      : "//trim(target_%solvent)
+        write(out_%iunit,'(a)')
+        write(out_%iunit,'(23x,a,e11.4)') "Cutoff            = ", target_%cutoff
         write(out_%iunit,'(23x,a,e11.4)') "Omega_0           = ", target_%omega_0
         write(out_%iunit,'(23x,a,e11.4)') "Spectral Overlap  = ", target_%spectral_overlap
 
      endif
 
      write(out_%iunit,'(a)') ""
-     write(out_%iunit,out_%sticks) 
+     !write(out_%iunit,out_%sticks) 
 !     
      flush(out_%iunit)
 ! 

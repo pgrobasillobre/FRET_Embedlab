@@ -31,6 +31,7 @@ module output_module
       procedure :: print_banner
       procedure :: print_density
       procedure :: print_nanoparticle
+      procedure :: print_solvent
       procedure :: print_results_integrals
 !!      procedure :: print_matrix
       procedure :: warning
@@ -234,7 +235,8 @@ module output_module
 !       
    end subroutine error
 !-----------------------------------------------------------------------
-   subroutine print_density(out_,cube_file,natoms,nx,ny,nz,dx,dy,dz,xmin,ymin,zmin,nelectrons,integral,header)
+   subroutine print_density(out_,cube_file,natoms,n_points_reduced,nx,ny,nz,&
+                            dx,dy,dz,xmin,ymin,zmin,nelectrons,integral,header)
 !   subroutine print_density(out_,cube)
 !
 !
@@ -246,7 +248,7 @@ module output_module
 !!    type (density_type), intent(in)  :: cube 
 !!
      character(len=*), intent(in)  :: cube_file
-     integer,  intent(in)          :: natoms,nelectrons,nx,ny,nz
+     integer,  intent(in)          :: natoms,n_points_reduced,nelectrons,nx,ny,nz
      real(dp), intent(in)          :: dx,dy,dz
      real(dp), intent(in)          :: xmin,ymin,zmin
 
@@ -259,6 +261,7 @@ module output_module
 !
      1000 Format(3x,I5,1x,E15.7,1x,E15.7,1x,E15.7)
 !
+     write(out_%iunit,out_%sticks) 
      Write(out_%iunit,'(a)') " "
      if(PRESENT(header)) then
         Write(out_%iunit,'(22x,a)') header
@@ -278,22 +281,24 @@ module output_module
      Write(out_%iunit, 1000) nz, zero, zero,   dz
      Write(out_%iunit,'(a)') " " 
      Write(out_%iunit,*)     "    Total number of grid points: ", nx*ny*nz
+     If (target_%name_ .ne. "integrate_density") then
+        Write(out_%iunit,*)     "    ---> Reduced density points:", n_points_reduced
+     Endif
      Write(out_%iunit,'(a)') " " 
      if(PRESENT(integral)) then
-        Write(out_%iunit,'(a)') "    ======================================================="
+        Write(out_%iunit,'(a)') "    ============================================================"
         Write(out_%iunit,*) "    Integrated electron density --> ", integral
         Write(out_%iunit,*) "    Total electrons in molecule --> ", nelectrons
-        Write(out_%iunit,'(a)') "    ======================================================="
+        Write(out_%iunit,'(a)') "    ============================================================"
         Write(out_%iunit,'(a)') " " 
      endif
-     Write(out_%iunit,out_%sticks) 
 
      Flush(out_%iunit)
 !
 !
    end subroutine print_density
 !-----------------------------------------------------------------------
-   subroutine print_nanoparticle(out_,natoms,xyz)
+   subroutine print_nanoparticle(out_,natoms,xyz,charges,dipoles)
 !
      implicit none
 !     
@@ -301,8 +306,11 @@ module output_module
 !
 !
      integer,  intent(in)                       :: natoms
+!
      real(dp), dimension(3,natoms), intent(in)  :: xyz
-
+!
+     logical :: charges, dipoles
+!
      class(out_type)  :: out_
 !
 !    internal variables
@@ -314,6 +322,12 @@ module output_module
      character(len=76) :: format_1 = "(13x,'Atom',15x,'X',19x,'Y',19x,'Z')"
      character(len=50) :: format_2 = "(12x,a4,1x,3(f20.6))"
 !
+
+     if (charges) write(out_%iunit,'(23x,a)') "NP model = charges"
+     if (dipoles) write(out_%iunit,'(23x,a)') "NP model = charges + dipoles"
+     Write(out_%iunit,'(a)') " "
+
+     write(out_%iunit,out_%sticks) 
      Write(out_%iunit,'(a)') " "
      Write(out_%iunit,'(21x,a)') '     Nanoparticle Geometry (Ang)                    ' 
      Write(out_%iunit,'(a)') " "
@@ -329,16 +343,66 @@ module output_module
                                          xyz(3,i)*ToAng
      enddo
      Write(out_%iunit,'(a)') " "
-     Write(out_%iunit,out_%sticks) 
 
      Flush(out_%iunit)
 !
 !
    end subroutine print_nanoparticle
 !-----------------------------------------------------------------------
+   subroutine print_solvent(out_,natoms,xyz,charges,dipoles)
+!
+     implicit none
+!     
+!    print solvent information
+!
+!
+     integer,  intent(in)                       :: natoms
+!
+     real(dp), dimension(3,natoms), intent(in)  :: xyz
+!
+     logical :: charges, dipoles
+!
+     class(out_type)  :: out_
+!
+!    internal variables
+!
+     integer :: i
+!
+!    formats
+!
+     character(len=76) :: format_1 = "(13x,'Atom',15x,'X',19x,'Y',19x,'Z')"
+     character(len=50) :: format_2 = "(12x,a4,1x,3(f20.6))"
+!
+
+     if (charges) write(out_%iunit,'(23x,a)') "Solv model = charges"
+     if (dipoles) write(out_%iunit,'(23x,a)') "Solv model = charges + dipoles"
+     Write(out_%iunit,'(a)') " "
+
+     write(out_%iunit,out_%sticks) 
+     Write(out_%iunit,'(a)') " "
+     Write(out_%iunit,'(21x,a)') '     Solvent Geometry (Ang)                    ' 
+     Write(out_%iunit,'(a)') " "
+
+     Write(out_%iunit,out_%sticks) 
+     Write(out_%iunit,format_1)
+     Write(out_%iunit,out_%sticks) 
+
+     Write(out_%iunit,'(a)') " "
+     do i = 1, natoms
+        write(out_%iunit,format_2) 'Xx', xyz(1,i)*ToAng, &
+                                         xyz(2,i)*ToAng, &
+                                         xyz(3,i)*ToAng
+     enddo
+     Write(out_%iunit,'(a)') " "
+
+     Flush(out_%iunit)
+!
+!
+   end subroutine print_solvent
+!-----------------------------------------------------------------------
  
    subroutine print_results_integrals(out_,aceptor_donor_coulomb,aceptor_donor_overlap,&
-                                      aceptor_np_int)
+                                      aceptor_np_int, aceptor_solv_int)
 !
 !    print integral results
 !
@@ -351,6 +415,7 @@ module output_module
      real(dp), optional                :: aceptor_donor_coulomb
      real(dp), optional                :: aceptor_donor_overlap
      real(dp), dimension(2), optional  :: aceptor_np_int
+     real(dp), dimension(1), optional  :: aceptor_solv_int
 !
 !
 !    internal variables
@@ -361,6 +426,8 @@ module output_module
 !
      v_tot = zero
 !
+
+     Write(out_%iunit,out_%sticks) 
      Write(out_%iunit,'(a)') " " 
      Write(out_%iunit,'(18x,a)') '                  RESULTS                    ' 
      Write(out_%iunit,'(a)') " " 
@@ -368,35 +435,77 @@ module output_module
      Write(out_%iunit,'(a)') " "
 !
      if(PRESENT(aceptor_donor_coulomb)) then
-        Write(out_%iunit,'(5x,a,e15.6,a)') "Aceptor-Donor Coulomb :  ", aceptor_donor_coulomb, '  a.u.'
-        Write(out_%iunit,'(5x,a,e15.6,a)') "Aceptor-Donor Overlap :  ", aceptor_donor_overlap, '  a.u.'
+        Write(out_%iunit,'(5x,a,f25.16,a)') "Aceptor-Donor Coulomb :  ", aceptor_donor_coulomb, '  a.u.'
+        if (target_%calc_overlap_int) then
+            Write(out_%iunit,'(5x,a,f25.16,a)') "Aceptor-Donor Overlap :  ", aceptor_donor_overlap, '  a.u.'
+        endif
         v_tot(1) = aceptor_donor_coulomb + aceptor_donor_overlap
      endif
 !
      if(PRESENT(aceptor_np_int)) then
         !Write(out_%iunit,'(a)') " "
-        Write(out_%iunit,'(5x,a,e15.6,a,e15.6,a)') "Aceptor-NP Interaction:  ", aceptor_np_int(1), '    + ',&
-                                                                                aceptor_np_int(2) , ' i  a.u.'
+        Write(out_%iunit,'(5x,a,f25.16,a,f25.16,a)') "Aceptor-NP Interaction:  ", aceptor_np_int(1), '    + ',&
+                                                                                  aceptor_np_int(2) , ' i  a.u.'
         v_tot(1) = v_tot(1) + aceptor_np_int(1)
         v_tot(2) = v_tot(2) + aceptor_np_int(2)
      endif
 !
+     if(PRESENT(aceptor_solv_int)) then
+        !Write(out_%iunit,'(a)') " "
+        Write(out_%iunit,'(5x,a,f25.16,a,f25.16,a)') "Aceptor-Solv Interaction:  ", aceptor_solv_int, '    a.u. '
+        v_tot(1) = v_tot(1) + aceptor_solv_int(1)
+        v_tot(2) = v_tot(2) 
+     endif
+
+     if(PRESENT(aceptor_solv_int).and.PRESENT(aceptor_np_int)) then
+        Write(out_%iunit,'(5x,a,f25.16,a,f25.16,a)') "Aceptor-NP Interaction:  ", aceptor_np_int(1), '    + ',&
+                                                                                  aceptor_np_int(2) , ' i  a.u.'
+        Write(out_%iunit,'(5x,a,f25.16,a,f25.16,a)') "Aceptor-Solv Interaction:  ", aceptor_solv_int, '    a.u. '
+        v_tot(1) = v_tot(1) + aceptor_np_int(1) + aceptor_solv_int(1)
+        v_tot(2) = v_tot(2) + aceptor_np_int(2)
+     endif
+
      v_mod = dsqrt(DOT_PRODUCT(v_tot,v_tot))
+
 !
      if (target_%name_.ne.'aceptor_np') then
          if (target_%name_.eq.'aceptor_np_donor') then 
-            Write(out_%iunit,'(30x,a)') " --------------------------------------------"
-            Write(out_%iunit,'(5x,a,e15.6,a,e15.6,a)') "Total Potential       :  ", v_tot(1), '    + ', v_tot(2), ' i  a.u.'
+            Write(out_%iunit,'(34x,a)') " -------------------------------------------------------------"
+            Write(out_%iunit,'(5x,a,f25.16,a,f25.16,a)') "Total Potential       :  ", v_tot(1), '    + ', v_tot(2), ' i  a.u.'
          elseif (target_%name_.eq.'aceptor_donor') then 
-            Write(out_%iunit,'(30x,a)') " ---------------------"
-            Write(out_%iunit,'(5x,a,e15.6,a)') "Total Potential       :  ", v_tot(1), '  a.u.'
+            Write(out_%iunit,'(35x,a)') " --------------------------"
+            Write(out_%iunit,'(5x,a,f25.16,a)') "Total Potential       :  ", v_tot(1), '  a.u.'
          endif
-         !Write(out_%iunit,'(5x,a,e15.6,a)') "Total Potential Modulus:", v_mod, ' a.u.'
+         Write(out_%iunit,'(a)') " "
+         Write(out_%iunit,'(5x,a,f25.16,a)') "Total Potential Modulus:", v_mod, ' a.u.'
      endif
 !
+     if (target_%name_.ne.'aceptor_solv') then
+         if (target_%name_.eq.'aceptor_solv_donor') then 
+            Write(out_%iunit,'(34x,a)') " -------------------------------------------------------------"
+            Write(out_%iunit,'(5x,a,f25.16,a,f25.16,a)') "Total Potential       :  ", v_tot(1), '    a.u. '
+         elseif (target_%name_.eq.'aceptor_donor') then 
+            Write(out_%iunit,'(35x,a)') " --------------------------"
+            Write(out_%iunit,'(5x,a,f25.16,a)') "Total Potential       :  ", v_tot(1), '  a.u.'
+         endif
+         Write(out_%iunit,'(a)') " "
+         Write(out_%iunit,'(5x,a,f25.16,a)') "Total Potential Modulus:", v_mod, ' a.u.'
+     endif
+!
+     if (target_%name_.eq.'aceptor_solv_np_donor') then
+        Write(out_%iunit,'(34x,a)') " -------------------------------------------------------------"
+        Write(out_%iunit,'(5x,a,f25.16,a,f25.16,a)') "Total Potential       :  ", v_tot(1), '   + ',  v_tot(2), ' i  a.u.'
+     endif
+     Write(out_%iunit,'(a)') " "
+     Write(out_%iunit,'(5x,a,f25.16,a)') "Total Potential Modulus:", v_mod, ' a.u.'
+!
      Write(out_%iunit,'(a)') " " 
-     if(target_%name_.ne.'aceptor_np') then
-        Write(out_%iunit,'(5x,a,e15.6,a)') "Keet:", two * pi * (v_mod**two) * target_%spectral_overlap, '  a.u.'
+     if(target_%name_.ne.'aceptor_np' .or. target_%name_.ne.'aceptor_solv') then
+        Write(out_%iunit,'(5x,a,f25.16,a)') "Keet:", two * pi * (v_mod**two) * target_%spectral_overlap, '  a.u.'
+        Write(out_%iunit,'(a)') " " 
+     endif
+     if(target_%name_.ne.'aceptor_solv' .and. target_%name_.ne.'aceptor_np') then
+        Write(out_%iunit,'(5x,a,f25.16,a)') "Keet:", two * pi * (v_mod**two) * target_%spectral_overlap, '  a.u.'
         Write(out_%iunit,'(a)') " " 
      endif
      Write(out_%iunit,out_%sticks) 

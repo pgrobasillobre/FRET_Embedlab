@@ -21,7 +21,7 @@ grid_points   = 1000  # Number of energy points in the spectral range
 fwhm          = 0.8   # Full Width at Half Maximum (FWHM) in eV 
 
 # --> Conversion factors
-ev_to_cm_min1 = 4.55633E-6 
+ev_to_hartree = 1.0/27.211399
 
 
 # ==============================
@@ -53,7 +53,9 @@ def read_command_line(command_line):
    elif sys.argv[1] == '-h' or sys.argv[1] == '-help':
       print('')
       print('')
-      print(' Execution --> python3 overlap_adf.py adf1.log #state adf2.log #state plot_gaussians[optional]')
+      print(' Execution --> python3 overlap_adf.py aceptor.log #state donor.log #state plot_gaussians[optional]')
+      print('')
+      print('    NB: The aceptor log has to be first!')
       print('')
       print('')
       sys.exit()
@@ -165,10 +167,21 @@ exc_2, osc_2 = read_adf_tddft_log(adf_2, adf_2_state)
 energies_1, gaussian_1 = single_gaussian(grid_points, exc_1, osc_1, fwhm, min_energy, max_energy)
 energies_2, gaussian_2 = single_gaussian(grid_points, exc_2, osc_2, fwhm, min_energy, max_energy)
 
+# Normalize each Gaussian function
+
+normalized_gaussian_1 = gaussian_1 / np.sum(gaussian_1)
+normalized_gaussian_2 = gaussian_2 / np.sum(gaussian_2)
+
+# Rescale one Gaussian function by prefactor freq**4 as overlap = int f(A) * f(B) * w**4 
+normalized_gaussian_1_freq = [x*(y)    for x,y in zip(normalized_gaussian_1,energies_1)]
+normalized_gaussian_2_freq = [x*(y**3) for x,y in zip(normalized_gaussian_2,energies_2)]
+
+# Transform to np array to make the numerical integration
+normalized_gaussian_1_freq_np = np.array(normalized_gaussian_1_freq)
+normalized_gaussian_2_freq_np = np.array(normalized_gaussian_2_freq)
 
 # --> Calculate the overlap using numerical integration (area under the product of the two Gaussians)
-
-overlap = np.trapz(gaussian_1 * gaussian_2, energies_1) * ev_to_cm_min1
+overlap = np.trapz(normalized_gaussian_1_freq_np * normalized_gaussian_2_freq_np, energies_1) 
 
 
 # END TIMER
@@ -176,8 +189,11 @@ end = time.time()
 
 
 print('')
-print('   Spectral Overlap (cm-1): ' + str(overlap))
+print('   Spectral Overlap (a.u.)^-1: ' + str(1.0 / (overlap * ev_to_hartree)))
+print('                            ')
+print('   Omega_0 (a.u.): ' + str((abs(exc_1 + exc_2)/2.0) * ev_to_hartree))
 print('')
+print('   ----------------------------------')
 print('   NORMAL TERMINATION')
 print('')
 print('   COMPUTATIONAL TIME: ', str(round(end-start,2)), ' s')
@@ -210,20 +226,20 @@ if (plot_gaussians):
    plt.tick_params(axis='y', which='major', labelsize=fontsize_axes)
 
    plt.xlabel("Energy (eV)", fontsize=fontsize_labels, labelpad = 8.0)
-   plt.ylabel("Osc. Strength (eV)", fontsize=fontsize_labels, labelpad=18.0)
+   plt.ylabel("Arbitrary Units", fontsize=fontsize_labels, labelpad=18.0)
 
-   plt.title("Gaussian Convolution\nof TDDFT Excitations",fontsize=fontsize_title, pad=12.0)
+   plt.title("Normalized Gaussian Convolution\nof TDDFT Excitations",fontsize=fontsize_title, pad=12.0)
 
    # Plot
-   plt.plot(energies_1, gaussian_1, color='red',  label = 'State ' + str(adf_1_state))
-   plt.plot(energies_2, gaussian_2, color='blue', label = 'State ' + str(adf_2_state))
+   plt.plot(energies_1, normalized_gaussian_1, color='red',  label = 'Aceptor')
+   plt.plot(energies_2, normalized_gaussian_2, color='blue', label = 'Donor')
 
    plt.legend(framealpha=1,fontsize=fontsize_labels)
    plt.grid(True)
 
    ### Calculate the maximum y-values for each Gaussian
-   ##max_y1 = max(gaussian_1)
-   ##max_y2 = max(gaussian_2)
+   ##max_y1 = max(normalized_gaussian_1)
+   ##max_y2 = max(normalized_gaussian_2)
    ##
    ### Plot vertical lines (pulses) from the bottom (0.0) to the maximum y-values
    ##plt.vlines(exc_1, 0.0, max_y1, colors='red',  linestyles='dashed', label='Pulse for Gaussian 1', alpha=0.2)

@@ -1,7 +1,7 @@
 !----------------------------------------------------------------------
-module nanoparticle_module
+module solvent_module
 !      
-!   Module nanoparticle
+!   Module solvent
 !
     use output_module
 !!    use target_module
@@ -10,50 +10,50 @@ module nanoparticle_module
 !
     Implicit None
 !
-    public nanoparticle
+    public solvent
 !
-!   nanoparticle type
+!   solvent type
 !
-    type nanoparticle_type
+    type solvent_type
 ! 
       integer                                   :: natoms
 !
-      real(dp), dimension(:,:),   allocatable  :: q
-      real(dp), dimension(:,:,:), allocatable  :: mu
+      real(dp), dimension(:),   allocatable  :: q
+      real(dp), dimension(:,:), allocatable  :: mu
       real(dp), dimension(:,:), allocatable    :: xyz
 !
       logical :: charges, dipoles
 !
-    end type nanoparticle_type
+    end type solvent_type
 !
-    type (nanoparticle_type), Save :: nanoparticle
+    type (solvent_type), Save :: solvent
 !
    contains
 !----------------------------------------------------------------------
-   subroutine read_nanoparticle(infile, np)
+   subroutine read_solvent(infile, solv)
 !
-!    Read input np file
+!    Read input solv file
 !
      implicit none
 !
      character(len=*),    intent(in)        :: infile
-     type (nanoparticle_type), intent(out)  :: np
+     type (solvent_type), intent(out)  :: solv
 !
 !
 !    internal variables
 !
-     character(len=400) :: line
+     character(len=200) :: line
 !
      integer :: nlines
      integer :: num_string_initial, num_string_end, dum
      integer :: IIn
-     integer :: i
+     integer :: i,j
      integer :: iost
 !
      logical :: found_string
 !
-     np%charges = .false.
-     np%dipoles = .false.
+     solv%charges = .false.
+     solv%dipoles = .false.
 !
      IIn = 21
 !
@@ -78,28 +78,27 @@ module nanoparticle_module
           call out_%error('No end for FRET charges/dipoles found in "'//trim(infile)//'" input')
        endif
 !
-       np%natoms = num_string_end - num_string_initial - 2
+       solv%natoms = num_string_end - num_string_initial - 2
 !
 !      Check if we have charges or charges + dipoles
        Rewind(IIn) 
-       call go_to_string(IIn,charges_header,np%charges,nlines,dum)
+       call go_to_string(IIn,charges_header,solv%charges,nlines,dum)
+
+       Rewind(IIn) 
+       call go_to_string(IIn,dipoles_header,solv%dipoles,nlines,dum)
+
+       if (.not.solv%charges .and. .not.solv%dipoles) call out_%error("Charges and/or dipoles not found ")
 !
-       Rewind(IIn)
-       call go_to_string(IIn,dipoles_header,np%dipoles,nlines,dum)
-!
-       if (.not.np%charges .and. .not.np%dipoles) call out_%error("Charges and/or dipoles not found")
-!
-       call allocate_nanoparticle(np)
+       call allocate_solvent(solv)
 !
        Rewind(IIn) 
-!
-       if(np%charges) then !BEM of wFQ case
+       if(solv%charges) then !FQ case
           call go_to_string(IIn,charges_header,found_string,nlines,dum)
-       elseif(np%dipoles) then ! wFQFMu case
+       elseif(solv%dipoles) then ! FQFMu case
           call go_to_string(IIn,dipoles_header,found_string,nlines,dum)
        endif
 !
-       do i = 1, np%natoms
+       do i = 1, solv%natoms
 !
          read(IIn,'(a)') line
 !       
@@ -107,15 +106,14 @@ module nanoparticle_module
             call out_%error("Blank line found in corrupt FRET charges/dipoles file: "//trim(infile))
          endif
 !
-         if(np%charges) then
-            read(line,'(5(f25.16, 5x))') np%q(i,1), np%q(i,2), np%xyz(1,i), np%xyz(2,i), np%xyz(3,i)
-!
-         elseif(np%dipoles) then
-            read(line,'(11(f25.16, 5x))') np%q(i,1),    np%q(i,2),                 &
-                                          np%mu(1,i,1), np%mu(2,i,1), np%mu(3,i,1),&
-                                          np%mu(1,i,2), np%mu(2,i,2), np%mu(3,i,2),&
-                                          np%xyz(1,i),  np%xyz(2,i),  np%xyz(3,i)  
-!
+         !print *, line
+         if(solv%charges) then
+            read(line,'(5(f25.16, 5x))') solv%q(i), solv%q(i), solv%xyz(1,i), solv%xyz(2,i), solv%xyz(3,i)
+         elseif(solv%dipoles) then
+            read(line,'(11(f25.16, 5x))') solv%q(i),    solv%q(i),                 &
+                                          solv%mu(1,i), solv%mu(2,i), solv%mu(3,i),&
+                                          solv%mu(1,i), solv%mu(2,i), solv%mu(3,i),&
+                                          solv%xyz(1,i),  solv%xyz(2,i),  solv%xyz(3,i)
          endif
 !
        enddo
@@ -123,48 +121,49 @@ module nanoparticle_module
      01 continue
      close(IIn)
 !
-   end subroutine read_nanoparticle
+   end subroutine read_solvent
 !----------------------------------------------------------------------
-   subroutine allocate_nanoparticle(np)
+   subroutine allocate_solvent(solv)
 !
-!    Read input np file
+!    Read input solv file
 !
      implicit none
 !
-     type (nanoparticle_type), intent(inout)  :: np
+     type (solvent_type), intent(inout)  :: solv
 !
-     allocate(np%xyz(3,np%natoms))
+     allocate(solv%xyz(3,solv%natoms))
 !
-     if (np%charges) then 
-        allocate(np%q(np%natoms,2))
-     elseif (np%dipoles) then
-        allocate(np%q(np%natoms,2))
-        allocate(np%mu(3,np%natoms,2))
+     if (solv%charges .and. .not. solv%dipoles) then 
+        allocate(solv%q(solv%natoms))
+
+     elseif (solv%dipoles .and. .not. solv%charges) then
+        allocate(solv%mu(3,solv%natoms))
+
      else
         call out_%error("Not recognised whether a charges or charges + dipoles is requested")
      endif
 !
-   end subroutine allocate_nanoparticle
+   end subroutine allocate_solvent
 !----------------------------------------------------------------------
-   subroutine delete_nanoparticle(np)
+   subroutine delete_solvent(solv)
 !
-!    Read input np file
+!    Read input solv file
 !
      implicit none
 !
-     type (nanoparticle_type), intent(inout)  :: np
+     type (solvent_type), intent(inout)  :: solv
 !
-     deallocate(np%xyz)
+     deallocate(solv%xyz)
 !
-     if (np%charges .and. .not. np%dipoles) then 
-        deallocate(np%q)
+     if (solv%charges .and. .not. solv%dipoles) then 
+        deallocate(solv%q)
 
-     elseif (np%dipoles .and. .not. np%charges) then
-        deallocate(np%mu)
+     elseif (solv%dipoles .and. .not. solv%charges) then
+        deallocate(solv%mu)
 
      endif
 !
-   end subroutine delete_nanoparticle
+   end subroutine delete_solvent
 !----------------------------------------------------------------------
-end module nanoparticle_module
+end module solvent_module
 

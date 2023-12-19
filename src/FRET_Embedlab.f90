@@ -39,7 +39,7 @@ call inp_%get_arguments()
 call time%initialize()
 call time%start("total")
 
-!$ call omp_set_num_threads(algorithm%n_threads_OMP) 
+!$ call omp_set_num_threads(parallel%n_threads_OMP) 
 
 open(unit=out_%iunit,file=out_%filename,status="unknown")
 !
@@ -64,9 +64,21 @@ open(unit=out_%iunit,file=out_%filename,status="unknown")
 !
        call algorithm%aceptor_np_interaction()
 !
+    elseif(target_%name_.eq.'aceptor_solv') then
+!
+       call algorithm%aceptor_solv_interaction()
+!
     elseif(target_%name_.eq.'aceptor_np_donor') then
 !
        call algorithm%aceptor_np_donor()
+!
+    elseif(target_%name_.eq.'aceptor_solv_donor') then
+!
+       call algorithm%aceptor_solv_donor()
+!
+    elseif(target_%name_.eq.'aceptor_solv_np_donor') then
+!
+       call algorithm%aceptor_solv_np_donor()
 !
     endif
 !

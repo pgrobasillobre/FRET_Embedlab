@@ -55,7 +55,7 @@ endif()
 #find_package(LAPACK REQUIRED)
 
 ## FOR THE TESTS
-#include(ConfigTesting)
+include(ConfigTesting)
 
 # Math detection
 set(BLAS_LANG "Fortran")
@@ -93,8 +93,8 @@ else()
 endif()
   
 ## THIS IS FOR THE TESTS
-#file(COPY ${CMAKE_SOURCE_DIR}/tests DESTINATION ${CMAKE_BINARY_DIR})
-#
-#if(EXISTS ${CMAKE_SOURCE_DIR}/submodules/runtest/runtest)
-#   file(COPY ${CMAKE_SOURCE_DIR}/submodules/runtest/runtest DESTINATION ${CMAKE_BINARY_DIR}/tests)
-#endif()
+file(COPY ${CMAKE_SOURCE_DIR}/tests DESTINATION ${CMAKE_BINARY_DIR})
+
+if(EXISTS ${CMAKE_SOURCE_DIR}/submodules/runtest/runtest)
+   file(COPY ${CMAKE_SOURCE_DIR}/submodules/runtest/runtest DESTINATION ${CMAKE_BINARY_DIR}/tests)
+endif()

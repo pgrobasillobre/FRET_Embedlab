@@ -3,8 +3,10 @@ module integrals_module
 !      
 !   Module integrals
 !
+    !$ use omp_lib
     use density_module
     use nanoparticle_module
+    use solvent_module
     use target_module
     use parameters_module
 !
@@ -19,6 +21,7 @@ module integrals_module
       real(dp)                  :: aceptor_donor_coulomb
       real(dp)                  :: aceptor_donor_overlap
       real(dp), dimension(2)    :: aceptor_np_int !1: real, 2: imaginary
+      real(dp), dimension(1)    :: aceptor_solv_int 
 !
     end type integrals_type
 !
@@ -44,126 +47,89 @@ module integrals_module
      real(dp) :: r(3)        !aceptor-donor position     
      real(dp) :: dist        
      real(dp) :: invdst 
+     real(dp) :: int_coulomb, int_overlap 
      real(dp) :: sf,sf0,screen_pot !for screening
 !
-     real(dp), dimension(:), allocatable :: vector_results_coulomb, vector_results_overlap
+     real(dp), dimension(:), allocatable   :: rho_aceptor, rho_donor
+     real(dp), dimension(:,:), allocatable :: xyz_aceptor, xyz_donor
 !
-     integer :: vector_index
      integer  :: i,j,k,l,m,n
 !
-     allocate(vector_results_coulomb(aceptor%nx*aceptor%ny*aceptor%nz*donor%nx*donor%ny*donor%nz),&
-              vector_results_overlap(aceptor%nx*aceptor%ny*aceptor%nz*donor%nx*donor%ny*donor%nz))
+!    To allocate these quantities internally requires more memory but makes the calculation
+!    in parallel faster. FORTRAN has problems accessing object-types in parallell. 
+     allocate(rho_aceptor(aceptor%n_points_reduced),   rho_donor(donor%n_points_reduced),&
+              xyz_aceptor(3,aceptor%n_points_reduced), xyz_donor(3,donor%n_points_reduced))
+!
+     xyz_aceptor(1:3,1:aceptor%n_points_reduced) = aceptor%xyz(1:3,1:aceptor%n_points_reduced)
+     xyz_donor(1:3,1:donor%n_points_reduced) = donor%xyz(1:3,1:donor%n_points_reduced)
+!
+     rho_aceptor(1:aceptor%n_points_reduced) = aceptor%rho_reduced(1:aceptor%n_points_reduced)
+     rho_donor(1:donor%n_points_reduced) = donor%rho_reduced(1:donor%n_points_reduced)
 !
      integrals%aceptor_donor_coulomb = zero
      integrals%aceptor_donor_overlap = zero
 !
-     vector_results_coulomb = zero
-     vector_results_overlap = zero
+     int_coulomb = zero
+     int_overlap = zero
 !
      r   = zero
 !
-!!!$omp parallel do private(i,j,k,l,m,n,vector_index) &
-!!!$omp collapse(6)
-vector_index = 0
+     !$omp parallel do private(i,j,r,dist,invdst,sf,sf0,screen_pot) &
+     !$omp collapse(1) & 
+     !$omp reduction(+:int_coulomb,int_overlap) 
 !    aceptor
-     do i = 1, aceptor%nx
-        !x_a = aceptor%xmin + aceptor%dx*(i-1)
-        do j = 1, aceptor%ny
-           !y_a = aceptor%ymin + aceptor%dy*(j-1)
-           do k = 1, aceptor%nz
-              !z_a = aceptor%zmin + aceptor%dz*(k-1)
+     do i = 1, aceptor%n_points_reduced
+!       donor
+        do j = 1, donor%n_points_reduced
 !
-!             donor
-              do l = 1, donor%nx
-                 !x_d = donor%xmin + donor%dx*(l-1)
-                 do m = 1, donor%ny
-                    !y_d = donor%ymin + donor%dy*(m-1)
-                    do n = 1, donor%nz
-                       !z_d = donor%zmin + donor%dz*(n-1)
+!          Aceptor-donor overlap 
+           if (i.eq.j .and. target_%calc_overlap_int) then
+              int_overlap = int_overlap +&
+                            rho_aceptor(i) * rho_donor(j)
+           endif 
 !
-                       !vector_index = vector_index + 1
+           r(1) = (xyz_aceptor(1,i)-xyz_donor(1,j))
+           r(2) = (xyz_aceptor(2,i)-xyz_donor(2,j))
+           r(3) = (xyz_aceptor(3,i)-xyz_donor(3,j))
 !
-                       !vector_index = (i-1)*aceptor%ny*aceptor%nz*donor%nx*donor%ny*donor%nz + &
-                       !               (j-1)*aceptor%nz*donor%nx*donor%ny*donor%nz + &
-                       !               (k-1)*donor%nx*donor%ny*donor%nz + &
-                       !               (l-1)*donor%ny*donor%nz + &
-                       !               (m-1)*donor%nz + &
-                       !               n
+           dist = dsqrt(DOT_PRODUCT(r,r))
 !
+!          Skip when grid points are coincident to avoid instabilities
+           if (dist.le.1.0e-14) go to 01
+!
+           invdst = one/dist
+!
+!          Screening function 
+           sf  = dist / QMscrnFact
 
-                       r(1) = (aceptor%xyz(1,i,j,k)-donor%xyz(1,l,m,n))
-                       r(2) = (aceptor%xyz(2,i,j,k)-donor%xyz(2,l,m,n))
-                       r(3) = (aceptor%xyz(3,i,j,k)-donor%xyz(3,l,m,n))
+           sf0        = erf(sf)
+           screen_pot = sf0
 !
-                       dist = dsqrt(DOT_PRODUCT(r,r))
+!          Integrate charges as rho_aceptor * rho_donor * (1/dist) * screening
+!            --> the density has been already weigthed by the cube volume
+           int_coulomb = int_coulomb +&
+                         rho_aceptor(i) * rho_donor(j) * invdst * screen_pot
+!   
+   
+           01 continue                  
 !
-!                      Skip when grid points are coincident to avoid instabilities
-                       if (dist.le.1.0e-14) then
-                          !vector_results_coulomb(vector_index) = zero
-                          !vector_results_overlap(vector_index) = zero
-                          go to 10
-!                      Skip when any density is zero
-                       !elseif(abs(aceptor%rho(i,j,k)) .lt. 1.0E-15 .or. abs(donor%rho(l,m,n)) .lt. 1.0E-15) then
-                       !   !vector_results_coulomb(vector_index) = zero
-                       !   !vector_results_overlap(vector_index) = zero
-                       !   go to 10
-                       else
-                          invdst = one/dist
-                       endif
-!
-!                      Screening function 
-                       sf  = dist / QMscrnFact
-
-                       sf0        = erf(sf)
-                       screen_pot = sf0
-!
-!                      Integrate charges as rho_aceptor * rho_donor * (1/dist) * screening
-!                        --> the density has been already weigthed by the cube volume
-
-                       !print *,vector_index
-!
-                       !vector_results_coulomb(vector_index) = aceptor%rho(i,j,k) * donor%rho(l,m,n) * invdst * screen_pot
-!
-                       !print *, vector_results_coulomb(vector_index)
-!
-                       !vector_results_overlap(vector_index) = aceptor%rho(i,j,k) * donor%rho(l,m,n)
-!
-                       !vector_results_overlap(vector_index) = 0.0d0
-!
-                       integrals%aceptor_donor_coulomb = integrals%aceptor_donor_coulomb +&
-                                                         aceptor%rho(i,j,k) * donor%rho(l,m,n) * invdst * screen_pot
-!
-!                      Aceptor-donor overlap 
-                       integrals%aceptor_donor_overlap = integrals%aceptor_donor_overlap +&
-                                                         aceptor%rho(i,j,k) * donor%rho(l,m,n)
-!
-                       10 continue                  
-!
-                    enddo
-                 enddo
-              enddo
-           enddo
         enddo
      enddo
-!!!$omp end parallel do
-!print *, 'sizes', size(vector_results_coulomb), size(vector_results_overlap)
-!print *, vector_index
-!stop
+     !$omp end parallel do
 !
 !    Sum all the contributions to the integrals
-     !integrals%aceptor_donor_coulomb = SUM(vector_results_coulomb)
-     !integrals%aceptor_donor_coulomb = zero
+     integrals%aceptor_donor_coulomb = int_coulomb
 !
 !    Weigth overlap by -omega_0
-     !integrals%aceptor_donor_overlap = -target_%omega_0 * SUM(vector_results_overlap)
-     !integrals%aceptor_donor_overlap = zero
-
-
-!    Weight overlap by -omega_0
-     integrals%aceptor_donor_overlap = -target_%omega_0 * integrals%aceptor_donor_overlap
+     if (target_%calc_overlap_int) integrals%aceptor_donor_overlap = &
+                                           -target_%omega_0 * int_overlap
 !
-     deallocate(vector_results_coulomb)
-     deallocate(vector_results_overlap)
+!    Deallocate and exit
+!
+     deallocate(rho_aceptor)
+     deallocate(rho_donor)
+     deallocate(xyz_aceptor)
+     deallocate(xyz_donor)
 !
   end subroutine eet_aceptor_donor_integral 
 !----------------------------------------------------------------------
@@ -185,64 +151,276 @@ vector_index = 0
      real(dp) :: r(3)        !aceptor-np position     
      real(dp) :: dist        
      real(dp) :: invdst 
-     real(dp) :: sf,sf0,screen_pot !for screening
+     real(dp) :: sf,sf0,sf1,screen_pot, screen_fld !for screening
+     real(dp) :: aceptor_np_int_re, aceptor_np_int_im 
+     real(dp) :: aceptor_np_int_re_mu, aceptor_np_int_im_mu 
 !
-     integer  :: i,j,k,l
+     real(dp), dimension(:), allocatable     :: rho_aceptor
+     real(dp), dimension(:,:), allocatable   :: xyz_aceptor, xyz_np
+     real(dp), dimension(:,:), allocatable   :: mm_q
+     real(dp), dimension(:,:,:), allocatable :: mm_mu
+!
+     integer  :: i,j
+!
+!    To allocate these quantities internally requires more memory but makes the calculation
+!    in parallel faster. FORTRAN has problems accessing object-types in parallell. 
+     if (np%charges) then
+        allocate(rho_aceptor(aceptor%nx*aceptor%ny*aceptor%nz),   mm_q(np%natoms,2),&
+                 xyz_aceptor(3,aceptor%n_points_reduced), xyz_np(3,np%natoms))
+     else if (np%dipoles) then
+        allocate(rho_aceptor(aceptor%nx*aceptor%ny*aceptor%nz), mm_q(np%natoms,2),  mm_mu(3,np%natoms,2),&
+                 xyz_aceptor(3,aceptor%n_points_reduced), xyz_np(3,np%natoms))
+     endif
+!
+     xyz_aceptor(1:3,1:aceptor%n_points_reduced) = aceptor%xyz(1:3,1:aceptor%n_points_reduced)
+     xyz_np(1:3,1:np%natoms) = np%xyz(1:3,1:np%natoms)
+!
+     rho_aceptor(1:aceptor%n_points_reduced) = aceptor%rho_reduced(1:aceptor%n_points_reduced)
+!
+     if (np%charges) then
+        mm_q(1:np%natoms,1:2) = np%q(1:np%natoms,1:2)
+     else if(np%dipoles) then
+        mm_q(1:np%natoms,1:2) = np%q(1:np%natoms,1:2)
+        mm_mu(1:3,1:np%natoms,1:2) = np%mu(1:3,1:np%natoms,1:2)
+     endif
+!
+     aceptor_np_int_re = zero
+     aceptor_np_int_im = zero
+     aceptor_np_int_re_mu = zero
+     aceptor_np_int_im_mu = zero
 !
      integrals%aceptor_np_int = zero
 !
      r   = zero
+     sf  = zero
+     sf0 = zero
+     sf1 = zero 
+     screen_pot = zero
+     screen_fld = zero
+!
+     !We are debugging this
+!
+     !$omp parallel do private(i,j,r,dist,invdst,sf,sf0,sf1,screen_pot,screen_fld) &
+     !$omp collapse(1) & 
+     !$omp reduction(+:aceptor_np_int_re,aceptor_np_int_im) & 
+     !$omp reduction(+:aceptor_np_int_re_mu,aceptor_np_int_im_mu)
 !
 !    aceptor
-     do i = 1, aceptor%nx
-        !Write(*,'(4x,a6,i6,a7,i6)') ' Cycle ', i, ' out of ', aceptor%nx
-        x_a = aceptor%xmin + aceptor%dx*(i-1)
-        do j = 1, aceptor%ny
-           y_a = aceptor%ymin + aceptor%dy*(j-1)
-           do k = 1, aceptor%nz
-              z_a = aceptor%zmin + aceptor%dz*(k-1)
+     do i = 1, aceptor%n_points_reduced
+!       nanoparticle
+        do j = 1, np%natoms
 !
-!             nanoparticle
-              do l = 1, np%natoms
+           r(1) = (xyz_np(1,j)-xyz_aceptor(1,i))
+           r(2) = (xyz_np(2,j)-xyz_aceptor(2,i))
+           r(3) = (xyz_np(3,j)-xyz_aceptor(3,i))
 !
-                 r(1) = (x_a-np%xyz(1,l))
-                 r(2) = (y_a-np%xyz(2,l))
-                 r(3) = (z_a-np%xyz(3,l))
+           dist = dsqrt(DOT_PRODUCT(r,r))
 !
-                 dist = dsqrt(DOT_PRODUCT(r,r))
+!          Skip when grid points are coincident to avoid instabilities
+           if (dist.le.1.0e-14) go to 10
 !
-!                Skip when grid points are coincident to avoid instabilities
-                 if (dist.le.1.0e-14) then
-                    go to 10
-                 else
-                    invdst = one/dist
-                 endif
+           invdst = one/dist
 !
-!                Screening function 
-                 sf  = dist / QMscrnFact
+!          Screening function 
+           sf  = dist / QMscrnFact
 !
-                 sf0        = erf(sf)
-                 screen_pot = sf0
+           sf0        = erf(sf)
+           screen_pot = sf0
+           if (np%dipoles) then
+              sf1 = ( two * sf / sqrtpi ) * EXP(-(sf**2))
+              screen_fld = sf0 - sf1
+           endif
 !
-!                Integrate rho * q (imaginary charges)
-!                  --> the density has been already weigthed by the cube volume
+!          Integrate rho * q (imaginary charges)
+!            --> the density has been already weigthed by the cube volume
 !
-!                WE HAVE TO UNDERSTAND IF THE DENSITY HAS THE PROPER SIGN
+!          WE HAVE TO UNDERSTAND IF THE DENSITY HAS THE PROPER SIGN
 !
-                 integrals%aceptor_np_int(1) = integrals%aceptor_np_int(1) +&
-                                               aceptor%rho(i,j,k) * np%q(l,1) * invdst * screen_pot
+           if (np%charges) then
+              aceptor_np_int_re = aceptor_np_int_re +&
+                                  rho_aceptor(i) * mm_q(j,1) * invdst * screen_pot
 !
-                 integrals%aceptor_np_int(2) = integrals%aceptor_np_int(2) +&
-                                               aceptor%rho(i,j,k) * np%q(l,2) * invdst * screen_pot
+              aceptor_np_int_im = aceptor_np_int_im +&
+                                  rho_aceptor(i) * mm_q(j,2) * invdst * screen_pot
+           else if (np%dipoles) then 
+!   
+!             Charges
+              aceptor_np_int_re = aceptor_np_int_re +&
+                                  rho_aceptor(i) * mm_q(j,1) * invdst * screen_pot
 !
-                 10 continue                  
+              aceptor_np_int_im = aceptor_np_int_im +&
+                                  rho_aceptor(i) * mm_q(j,2) * invdst * screen_pot
 !
-              enddo
-           enddo
+!             Dipoles
+              aceptor_np_int_re_mu = aceptor_np_int_re_mu +&
+                                  (-rho_aceptor(i) * mm_mu(1,j,1) * r(1) * (invdst**3) * screen_fld -&
+                                    rho_aceptor(i) * mm_mu(2,j,1) * r(2) * (invdst**3) * screen_fld -&
+                                    rho_aceptor(i) * mm_mu(3,j,1) * r(3) * (invdst**3) * screen_fld) 
+!
+              aceptor_np_int_im_mu = aceptor_np_int_im_mu +&
+                                  (-rho_aceptor(i) * mm_mu(1,j,2) * r(1) * (invdst**3) * screen_fld -&
+                                    rho_aceptor(i) * mm_mu(2,j,2) * r(2) * (invdst**3) * screen_fld -&
+                                    rho_aceptor(i) * mm_mu(3,j,2) * r(3) * (invdst**3) * screen_fld)
+!
+           end if
+!
+           10 continue                  
+!
         enddo
      enddo
+     !$omp end parallel do
+!
+     integrals%aceptor_np_int(1) = aceptor_np_int_re + aceptor_np_int_re_mu
+     integrals%aceptor_np_int(2) = aceptor_np_int_im + aceptor_np_int_im_mu
+!
+!
+!    Deallocate and exit
+!
+     if (allocated(rho_aceptor)) deallocate(rho_aceptor)
+     if (allocated(mm_q)       ) deallocate(mm_q)
+     if (allocated(mm_mu)      ) deallocate(mm_mu)
+     if (allocated(xyz_aceptor)) deallocate(xyz_aceptor)
+     if (allocated(xyz_np)     ) deallocate(xyz_np)       
 !
   end subroutine aceptor_nanoparticle_interaction_integral 
+!----------------------------------------------------------------------
+   subroutine aceptor_solvent_interaction_integral(integrals,aceptor,solv)
+!
+!    Compute donor-aceptor potential for EET rate calculation
+!
+     implicit none
+!
+     type (density_type), intent(in)      :: aceptor
+     type (solvent_type), intent(in) :: solv
+!
+     type (integrals_type), intent(out)   :: integrals
+!
+!
+!    internal variables
+!
+     real(dp) :: x_a,y_a,z_a !position of aceptor
+     real(dp) :: r(3)        !aceptor-solv position     
+     real(dp) :: dist        
+     real(dp) :: invdst 
+     real(dp) :: sf,sf0,sf1,screen_pot, screen_fld !for screening
+     real(dp) :: aceptor_solv_int_q 
+     real(dp) :: aceptor_solv_int_mu 
+!
+     real(dp), dimension(:), allocatable     :: rho_aceptor
+     real(dp), dimension(:,:), allocatable   :: xyz_aceptor, xyz_solv
+     real(dp), dimension(:), allocatable   :: mm_q
+     real(dp), dimension(:,:), allocatable :: mm_mu
+!
+     integer  :: i,j
+!
+!    To allocate these quantities internally requires more memory but makes the calculation
+!    in parallel faster. FORTRAN has problems accessing object-types in parallell. 
+     if (solv%charges) then
+        allocate(rho_aceptor(aceptor%nx*aceptor%ny*aceptor%nz),   mm_q(solv%natoms),&
+                 xyz_aceptor(3,aceptor%n_points_reduced), xyz_solv(3,solv%natoms))
+     else if (solv%dipoles) then
+        allocate(rho_aceptor(aceptor%nx*aceptor%ny*aceptor%nz), mm_q(solv%natoms),  mm_mu(3,solv%natoms),&
+                 xyz_aceptor(3,aceptor%n_points_reduced), xyz_solv(3,solv%natoms))
+     endif
+!
+     xyz_aceptor(1:3,1:aceptor%n_points_reduced) = aceptor%xyz(1:3,1:aceptor%n_points_reduced)
+     xyz_solv(1:3,1:solv%natoms) = solv%xyz(1:3,1:solv%natoms)
+!
+     rho_aceptor(1:aceptor%n_points_reduced) = aceptor%rho_reduced(1:aceptor%n_points_reduced)
+!
+     if (solv%charges) then
+        mm_q(1:solv%natoms) = solv%q(1:solv%natoms)
+     else if(solv%dipoles) then
+        mm_q(1:solv%natoms) = solv%q(1:solv%natoms)
+        mm_mu(1:3,1:solv%natoms) = solv%mu(1:3,1:solv%natoms)
+     endif
+!
+     aceptor_solv_int_q = zero
+     aceptor_solv_int_mu = zero
+!
+     integrals%aceptor_solv_int = zero
+!
+     r   = zero
+     sf  = zero
+     sf0 = zero
+     sf1 = zero 
+     screen_pot = zero
+     screen_fld = zero
+!
+     !We are debugging this
+!
+     !$omp parallel do private(i,j,r,dist,invdst,sf,sf0,sf1,screen_pot,screen_fld) &
+     !$omp collapse(1) & 
+     !$omp reduction(+:aceptor_solv_int_q) & 
+     !$omp reduction(+:aceptor_solv_int_mu)
+!
+!    aceptor
+     do i = 1, aceptor%n_points_reduced
+!       nanoparticle
+        do j = 1, solv%natoms
+!
+           r(1) = (xyz_solv(1,j)-xyz_aceptor(1,i))
+           r(2) = (xyz_solv(2,j)-xyz_aceptor(2,i))
+           r(3) = (xyz_solv(3,j)-xyz_aceptor(3,i))
+!
+           dist = dsqrt(DOT_PRODUCT(r,r))
+!
+!          Skip when grid points are coincident to avoid instabilities
+           if (dist.le.1.0e-14) go to 10
+!
+           invdst = one/dist
+!
+!          Screening function 
+           sf  = dist / QMscrnFact
+!
+           sf0        = erf(sf)
+           screen_pot = sf0
+           if (solv%dipoles) then
+              sf1 = ( two * sf / sqrtpi ) * EXP(-(sf**2))
+              screen_fld = sf0 - sf1
+           endif
+!
+!          Integrate rho * q (imaginary charges)
+!            --> the density has been already weigthed by the cube volume
+!
+!          WE HAVE TO UNDERSTAND IF THE DENSITY HAS THE PROPER SIGN
+!
+           if (solv%charges) then
+              aceptor_solv_int_q = aceptor_solv_int_q +&
+                                  rho_aceptor(i) * mm_q(j) * invdst * screen_pot
+!
+           else if (solv%dipoles) then 
+!   
+!             Charges
+              aceptor_solv_int_q = aceptor_solv_int_q +&
+                                  rho_aceptor(i) * mm_q(j) * invdst * screen_pot
+!
+!             Dipoles
+              aceptor_solv_int_mu = aceptor_solv_int_mu +&
+                                  (-rho_aceptor(i) * mm_mu(1,j) * r(1) * (invdst**3) * screen_fld -&
+                                    rho_aceptor(i) * mm_mu(2,j) * r(2) * (invdst**3) * screen_fld -&
+                                    rho_aceptor(i) * mm_mu(3,j) * r(3) * (invdst**3) * screen_fld) 
+!
+           end if
+!
+           10 continue                  
+!
+        enddo
+     enddo
+     !$omp end parallel do
+!
+     integrals%aceptor_solv_int = aceptor_solv_int_q + aceptor_solv_int_mu
+!
+!
+!    Deallocate and exit
+!
+     if (allocated(rho_aceptor)) deallocate(rho_aceptor)
+     if (allocated(mm_q)       ) deallocate(mm_q)
+     if (allocated(mm_mu)      ) deallocate(mm_mu)
+     if (allocated(xyz_aceptor)) deallocate(xyz_aceptor)
+     if (allocated(xyz_solv)     ) deallocate(xyz_solv)       
+!
+  end subroutine aceptor_solvent_interaction_integral 
 !----------------------------------------------------------------------
 end module integrals_module
 

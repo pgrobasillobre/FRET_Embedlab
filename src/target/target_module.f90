@@ -16,10 +16,13 @@ module target_module
 !
     type :: target_type
 !
-      character(len=200) :: name_, density_file, aceptor_density, donor_density, nanoparticle      
+      character(len=200) :: name_, density_file, aceptor_density, donor_density, nanoparticle, solvent      
 !
+      real(dp)           :: cutoff 
       real(dp)           :: omega_0                  
       real(dp)           :: spectral_overlap
+!
+      logical            :: calc_overlap_int
 !      
       contains
 !
