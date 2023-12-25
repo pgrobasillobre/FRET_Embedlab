@@ -826,32 +826,32 @@ if (translate_1):
       sys.exit()
    
    # -- Results folder and Logfile
-   if (os.path.exists('results_translate')):
-      print(' ')
-      print(' -----------------------------------------------------')
-      print('  WARNING: "results_translate" folder already exists"')
-      print(' -----------------------------------------------------')
-      print(' ')
-      erase_results = input('  Do you want to delete it and continue? (y/n)  ')
-      if(erase_results == "y" or erase_results == "yes"):
-         os.system('rm -rf results_translate/')
-         print(' ')
-      elif(erase_results == 'n' or erase_results == 'no'):
-         print(' ')
-         continue_ = input('  Type "stop" to kill the job, \n' + 
-                           '  otherwise type any key to continue  ')
-         print(' ')
-         if continue_.lower() == 'stop':
-            print('  Program stopped.')
-            print(' ')
-            sys.exit()
-      else:
-         print(' ')
-         print('  I did not understand what you mean by "' + erase_results + '"')
-         print(' ')
-         print('  Program stopped.')
-         print(' ')
-         sys.exit()
+   #if (os.path.exists('results_translate')):
+   #   print(' ')
+   #   print(' -----------------------------------------------------')
+   #   print('  WARNING: "results_translate" folder already exists"')
+   #   print(' -----------------------------------------------------')
+   #   print(' ')
+   #   erase_results = input('  Do you want to delete it and continue? (y/n)  ')
+   #   if(erase_results == "y" or erase_results == "yes"):
+   #      os.system('rm -rf results_translate/')
+   #      print(' ')
+   #   elif(erase_results == 'n' or erase_results == 'no'):
+   #      print(' ')
+   #      continue_ = input('  Type "stop" to kill the job, \n' + 
+   #                        '  otherwise type any key to continue  ')
+   #      print(' ')
+   #      if continue_.lower() == 'stop':
+   #         print('  Program stopped.')
+   #         print(' ')
+   #         sys.exit()
+   #   else:
+   #      print(' ')
+   #      print('  I did not understand what you mean by "' + erase_results + '"')
+   #      print(' ')
+   #      print('  Program stopped.')
+   #      print(' ')
+   #      sys.exit()
    
    if not (os.path.exists('results_translate')): os.system('mkdir results_translate')
    
