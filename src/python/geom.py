@@ -44,7 +44,8 @@ move_geom_2_to_000 = False
 distances     = []
 
 # rotate
-rotate =  False
+rotate   =  False
+rotate_1 = False
 move_geom_to_000 = False
 angles        = []
 
@@ -62,11 +63,13 @@ if sys.argv[1] == '-h' or sys.argv[1] == '-help':
    print ('  Execution:')
    print ('  ==========')
    print ('')
+   print ('     * The inputs must contain each angle(degrees)/distance(Å) in different lines, ending with a non-blank line')
+   print ('')
    print ('     ------------')
    print ('     Translation:')
    print ('     ------------')
    print ('')
-   print ('     Distances in input:')
+   print ('     Distances in input (controlled dist between 2 files):')
    print ('')
    print ('     ./geom.py -t distances_input geom1.xyz origin_CM_1{origin_CM_1_yes/no} geom2.xyz origin_CM{origin_CM_2_yes/no} axys{+-}{x/y/z} verbose{verbose_yes/no}')
    print ('')
@@ -79,9 +82,13 @@ if sys.argv[1] == '-h' or sys.argv[1] == '-help':
    print ('     Rotation:')
    print ('     ---------')
    print ('')
+   print ('     Angles in input:')
+   print ('')
    print ('     ./geom.py -r angles_input geom1.xyz origin_CM{origin_CM_yes/no} axys{+-}{x/y/z}')
    print ('')
-   print ('        * The input must contain each angle(degrees)/distance(Å) in different lines, ending with a non-blank line')
+   print ('     One rotation:')
+   print ('')
+   print ('     ./geom.py -r1 angle geom1.xyz origin_CM{origin_CM_yes/no} axys{+-}{x/y/z}')
    print ('')
    print ('     -----------------')
    print ('     Minimum Distance:')
@@ -112,6 +119,13 @@ elif sys.argv[1] == '-t1':
 elif sys.argv[1] == '-r':
    rotate = True
    angles_input    = str(sys.argv[2])
+   geom1_file      = str(sys.argv[3]) 
+   origin_CM       = str(sys.argv[4])
+   dir_axis_input  = str(sys.argv[5])
+
+elif sys.argv[1] == '-r1':
+   rotate_1 = True
+   angle           = float(sys.argv[2])
    geom1_file      = str(sys.argv[3]) 
    origin_CM       = str(sys.argv[4])
    dir_axis_input  = str(sys.argv[5])
@@ -1069,12 +1083,178 @@ elif (rotate):
       if dir_axis_input[1] == 'y': x2, y2, z2 = rotate_y(x1, y1, z1, angle)
       if dir_axis_input[1] == 'z': x2, y2, z2 = rotate_z(x1, y1, z1, angle)
 
-      new_geom_file = geom1_file[:-4] + '_'+ dir_axis_input + '_degree_' + str(angle) + '.xyz'
+      if dir_axis_input[0] == '-':
+         new_geom_file = geom1_file[:-4] + '_'+ dir_axis_input + '_degree_' + str(abs(angle - 360)) + '.xyz'
+      elif dir_axis_input[0] == '+':
+         new_geom_file = geom1_file[:-4] + '_'+ dir_axis_input + '_degree_' + str(angle) + '.xyz'
+
       #
       print_geom(new_geom_file,n_geom1,atoms_1,x2,y2,z2)
 
       # Save geometry in "results" folder
       os.system('mv ' + new_geom_file + ' results_rotate/')
+
+
+
+
+#    
+#       ____        __        __          ___
+#      / __ \____  / /_____ _/ /____     <  /
+#     / /_/ / __ \/ __/ __ `/ __/ _ \    / / 
+#    / _, _/ /_/ / /_/ /_/ / /_/  __/   / /  
+#   /_/ |_|\____/\__/\__,_/\__/\___/   /_/   
+#                                          
+#   
+
+
+elif (rotate_1):
+
+   # ========================================================================
+   # =========================== INPUT CHECKS ===============================
+   
+   # ------- geom files ------- #
+   
+   if (geom1_file[-4:] != '.xyz'):
+      print(' ')
+      print('  STOP: .xyz extension not found in "' + geom1_file + ' file')
+      print(' ')
+      sys.exit()
+   
+   if (not os.path.exists(geom1_file)):
+      print(' ')
+      print('  STOP: "' + geom1_file + '" is not in the current folder' )
+      print(' ')
+      sys.exit()
+   
+   if (origin_CM == 'origin_CM_yes'):
+      move_geom_to_000 = True
+   
+   # ------- dir axis ------- #
+   
+   if (len(dir_axis_input) < 2):
+      print(' ')
+      print(' ERROR: Sense or direction axis ' + dir_axis_input + ' not supported')
+      print(' ')
+      print('    Options:')
+      print('    --------')
+      print('      +x, +y, +z')
+      print('      -x, -y, -z')
+      print(' ')
+      sys.exit()
+   
+   if (dir_axis_input[1] != 'x' and dir_axis_input[1] != 'y' and dir_axis_input[1] != 'z' or
+       dir_axis_input[0] != '+' and dir_axis_input[0] != '-'):
+      print(' ')
+      print(' ERROR: Sense or direction axis ' + dir_axis_input + ' not supported')
+      print(' ')
+      print('    Options:')
+      print('    --------')
+      print('      +x, +y, +z')
+      print('      -x, -y, -z')
+      print(' ')
+      sys.exit()
+   
+   # -- Results folder and Logfile
+   if (os.path.exists('results_rotate')):
+      print(' ')
+      print(' -------------------------------------------------')
+      print('  WARNING: "results_rotate" folder already exists"')
+      print(' -------------------------------------------------')
+      print(' ')
+      erase_results = input('  Do you want to delete it and continue? (y/n)  ')
+      if(erase_results == "y" or erase_results == "yes"):
+         os.system('rm -rf results_rotate/')
+         print(' ')
+      elif(erase_results == 'n' or erase_results == 'no'):
+         print(' ')
+         continue_ = input('  Type "stop" to kill the job, \n' + 
+                           '  otherwise type any key to continue  ')
+         print(' ')
+         if continue_.lower() == 'stop':
+            print('  Program stopped.')
+            print(' ')
+            sys.exit()
+      else:
+         print(' ')
+         print('  I did not understand what you mean by "' + erase_results + '"')
+         print(' ')
+         print('  Program stopped.')
+         print(' ')
+         sys.exit()
+   
+   if not (os.path.exists('results_rotate')): os.system('mkdir results_rotate')
+   
+   
+   # ========================================================================
+   # ========================  INITIALIZE VARIABLES =========================
+   
+  
+   # Fixed coordinates
+   x1 = []
+   y1 = []
+   z1 = []
+   
+   # Rotational coordinates
+   x2 = []
+   y2 = []
+   z2 = []
+   
+
+   # ========================================================================
+   # ========================================================================
+   # ===========================  MAIN PROGRAM ==============================
+   # ========================================================================
+   # ========================================================================
+   
+   
+   # ========================================================================
+   # ===========================  READ GEOMETRIES ===========================
+   
+   n_geom1, atoms_1, x1, y1, z1 = read_geom(geom1_file)
+   
+   
+   # ========================================================================
+   # ==========  MOVE GEOM1 AND GEOM2 TO THE ORIGIN OF COORDINATES ==========
+   
+   if (move_geom_to_000): 
+
+      geom1_center = []
+      
+      # -- Calculate geometrical centers
+      geom1_center.append(np.mean(x1,0))
+      geom1_center.append(np.mean(y1,0))
+      geom1_center.append(np.mean(z1,0))
+      
+      # -- Translate to the origin of coordinates
+      x1, y1, z1 = translate_geom_to_000(geom1_center,x1,y1,z1)
+      
+      # -- Save new geometries in results folder
+      new_geom1_file = geom1_file[:-4] + '_000.xyz'
+      
+      print_geom(new_geom1_file,n_geom1,atoms_1,x1,y1,z1)
+      
+      os.system('mv ' + new_geom1_file + ' results_rotate/')
+      
+   # Direction
+   if dir_axis_input[0] == '-':
+      angle = 360.0 - angle
+
+   if dir_axis_input[1] == 'x': x2, y2, z2 = rotate_x(x1, y1, z1, angle)
+   if dir_axis_input[1] == 'y': x2, y2, z2 = rotate_y(x1, y1, z1, angle)
+   if dir_axis_input[1] == 'z': x2, y2, z2 = rotate_z(x1, y1, z1, angle)
+
+   if dir_axis_input[0] == '-':
+      new_geom_file = geom1_file[:-4] + '_'+ dir_axis_input + '_degree_' + str(abs(angle - 360)) + '.xyz'
+   elif dir_axis_input[0] == '+':
+      new_geom_file = geom1_file[:-4] + '_'+ dir_axis_input + '_degree_' + str(angle) + '.xyz'
+
+   #
+   print_geom(new_geom_file,n_geom1,atoms_1,x2,y2,z2)
+
+   # Save geometry in "results" folder
+   os.system('mv ' + new_geom_file + ' results_rotate/')
+
+
 
 
 
@@ -1143,8 +1323,9 @@ if (minimum_distance):
          '    distance  : ' + str(round(distance,4)) + ' Å')
    print('  -------------------------------')
    
+
+
    
- 
 
 
 
