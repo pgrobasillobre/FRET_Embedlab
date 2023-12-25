@@ -16,7 +16,7 @@ import os
 #                    ╚═════╝ ╚══════╝ ╚═════╝ ╚═╝     ╚═╝     ╚═════╝ ╚═════╝ ╚═════╝ ╚══════╝                
    
 #
-# PURPOSE: Managing xyz files to translate and rotate accurately
+# PURPOSE: Managing xyz files to translate and rotate 
 #
 # EXECUTION details: ./geom.py -h 
 #
@@ -37,7 +37,8 @@ min_dist = 1.0
 
 # -- Input stuff
 # translate
-translate = False
+translate   = False
+translate_1 = False
 move_geom_1_to_000 = False
 move_geom_2_to_000 = False
 distances     = []
@@ -65,7 +66,13 @@ if sys.argv[1] == '-h' or sys.argv[1] == '-help':
    print ('     Translation:')
    print ('     ------------')
    print ('')
+   print ('     Distances in input:')
+   print ('')
    print ('     ./geom.py -t distances_input geom1.xyz origin_CM_1{origin_CM_1_yes/no} geom2.xyz origin_CM{origin_CM_2_yes/no} axys{+-}{x/y/z} verbose{verbose_yes/no}')
+   print ('')
+   print ('     One translation:')
+   print ('')
+   print ('     ./geom.py -t1 shift geom.xyz origin_CM{origin_CM_yes/no} axys{+-}{x/y/z}')
    print ('')
    print ('')
    print ('     ---------')
@@ -94,6 +101,13 @@ elif sys.argv[1] == '-t':
    origin_CM_2     = str(sys.argv[6])
    dir_axis_input  = str(sys.argv[7])
    verbose_inp     = str(sys.argv[8])
+
+elif sys.argv[1] == '-t1':
+   translate_1     = True
+   shift_t1        = float(sys.argv[2])
+   geom2_file      = str(sys.argv[3]) 
+   origin_CM_2     = str(sys.argv[4])
+   dir_axis_input  = str(sys.argv[5])
 
 elif sys.argv[1] == '-r':
    rotate = True
@@ -642,7 +656,6 @@ if (translate):
             if (dist_new > distance):
                # Another shift with less tolerance to avoid problems
                x2,y2,z2 = translate_geom(shift - 0.5 ) 
-               print(shift)
                #
                # Calculate distance
                dist_new = calc_min_distance()
@@ -725,6 +738,173 @@ if (translate):
    out_log.close()
    os.system('mv logfile.txt results_translate/')
 
+
+
+#
+#     ______                      __      __          ___
+#    /_  __/________ _____  _____/ /___ _/ /____     <  /
+#     / / / ___/ __ `/ __ \/ ___/ / __ `/ __/ _ \    / / 
+#    / / / /  / /_/ / / / (__  ) / /_/ / /_/  __/   / /  
+#   /_/ /_/   \__,_/_/ /_/____/_/\__,_/\__/\___/   /_/  
+#   
+#
+
+if (translate_1):
+
+   # ========================================================================
+   # =========================== INPUT CHECKS ===============================
+   
+   # ------- geom files ------- #
+   
+   if (geom2_file[-4:] != '.xyz'):
+      print(' ')
+      print('  STOP: .xyz extension not found in "' + geom2_file + ' file')
+      print(' ')
+      sys.exit()
+   
+   if (not os.path.exists(geom2_file)):
+      print(' ')
+      print('  STOP: "' + geom2_file + '" is not in the current folder' )
+      print(' ')
+      sys.exit()
+   
+   if (origin_CM_2 == 'origin_CM_yes'):
+      move_geom_2_to_000 = True
+   
+   # ------- dir axis ------- #
+   
+   if (len(dir_axis_input) < 2):
+      print(' ')
+      print(' ERROR: Sense or direction axis ' + dir_axis_input + ' not supported')
+      print(' ')
+      print('    Options:')
+      print('    --------')
+      print('      +x, +y, +z')
+      print('      -x, -y, -z')
+      print(' ')
+      sys.exit()
+   
+   if (dir_axis_input[1] != 'x' and dir_axis_input[1] != 'y' and dir_axis_input[1] != 'z' or
+       dir_axis_input[0] != '+' and dir_axis_input[0] != '-'):
+      print(' ')
+      print(' ERROR: Sense or direction axis ' + dir_axis_input + ' not supported')
+      print(' ')
+      print('    Options:')
+      print('    --------')
+      print('      +x, +y, +z')
+      print('      -x, -y, -z')
+      print(' ')
+      sys.exit()
+   
+   # -- Results folder and Logfile
+   if (os.path.exists('results_translate')):
+      print(' ')
+      print(' -----------------------------------------------------')
+      print('  WARNING: "results_translate" folder already exists"')
+      print(' -----------------------------------------------------')
+      print(' ')
+      erase_results = input('  Do you want to delete it and continue? (y/n)  ')
+      if(erase_results == "y" or erase_results == "yes"):
+         os.system('rm -rf results_translate/')
+         print(' ')
+      elif(erase_results == 'n' or erase_results == 'no'):
+         print(' ')
+         continue_ = input('  Type "stop" to kill the job, \n' + 
+                           '  otherwise type any key to continue  ')
+         print(' ')
+         if continue_.lower() == 'stop':
+            print('  Program stopped.')
+            print(' ')
+            sys.exit()
+      else:
+         print(' ')
+         print('  I did not understand what you mean by "' + erase_results + '"')
+         print(' ')
+         print('  Program stopped.')
+         print(' ')
+         sys.exit()
+   
+   if not (os.path.exists('results_translate')): os.system('mkdir results_translate')
+   
+   
+
+
+   # ========================================================================
+   # ========================  INITIALIZE VARIABLES =========================
+   
+   # Direction
+   if dir_axis_input[0] == '-':
+      direction = -one
+   elif dir_axis_input[0] == '+':
+      direction = one
+   
+   # Axis
+   if dir_axis_input[1]=='x':
+   	factor_x = direction
+   	factor_y = zero
+   	factor_z = zero
+   elif dir_axis_input[1]=='y':
+           factor_x = zero
+           factor_y = direction
+           factor_z = zero
+   elif dir_axis_input[1]=='z':
+           factor_x = zero
+           factor_y = zero
+           factor_z = direction
+   
+   dist     = zero
+   
+   # Translational coordinates
+   x2 = []
+   y2 = []
+   z2 = []
+   
+ 
+   # ========================================================================
+   # ========================================================================
+   # ===========================  MAIN PROGRAM ==============================
+   # ========================================================================
+   # ========================================================================
+   
+   
+   # ========================================================================
+   # ============================  READ GEOMETRY ============================
+   
+   n_geom2, atoms_2, x2, y2, z2 = read_geom(geom2_file)
+   
+   
+   # ========================================================================
+   # ==========  MOVE GEOM2 TO THE ORIGIN OF COORDINATES ==========
+   
+   geom2_center = []
+   
+   # -- Calculate geometrical centers
+   geom2_center.append(np.mean(x2,0))
+   geom2_center.append(np.mean(y2,0))
+   geom2_center.append(np.mean(z2,0))
+   
+   
+   # -- Translate to the origin of coordinates
+   if (move_geom_2_to_000): 
+      x2, y2, z2 = translate_geom_to_000(geom2_center,x2,y2,z2)
+   
+      new_geom2_file = geom2_file[:-4] + '_000.xyz'
+      
+      print_geom(new_geom2_file,n_geom2,atoms_2,x2,y2,z2)
+      
+      os.system('mv ' + new_geom2_file + ' results_translate/')
+   
+   # -- Apply desired shift and save geometry
+   x2,y2,z2 = translate_geom(shift_t1)
+
+   new_geom2_file = geom2_file[:-4] + '_'+ dir_axis_input + '_d_' + str(round(shift_t1,4)) + '.xyz'
+   #
+   print_geom(new_geom2_file,n_geom2,atoms_2,x2,y2,z2)
+   #
+   # Save geometry in "results" folder
+   os.system('mv ' + new_geom2_file + ' results_translate/')
+
+ 
 
 
 #       ___  ____  _________ ______________  _  __
