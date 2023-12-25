@@ -52,6 +52,9 @@ angles        = []
 # minimum distance
 minimum_distance = False
 
+# Center grid points
+centers_grid = False
+
 # ========================================================================
 # ========================= READ COMMAND LINE ============================
 
@@ -90,11 +93,19 @@ if sys.argv[1] == '-h' or sys.argv[1] == '-help':
    print ('')
    print ('     ./geom.py -r1 angle geom1.xyz origin_CM{origin_CM_yes/no} axys{+-}{x/y/z}')
    print ('')
+   print ('')
    print ('     -----------------')
    print ('     Minimum Distance:')
    print ('     -----------------')
    print ('')
    print ('     ./geom.py -min geom1.xyz geom2.xyz')
+   print ('')
+   print ('')
+   print ('     --------------------')
+   print ('     Centers grid points:')
+   print ('     --------------------')
+   print ('')
+   print ('     ./geom.py -c geom_inputs')
    print ('')
 
    sys.exit()
@@ -134,6 +145,10 @@ elif sys.argv[1] == '-min':
    minimum_distance = True
    geom1_file      = str(sys.argv[2])
    geom2_file      = str(sys.argv[3])
+
+elif sys.argv[1] == '-c':
+   centers_grid = True
+   input_geom_files = str(sys.argv[2])
 
 else:
    print ('')
@@ -1323,6 +1338,77 @@ if (minimum_distance):
          '    distance  : ' + str(round(distance,4)) + ' Å')
    print('  -------------------------------')
    
+
+
+#
+#       ______           __                    ______     _     __
+#      / ____/__  ____  / /____  __________   / ____/____(_)___/ /
+#     / /   / _ \/ __ \/ __/ _ \/ ___/ ___/  / / __/ ___/ / __  / 
+#    / /___/  __/ / / / /_/  __/ /  (__  )  / /_/ / /  / / /_/ /  
+#    \____/\___/_/ /_/\__/\___/_/  /____/   \____/_/  /_/\__,_/   
+#                                                                 
+#
+
+if (centers_grid):
+
+   # ========================================================================
+   # =========================== INPUT CHECKS ===============================
+
+   with open(input_geom_files, 'r') as geom_files:
+
+      for line in geom_files:
+
+         geom_file = line.strip()
+
+         if (not os.path.exists(input_geom_files)):
+            print(' ')
+            print('  STOP: geometry files list "' + geom_files + '" is not in the current folder')
+            print(' ')
+            sys.exit()
+
+         if (geom_file[-4:] != '.xyz'):
+            print(geom_file)
+            print(geom_file[-4:])
+            print(' ')
+            print('  STOP: .xyz extension not found in "' + geom_file + ' file')
+            print(' ')
+            sys.exit()
+         
+         if (not os.path.exists(geom_file)):
+            print(' ')
+            print('  STOP: "' + geom_file + '" is not in the current folder' )
+            print(' ')
+            sys.exit()
+
+      
+   # ========================================================================
+   # ============================ MAIN PROGRAM ==============================
+
+   # Geometrical centers coordinates
+   x2 = []
+   y2 = []
+   z2 = []
+   
+   with open(input_geom_files, 'r') as geom_files:
+   
+      for line in geom_files:
+
+         geom_file = line.strip()
+   
+         # Read geoms
+         dum = []
+         dum_int, dum_lst, x, y, z = read_geom(geom_file)
+     
+         # -- Calculate geometrical centers
+         x2.append(np.mean(x,0))
+         y2.append(np.mean(y,0))
+         z2.append(np.mean(z,0))
+   
+      # Create ficticious H atoms list for each geometrical center
+      n_centers = len(x2)
+      atoms = ['H'] * n_centers
+         
+      print_geom('centers_grid.xyz',n_centers,atoms,x2,y2,z2)
 
 
    
