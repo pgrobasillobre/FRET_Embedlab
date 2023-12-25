@@ -626,9 +626,32 @@ if (translate):
       #
       if (dist_new > distance):
    
-         print('  STOP: something wrong happenned 1')
-         print('dist_new = ' + str(dist_new) + ' min dist = ' + str(distance))
-         sys.exit()
+         # Another shift with less tolerance to avoid problems
+         x2,y2,z2 = translate_geom(shift - 0.5) 
+         #
+         # Calculate distance
+         dist_new = calc_min_distance()
+         #
+         if (dist_new > distance):
+            # Another shift with less tolerance to avoid problems
+            x2,y2,z2 = translate_geom(shift - 0.5) 
+            #
+            # Calculate distance
+            dist_new = calc_min_distance()
+            #
+            if (dist_new > distance):
+               # Another shift with less tolerance to avoid problems
+               x2,y2,z2 = translate_geom(shift - 0.5 ) 
+               print(shift)
+               #
+               # Calculate distance
+               dist_new = calc_min_distance()
+               #
+               if (dist_new > distance):
+                  print('  STOP: something wrong happenned 1')
+                  print('dist_new = ' + str(dist_new) + ' min dist = ' + str(distance))
+                  sys.exit()
+   
    
       #
       # Move slowly towards desired distance
@@ -659,7 +682,7 @@ if (translate):
          diff_dist = abs(dist_new - distance)
    
          if (verbose):
-            print('  Computed distance = ' + str(round(dist_new,4)))
+            print('  Computed distance = ' + str(round(dist_new,4)) + ' Å')
    
          # Error
          if (dist_new > distance):
