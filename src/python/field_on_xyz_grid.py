@@ -500,36 +500,72 @@ def calculate_electric_field(incident_field_intenstiy,lcharges_and_dipoles,nAtom
 # ------------------------------- #
 # -------- Plot e_field --------- #
 
-def plot_electric_field(x,y,z,x_np,y_np,z_np,e_field):
-#
+def plot_electric_field(x, y, z, x_np, y_np, z_np, e_field):
    """
    Function to calculate electric field
 
-   :x,y,z   : Coordinates at which the electric field was calculated
-   :e_field : Electric field at each coordinate point
+   :x,y,z         : Coordinates at which the electric field was calculated
+   :x_np,y_np,z_np: Coordinates of the nanoparticle
+   :e_field       : Electric field at each coordinate point
    """
-#
-   # Creating a 3D scatter plot
-   fig = plt.figure()
-   ax = fig.add_subplot(111, projection='3d')
-   
-   # Scatter plot using x, y, z for position and e_field for color
-   scatter = ax.scatter(x_grid, y_grid, z_grid, c=e_field)
+   #Fonts and labels
+   plt.rcParams['font.family'] = 'Times New Roman'
+   plt.rcParams['mathtext.fontset'] = 'custom'
+   plt.rcParams['mathtext.rm'] = 'Times New Roman'
+   plt.rcParams['mathtext.it'] = 'Times New Roman:italic'
+   plt.rcParams['mathtext.bf'] = 'Times New Roman:bold'
+   plt.rcParams['mathtext.sf'] = 'Times New Roman'
+   plt.rcParams['mathtext.default'] = 'regular'
 
-   ## Adding spheres
-   #for x_np_, y_np_, z_np_ in zip(x_np, y_np, z_np):
-   #    ax.scatter(x_np_, y_np_, z_np_, color='yellow') #, s=1)  # s is the size of the point
+   font = 'Times New Roman'
+   fontsize_axes   = 18
+   fontsize_labels = 20
+   fontsize_text   = 20
 
-   
-   # Adding a color bar
-   plt.colorbar(scatter, ax=ax, label='Electric Field Enhancement')
-   
-   # Adding labels
-   ax.set_xlabel('X axis')
-   ax.set_ylabel('Y axis')
-   ax.set_zlabel('Z axis')
-   
+   # Create a figure
+   fig, ax = plt.subplots(subplot_kw={'projection': '3d'}, figsize=(8, 8))
+
+   # Calculate the central points and the maximum range for the cube
+   x_center, y_center, z_center = np.mean(x_np), np.mean(y_np), np.mean(z_np)
+   max_range = np.max([np.max(x) - np.min(x), np.max(y) - np.min(y), np.max(z) - np.min(z)]) / 2
+
+   # Calculate the limits for a perfect cube
+   x_lim = [x_center - max_range - 10.0, x_center + max_range + 10.0]
+   y_lim = [y_center - max_range - 10.0, y_center + max_range + 10.0]
+   z_lim = [z_center - max_range - 10.0, z_center + max_range + 10.0]
+
+   # Apply the same axis limits and aspect ratio
+   ax.set_xlim(x_lim)
+   ax.set_ylim(y_lim)
+   ax.set_zlim(z_lim)
+   ax.set_box_aspect([1,1,1])  # Ensure a cube
+
+   # Plotting nanoparticles and electric field
+   ax.scatter(x_np, y_np, z_np, color='yellow', edgecolors='black', s=100, linewidth=0.75, alpha=1)  # Nanoparticles
+   scatter = ax.scatter(x, y, z, c=e_field, s=100)  # Electric field scatter plot
+
+   # Create the colorbar
+   label = '|E|/E$_0$'
+   cbar = plt.colorbar(scatter, ax=ax, shrink=0.5, aspect=20)
+   cbar.ax.tick_params(labelsize=fontsize_axes)
+   title = cbar.ax.set_title(label, fontsize=fontsize_labels, loc='left')
+   title.set_position((-0.8, 10.00))
+
+   # Set labels and title
+   ax.set_xlabel('X axis', fontsize=fontsize_labels, labelpad=30)
+   ax.set_ylabel('Y axis', fontsize=fontsize_labels, labelpad=30)
+   ax.zaxis.set_rotate_label(False)  # disable automatic rotation
+   ax.set_zlabel('Z axis', fontsize=fontsize_labels, labelpad=30, rotation=90)
+   ax.set_title('Electric Field Enhancement', fontsize=fontsize_labels, pad=-30)
+   ax.view_init(elev=9, azim=90)
+
+   # Setting tick parameters
+   ax.tick_params(axis='x', which='major', labelsize=fontsize_axes)
+   ax.tick_params(axis='y', which='major', labelsize=fontsize_axes)
+   ax.tick_params(axis='z', which='major', labelsize=fontsize_axes)
+
    # Show the plot
+   plt.tight_layout()  # Adjust the layout
    plt.show()
 
 
@@ -577,35 +613,21 @@ if direction=='z': e_field = calculate_electric_field(incident_field_intenstiy,l
                                                       nAtoms,direction,R_q,R_mu,x_np,y_np,z_np,
                                                       x_grid,y_grid,z_grid,omega_re_z,omega_im_z)
 
-# --> 3D plot of electric field
-
-plot_electric_field(x_grid,y_grid,z_grid,x_np,y_np,z_np,e_field)
-
-
-
-
-
 # END TIMER
 end = time.time()
 
-
-#print('')
-#print('   ----------------------------------')
-#print('   NORMAL TERMINATION')
-#print('')
-#print('   COMPUTATIONAL TIME: ', str(round(end-start,2)), ' s')
-#print('')
-#print('')
-
+print('')
+print('   ----------------------------------')
+print('   NORMAL TERMINATION')
+print('')
+print('   COMPUTATIONAL TIME: ', str(round(end-start,2)), ' s')
+print('')
+print('')
 
 
-# ==============================
-#         MAIN PROGRAM 
-# ==============================
+# --> 3D plot of electric field
 
-
-
-
+plot_electric_field(x_grid,y_grid,z_grid,x_np,y_np,z_np,e_field)
 
 
 
