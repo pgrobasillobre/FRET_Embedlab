@@ -21,7 +21,6 @@ from mpl_toolkits.mplot3d import Axes3D
 
 # --> Initialize variables
 incident_field_intenstiy = 0.1
-plot = False
 
 
 # ==============================
@@ -65,6 +64,7 @@ def read_command_line(command_line):
       tar_file  = sys.argv[1]
       grid_file = sys.argv[2]
       direction = sys.argv[3]
+      plot = False
       if len(sys.argv)==5: plot = True
 
       return(tar_file,grid_file,direction,plot)
@@ -499,6 +499,33 @@ def calculate_electric_field(incident_field_intenstiy,lcharges_and_dipoles,nAtom
 
 
 # ------------------------------- #
+# --------- e_field PQR --------- #
+
+def save_field_pqr(x, y, z, e_field):
+   """
+   Function to save electric field as PQR file
+
+   :x,y,z   : Coordinates at which the electric field was calculated
+   :e_field : Electric field at each coordinate point
+   """
+
+   with open('field.pqr','w') as out:
+      for i in range(len(x)):
+        out.write('ATOM')
+        out.write(' %6i' % (i+1))
+        out.write('  ')
+        out.write('H')                # Ficticious H atom 
+        out.write('    X     1    ') 
+        out.write(' %7.3f' % x[i])
+        out.write(' %7.3f' % y[i])
+        out.write(' %7.3f' % z[i])
+        out.write(' %10.3E'  % e_field[i])
+        out.write(' %5.3f'  % 1.0)    # Ficticious chemical harness
+        out.write('\n')
+      out.close()
+ 
+
+# ------------------------------- #
 # -------- Plot e_field --------- #
 
 def plot_electric_field(x, y, z, x_np, y_np, z_np, e_field):
@@ -613,6 +640,10 @@ if direction=='y': e_field = calculate_electric_field(incident_field_intenstiy,l
 if direction=='z': e_field = calculate_electric_field(incident_field_intenstiy,lcharges_and_dipoles,
                                                       nAtoms,direction,R_q,R_mu,x_np,y_np,z_np,
                                                       x_grid,y_grid,z_grid,omega_re_z,omega_im_z)
+
+# --> Save field as PQR
+
+save_field_pqr(x_grid,y_grid,z_grid,e_field)
 
 # END TIMER
 end = time.time()
