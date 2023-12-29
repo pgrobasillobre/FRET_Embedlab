@@ -21,7 +21,7 @@ from mpl_toolkits.mplot3d import Axes3D
 
 # --> Initialize variables
 incident_field_intenstiy = 0.1
-
+plot = False
 
 
 # ==============================
@@ -36,7 +36,7 @@ def read_command_line(command_line):
    if sys.argv[1] == '-h' or sys.argv[1] == '-help':
       print('')
       print('')
-      print(' Execution --> python3 field_on_xyz_grid.py tar_file grid(xyz format) dir{x/y/z}')
+      print(' Execution --> python3 field_on_xyz_grid.py tar_file grid(xyz format) dir{x/y/z} plot{optional}')
       print('')
       print('')
       sys.exit()
@@ -51,7 +51,7 @@ def read_command_line(command_line):
       print('')
       sys.exit()
 
-   elif (len(sys.argv) > 4):
+   elif (len(sys.argv) > 5):
       print('')
       print('')
       print('   Too many arguments in input')
@@ -65,8 +65,9 @@ def read_command_line(command_line):
       tar_file  = sys.argv[1]
       grid_file = sys.argv[2]
       direction = sys.argv[3]
+      if len(sys.argv)==5: plot = True
 
-      return(tar_file,grid_file,direction)
+      return(tar_file,grid_file,direction,plot)
 
 
 # ------------------------------- #
@@ -583,7 +584,7 @@ start = time.time()
 
 # --> Read command line and check inputs
 
-tar_file, grid_file,direction = read_command_line(sys.argv)
+tar_file, grid_file,direction,plot = read_command_line(sys.argv)
 
 check_inputs(tar_file,grid_file,direction)
 
@@ -627,7 +628,7 @@ print('')
 
 # --> 3D plot of electric field
 
-plot_electric_field(x_grid,y_grid,z_grid,x_np,y_np,z_np,e_field)
+if plot: plot_electric_field(x_grid,y_grid,z_grid,x_np,y_np,z_np,e_field)
 
 
 
