@@ -1,0 +1,19 @@
+
+   Here, we expect one molecule (either donor or aceptor) on the top of the "cto_r30.xyz" 
+   nanoparticle, along the Y axis, and we want to create a grid, going down the Y axis around it.
+
+   For that, we use the geom.py code to create a sort of "vertical grid" to check the vertical
+   spanning of the grid-points along the Y axis.
+
+   $ cd 1_create_vertical_grid ./shift.sh
+
+   Then, we create the grid points as:
+
+   $ ./create_structures_full_grid.sh
+
+   Which takes "cto_r30.xyz" and moves the vertical grid points stored in 
+   1_create_vertical_grid/results_translate/*xyz 360º around the structure
+   (see "input_angle" for angle step) at a fixed ditance given in "input_translate"
+
+   --> Results stored in grid/grid.xyz
+
