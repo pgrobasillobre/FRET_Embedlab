@@ -1,0 +1,19 @@
+
+#
+#
+# 1. Create 3D grid with
+#
+#    cd create_grid
+#
+#    ./create_structures_full_grid.sh > log
+#
+#    ERRORS: to check errors do (any match is an error):
+#            $ grep -irs 'error' log
+#            $ grep -irs 'stop' log
+#            $ grep -irs 'traceback' log
+#
+# 2. Calculate field
+#
+#    cd field
+#    python3 ../../field_on_xyz_grid.py cto-r30.tar.gz grid.xyz x plot
+#
