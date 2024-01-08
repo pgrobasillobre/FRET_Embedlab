@@ -232,8 +232,6 @@ module integrals_module
 !          Integrate rho * q (imaginary charges)
 !            --> the density has been already weigthed by the cube volume
 !
-!          WE HAVE TO UNDERSTAND IF THE DENSITY HAS THE PROPER SIGN
-!
            if (np%charges) then
               aceptor_np_int_re = aceptor_np_int_re +&
                                   rho_aceptor(i) * mm_q(j,1) * invdst * screen_pot

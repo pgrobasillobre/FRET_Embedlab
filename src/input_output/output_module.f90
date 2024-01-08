@@ -389,12 +389,14 @@ module output_module
         v_tot(1) = aceptor_donor_coulomb + aceptor_donor_overlap
      endif
 !
+!    IMPORTANT: ADF prints the transition densities with opposite sign,
+!               so we correct the sign of the potential integral
      if(PRESENT(aceptor_np_int)) then
         !Write(out_%iunit,'(a)') " "
-        Write(out_%iunit,'(5x,a,f25.16,a,f25.16,a)') "Aceptor-NP Interaction:  ", aceptor_np_int(1), '    + ',&
-                                                                                  aceptor_np_int(2) , ' i  a.u.'
-        v_tot(1) = v_tot(1) + aceptor_np_int(1)
-        v_tot(2) = v_tot(2) + aceptor_np_int(2)
+        Write(out_%iunit,'(5x,a,f25.16,a,f25.16,a)') "Aceptor-NP Interaction:  ", -aceptor_np_int(1), '    + ',&
+                                                                                  -aceptor_np_int(2) , ' i  a.u.'
+        v_tot(1) = v_tot(1) - aceptor_np_int(1)
+        v_tot(2) = v_tot(2) - aceptor_np_int(2)
      endif
 !
      v_mod = dsqrt(DOT_PRODUCT(v_tot,v_tot))
