@@ -86,7 +86,6 @@ module output_module
      Write(out_%iunit,out_%sticks) 
      Write(out_%iunit,'(a)') " "
      Write(out_%iunit,'(25x,a)') "Program by Pablo Grobas Illobre"
-     Write(out_%iunit,'(23x,a)') "with contributions by Sveva Sodomaco"
      Write(out_%iunit,'(a)') " "
      Write(out_%iunit,out_%sticks) 
      Write(out_%iunit,'(a)') " "
