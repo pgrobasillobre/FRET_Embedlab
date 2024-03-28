@@ -20,7 +20,8 @@ module density_module
       integer                                   :: natoms,nx,ny,nz
       integer                                   :: n_points_reduced
       integer                                   :: nelectrons
-      integer, dimension(:), allocatable        :: atomic_number
+      integer,   dimension(:), allocatable      :: atomic_number
+      character, dimension(:), allocatable      :: atomic_label
 !
       real(dp)                                  :: xmin,ymin,zmin,dx,dy,dz,dummy_real
       real(dp)                                  :: maxdens
@@ -64,7 +65,7 @@ module density_module
      read(IIn,*)     cube%ny,     cube%dummy_real, cube%dy
      read(IIn,*)     cube%nz,     cube%dummy_real, cube%dummy_real, cube%dz
 !
-     allocate(cube%atomic_number(cube%natoms),cube%atomic_charge(cube%natoms),&
+     allocate(cube%atomic_number(cube%natoms),cube%atomic_label(cube%natoms),cube%atomic_charge(cube%natoms),&
               cube%x(cube%natoms),cube%y(cube%natoms),cube%z(cube%natoms),cube%rho(cube%nx,cube%ny,cube%nz), &
               cube%xyz(3,ncellmax), cube%rho_reduced(ncellmax))
 !
@@ -79,6 +80,7 @@ module density_module
      do i=1,cube%natoms
         read(IIn,*) cube%atomic_number(i),cube%atomic_charge(i),cube%x(i),cube%y(i),cube%z(i) 
         cube%nelectrons = cube%nelectrons + cube%atomic_number(i)
+        cube%atomic_label(i) = map_atomic_number_to_label(cube%atomic_number(i))
      enddo
 !
      do i=1,cube%nx
@@ -183,12 +185,64 @@ module density_module
     call out_%print_density(target_%density_file,cube%natoms,cube%n_points_reduced, &
                             cube%nx,cube%ny,cube%nz,                                &
                             cube%dx,cube%dy,cube%dz,                                &
-                            cube%xmin,cube%ymin,cube%zmin,                          &
-                            cube%nelectrons,integral=integral)
+                            cube%xmin,cube%ymin,cube%zmin,cube%nelectrons,          &
+                            cube%atomic_label,cube%x,cube%y,cube%z,                 &
+                            integral=integral)
 !
 !!    call out_%print_density(cube)
 !
   end subroutine int_density 
+!----------------------------------------------------------------------
+  function map_atomic_number_to_label(atnum) result(label)
+!
+!   Map atomic number to atomic label
+!
+    implicit none
+!
+    integer          :: atnum
+    character(len=2) :: label
+!
+    if (atnum.eq.1) then
+       label = 'H'
+    else if (atnum.eq.2) then 
+       label = 'He'
+    else if (atnum.eq.3) then
+       label = 'Li'
+    else if (atnum.eq.4) then
+       label = 'Be'
+    else if (atnum.eq.5) then
+       label = 'B'
+    else if (atnum.eq.6) then
+       label = 'C'
+    else if (atnum.eq.7) then
+       label = 'N'
+    else if (atnum.eq.8) then
+       label = 'O'
+    else if (atnum.eq.9) then
+       label = 'F'
+    else if (atnum.eq.10) then
+       label = 'Ne'
+    else if (atnum.eq.11) then
+       label = 'Na'
+    else if (atnum.eq.12) then
+       label = 'Mg'
+    else if (atnum.eq.13) then
+       label = 'Al'
+    else if (atnum.eq.14) then
+       label = 'Si'
+    else if (atnum.eq.15) then
+       label = 'P'
+    else if (atnum.eq.16) then
+       label = 'S'
+    else if (atnum.eq.17) then
+       label = 'Cl'
+    else if (atnum.eq.18) then
+       label = 'Ar'
+    else
+       call out_%error('  We only consider the mapping of atomic numbers until Ar')
+    endif
+!
+  end function
 !----------------------------------------------------------------------
 end module density_module
 

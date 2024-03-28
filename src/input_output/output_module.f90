@@ -233,8 +233,9 @@ module output_module
 !       
    end subroutine error
 !-----------------------------------------------------------------------
-   subroutine print_density(out_,cube_file,natoms,n_points_reduced,nx,ny,nz,&
-                            dx,dy,dz,xmin,ymin,zmin,nelectrons,integral,header)
+   subroutine print_density(out_,cube_file,natoms,n_points_reduced,nx,ny,nz,           &
+                            dx,dy,dz,xmin,ymin,zmin,nelectrons,atoms,mol_x,mol_y,mol_z,&
+                            integral,header)
 !   subroutine print_density(out_,cube)
 !
 !
@@ -245,19 +246,26 @@ module output_module
 !
 !!    type (density_type), intent(in)  :: cube 
 !!
+     integer,  intent(in)                    :: natoms,n_points_reduced,nelectrons,nx,ny,nz
+
+     real(dp), intent(in)                    :: dx,dy,dz
+     real(dp), intent(in)                    :: xmin,ymin,zmin
+     real(dp), dimension(natoms), intent(in) :: mol_x,mol_y,mol_z
+
      character(len=*), intent(in)  :: cube_file
-     integer,  intent(in)          :: natoms,n_points_reduced,nelectrons,nx,ny,nz
-     real(dp), intent(in)          :: dx,dy,dz
-     real(dp), intent(in)          :: xmin,ymin,zmin
+     character(len=*), dimension(natoms), intent(in) :: atoms
 
      real(dp),         intent(in), optional  :: integral
      character(len=*), intent(in), optional  :: header
+
+     integer :: i
 
      class(out_type)  :: out_
 !
 !    formats
 !
      1000 Format(3x,I5,1x,E15.7,1x,E15.7,1x,E15.7)
+     1001 Format(6x,a2,2x,f10.6,2x,f10.6,2x,f10.6)
 !
      write(out_%iunit,out_%sticks) 
      Write(out_%iunit,'(a)') " "
@@ -283,6 +291,14 @@ module output_module
         Write(out_%iunit,*)     "    ---> Reduced density points:", n_points_reduced
      Endif
      Write(out_%iunit,'(a)') " " 
+     Write(out_%iunit,'(3x,a)') "Associated molecular coordinates (Ang): "
+     Write(out_%iunit,'(a)') " "
+     Do i=1,natoms
+        Write(out_%iunit,1001) atoms(i), mol_x(i)*ToAng, mol_y(i)*ToAng, mol_z(i)*ToAng
+     Enddo
+     Write(out_%iunit,'(a)') " "
+
+
      if(PRESENT(integral)) then
         Write(out_%iunit,'(a)') "    ============================================================"
         Write(out_%iunit,*) "    Integrated electron density --> ", integral
