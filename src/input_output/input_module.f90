@@ -213,22 +213,25 @@ module input_module
      character(len=200) :: line_keyword
      character(len=200) :: target_name = ""
 !
-     logical :: cutoff                = .false.
-     logical :: integrate_cube        = .false.
-     logical :: fret_donor_aceptor    = .false.
-     logical :: fret_donor_aceptor_NP = .false.
-     logical :: fret_aceptor_NP       = .false.
-     logical :: aceptor_density       = .false.
-     logical :: donor_density         = .false.
-     logical :: nanoparticle          = .false.
-     logical :: omega_0               = .false.
-     logical :: spectral_overlap      = .false.
+     logical :: cutoff                 = .false.
+     logical :: integrate_cube         = .false.
+     logical :: fret_donor_aceptor     = .false.
+     logical :: fret_donor_aceptor_NP  = .false.
+     logical :: fret_aceptor_NP        = .false.
+     logical :: aceptor_density        = .false.
+     logical :: donor_density          = .false.
+     logical :: nanoparticle           = .false.
+     logical :: omega_0                = .false.
+     logical :: spectral_overlap       = .false.
 !
      target_%cutoff  = zero
      target_%omega_0 = zero
      target_%spectral_overlap = zero
+     target_%aceptor_density_rotation_angle = zero
 !
-     target_%calc_overlap_int = .false.
+     target_%calc_overlap_int        = .false.
+     target_%aceptor_density_rotate  = .false.
+     target_%aceptor_transdip_rotate = .false.
 !
      rewind(inp_%iunit)
 !
@@ -257,6 +260,18 @@ module input_module
                  aceptor_density = .true.
                  target_%aceptor_density = line_keyword
                  if (.not. file_exists(line_keyword)) call out_%error('File "'//trim(line_keyword)//'" not found')
+!
+              elseif(line_what.eq.'aceptor density rotate') then
+!
+                 target_%aceptor_density_rotate = .true.
+                 read(line_keyword,'(f25.16)') target_%aceptor_density_rotation_angle
+!
+              elseif(line_what.eq.'aceptor transition dipole') then
+!
+                 target_%aceptor_transdip_rotate = .true.
+                 read(line_keyword, *) target_%aceptor_transdip(1), &
+                                       target_%aceptor_transdip(2), &
+                                       target_%aceptor_transdip(3)
 !
               elseif(line_what.eq.'donor density') then
 !
@@ -305,6 +320,12 @@ module input_module
           endif
 !        
         end do
+!
+!    Checks and rising errors
+!
+     if(target_%aceptor_transdip_rotate .and. .not. target_%aceptor_density_rotate) then
+        call out_%error("Provide angle for transition density (and density) rotation")
+     endif
 !
 !    assign the different targets
 !

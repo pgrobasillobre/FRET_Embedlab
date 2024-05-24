@@ -18,11 +18,16 @@ module target_module
 !
       character(len=200) :: name_, density_file, aceptor_density, donor_density, nanoparticle      
 !
-      real(dp)           :: cutoff 
-      real(dp)           :: omega_0                  
-      real(dp)           :: spectral_overlap
+      real(dp)               :: cutoff 
+      real(dp)               :: omega_0                  
+      real(dp)               :: spectral_overlap
+      real(dp)               :: aceptor_density_rotation_angle
 !
-      logical            :: calc_overlap_int
+      real(dp), dimension(3) :: aceptor_transdip
+!
+      logical                :: calc_overlap_int
+      logical                :: aceptor_density_rotate
+      logical                :: aceptor_transdip_rotate
 !      
       contains
 !

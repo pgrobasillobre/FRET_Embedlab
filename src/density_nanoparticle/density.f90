@@ -36,14 +36,17 @@ module density_module
 !
    contains
 !----------------------------------------------------------------------
-   subroutine read_density(infile, cube)
+   subroutine read_density(infile, cube, rotation)
 !
 !    Read input cube file
 !
      implicit none
 !
-     character(len=*),    intent(in)   :: infile
-     type (density_type), intent(out)  :: cube
+     character(len=*),    intent(in)           :: infile
+!
+     logical,             intent(in), optional :: rotation
+!
+     type (density_type), intent(out)          :: cube
 !
 !
 !    internal variables
