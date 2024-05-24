@@ -238,6 +238,130 @@ module density_module
        label = 'Cl'
     else if (atnum.eq.18) then
        label = 'Ar'
+    else if (atnum.eq.19) then
+       label = 'K'
+    else if (atnum.eq.20) then
+       label = 'Ca'
+    else if (atnum.eq.21) then
+       label = 'Sc'
+    else if (atnum.eq.22) then
+       label = 'Ti'
+    else if (atnum.eq.23) then
+       label = 'V'
+    else if (atnum.eq.24) then
+       label = 'Cr'
+    else if (atnum.eq.25) then
+       label = 'Mn'
+    else if (atnum.eq.26) then
+       label = 'Fe'
+    else if (atnum.eq.27) then
+       label = 'Co'
+    else if (atnum.eq.28) then
+       label = 'Ni'
+    else if (atnum.eq.29) then
+       label = 'Cu'
+    else if (atnum.eq.30) then
+       label = 'Zn'
+    else if (atnum.eq.31) then
+       label = 'Ga'
+    else if (atnum.eq.32) then
+       label = 'Ge'
+    else if (atnum.eq.33) then
+       label = 'As'
+    else if (atnum.eq.34) then
+       label = 'Se'
+    else if (atnum.eq.35) then
+       label = 'Br'
+    else if (atnum.eq.36) then
+       label = 'Kr'
+    else if (atnum.eq.37) then
+       label = 'Rb'
+    else if (atnum.eq.38) then
+       label = 'Sr'
+    else if (atnum.eq.39) then
+       label = 'Y'
+    else if (atnum.eq.40) then
+       label = 'Zr'
+    else if (atnum.eq.41) then
+       label = 'Nb'
+    else if (atnum.eq.42) then
+       label = 'Mo'
+    else if (atnum.eq.43) then
+       label = 'Tc'
+    else if (atnum.eq.44) then
+       label = 'Ru'
+    else if (atnum.eq.45) then
+       label = 'Rh'
+    else if (atnum.eq.46) then
+       label = 'Pd'
+    else if (atnum.eq.47) then
+       label = 'Ag'
+    else if (atnum.eq.48) then
+       label = 'Cd'
+    else if (atnum.eq.49) then
+       label = 'In'
+    else if (atnum.eq.50) then
+       label = 'Sn'
+    else if (atnum.eq.51) then
+       label = 'Sb'
+    else if (atnum.eq.52) then
+       label = 'Te'
+    else if (atnum.eq.53) then
+       label = 'I'
+    else if (atnum.eq.54) then
+       label = 'Xe'
+    else if (atnum.eq.55) then
+       label = 'Cs'
+    else if (atnum.eq.56) then
+       label = 'Ba'
+    else if (atnum.eq.57) then
+       label = 'La'
+    else if (atnum.eq.58) then
+       label = 'Ce'
+    else if (atnum.eq.59) then
+       label = 'Pr'
+    else if (atnum.eq.60) then
+       label = 'Nd'
+    else if (atnum.eq.61) then
+       label = 'Pm'
+    else if (atnum.eq.62) then
+       label = 'Sm'
+    else if (atnum.eq.63) then
+       label = 'Eu'
+    else if (atnum.eq.64) then
+       label = 'Gd'
+    else if (atnum.eq.65) then
+       label = 'Tb'
+    else if (atnum.eq.66) then
+       label = 'Dy'
+    else if (atnum.eq.67) then
+       label = 'Ho'
+    else if (atnum.eq.68) then
+       label = 'Er'
+    else if (atnum.eq.69) then
+       label = 'Tm'
+    else if (atnum.eq.70) then
+       label = 'Yb'
+    else if (atnum.eq.71) then
+       label = 'Lu'
+    else if (atnum.eq.72) then
+       label = 'Hf'
+    else if (atnum.eq.73) then
+       label = 'Ta'
+    else if (atnum.eq.74) then
+       label = 'W'
+    else if (atnum.eq.75) then
+       label = 'Re'
+    else if (atnum.eq.76) then
+       label = 'Os'
+    else if (atnum.eq.77) then
+       label = 'Ir'
+    else if (atnum.eq.78) then
+       label = 'Pt'
+    else if (atnum.eq.79) then
+       label = 'Au'
+    else if (atnum.eq.80) then
+       label = 'Hg'
     else
        call out_%error('  We only consider the mapping of atomic numbers until Ar')
     endif
