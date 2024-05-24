@@ -223,6 +223,7 @@ module input_module
      logical :: nanoparticle           = .false.
      logical :: omega_0                = .false.
      logical :: spectral_overlap       = .false.
+     logical :: rotation_axys          = .false.
 !
      target_%cutoff  = zero
      target_%omega_0 = zero
@@ -232,6 +233,7 @@ module input_module
      target_%calc_overlap_int        = .false.
      target_%aceptor_density_rotate  = .false.
      target_%aceptor_transdip_rotate = .false.
+     target_%debug                   = .false.
 !
      rewind(inp_%iunit)
 !
@@ -265,6 +267,7 @@ module input_module
 !
                  target_%aceptor_density_rotate = .true.
                  read(line_keyword,'(f25.16)') target_%aceptor_density_rotation_angle
+                 target_%aceptor_density_rotation_angle = target_%aceptor_density_rotation_angle * to_radians ! Assumed to be in degrees
 !
               elseif(line_what.eq.'aceptor transition dipole') then
 !
@@ -305,6 +308,17 @@ module input_module
                  call check_float(out_%iunit,line_what,line_keyword)
                  read(line_keyword,'(f25.16)') target_%spectral_overlap
 !
+              elseif(line_what.eq.'debug') then
+                 if (line_keyword.eq.'true') target_%debug = .true.
+!
+              elseif(line_what.eq.'rotation axys') then
+                 rotation_axys = .true.
+!
+                 target_%rotation_axys = line_keyword
+                 if (target_%rotation_axys .ne. 'x' .and. &
+                     target_%rotation_axys .ne. 'y' .and. &
+                     target_%rotation_axys .ne. 'z') call out_%error( 'Rotation axys "'//trim(line_keyword)//'" not recognized')
+!
               else  
 !
                  call out_%error( 'Input entry "'//trim(line)//'" not recognized')
@@ -325,6 +339,9 @@ module input_module
 !
      if(target_%aceptor_transdip_rotate .and. .not. target_%aceptor_density_rotate) then
         call out_%error("Provide angle for transition density (and density) rotation")
+!
+     elseif(target_%aceptor_density_rotate .and.  .not. rotation_axys) then 
+        call out_%error("Rotation of aceptor density but no rotation axys given in input")
      endif
 !
 !    assign the different targets

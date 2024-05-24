@@ -45,7 +45,7 @@ module algorithm_module
 !
      type(density_type)    :: density_cube
 !     
-     call read_density(target_%density_file, density_cube)
+     call read_density(target_%density_file, density_cube, rotation=.false.)
 !
      call int_density(density_cube)
 !
@@ -67,8 +67,7 @@ module algorithm_module
 !    Read input files
 !
      call read_density(target_%aceptor_density, aceptor_density, rotation=target_%aceptor_density_rotate)
-     call read_density(target_%donor_density, donor_density)
-     stop
+     call read_density(target_%donor_density, donor_density, rotation=.false.)
 !
 !    Print aceptor / donor density characteristics
 !
@@ -158,7 +157,9 @@ module algorithm_module
 !
      call read_nanoparticle(target_%nanoparticle, nanoparticle)
      call read_density(target_%aceptor_density, aceptor_density, rotation=target_%aceptor_density_rotate)
-     call read_density(target_%donor_density, donor_density)
+     call read_density(target_%donor_density, donor_density, rotation=.false.)
+print *, 'after read'
+stop
 !
 !    Print NP / densities characteristics
 !

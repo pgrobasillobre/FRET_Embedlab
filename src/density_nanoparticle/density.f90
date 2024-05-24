@@ -42,11 +42,11 @@ module density_module
 !
      implicit none
 !
-     character(len=*),    intent(in)           :: infile
+     character(len=*),    intent(in)  :: infile
 !
-     logical,             intent(in), optional :: rotation
+     logical,             intent(in)  :: rotation
 !
-     type (density_type), intent(out)          :: cube
+     type (density_type), intent(out) :: cube
 !
 !
 !    internal variables
@@ -138,6 +138,9 @@ module density_module
         enddo
      enddo
 !
+     if (rotation) call rotate_cube_coordinates(infile,cube)
+     call print_cube_coordinates('aceptor_cube_points_ROTATED',cube%n_points_reduced,cube%xyz(1:3,1:cube%n_points_reduced)) 
+!
      01 continue
      close(IIn)
 !
@@ -160,7 +163,6 @@ module density_module
 !
    end subroutine delete_density
 !----------------------------------------------------------------------
- 
    subroutine int_density(cube)
 !
 !    Integrate density from cube file
@@ -196,6 +198,123 @@ module density_module
 !
   end subroutine int_density 
 !----------------------------------------------------------------------
+   subroutine rotate_cube_coordinates(infile,cube)
+!
+!    Rotate cube coordinates
+!
+     implicit none
+!
+     character(len=*), intent(in) :: infile
+!
+     type (density_type), intent(inout) :: cube
+!
+!    internal variables
+!
+     integer :: i
+!
+     real(dp) :: cos_theta, sin_theta
+!
+     real(dp), dimension(3) :: geom_center
+!
+     real(dp), dimension(3,cube%n_points_reduced) :: xyz_000, xyz_rot
+!
+print *, ' Rotation for cube file ', trim(adjustl(infile))
+print *, ' Rotation angle ' , target_%aceptor_density_rotation_angle
+print *, ' Transdip ', target_%aceptor_transdip(1:3) 
+!
+     if (target_%debug) call print_cube_coordinates('aceptor_cube_points',cube%n_points_reduced,cube%xyz)
+!
+     geom_center(1) = sum(cube%xyz(1,1:cube%n_points_reduced))/cube%n_points_reduced 
+     geom_center(2) = sum(cube%xyz(2,1:cube%n_points_reduced))/cube%n_points_reduced
+     geom_center(3) = sum(cube%xyz(3,1:cube%n_points_reduced))/cube%n_points_reduced
+!
+!    Translate density to the origin of coordinates
+!
+     do i = 1,cube%n_points_reduced
+        xyz_000(1,i) = cube%xyz(1,i) - geom_center(1)
+        xyz_000(2,i) = cube%xyz(2,i) - geom_center(2)
+        xyz_000(3,i) = cube%xyz(3,i) - geom_center(3)
+     enddo
+!
+!    Rotate density
+!
+     cos_theta = dcos(target_%aceptor_density_rotation_angle)
+     sin_theta = dsin(target_%aceptor_density_rotation_angle) 
+!
+     if (target_%rotation_axys.eq.'x') then
+!
+        do i = 1,cube%n_points_reduced
+           xyz_rot(1,i) = xyz_000(1,i)
+           xyz_rot(2,i) = xyz_000(2,i) * cos_theta - xyz_000(3,i) * sin_theta 
+           xyz_rot(3,i) = xyz_000(2,i) * sin_theta + xyz_000(3,i) * cos_theta
+        enddo
+
+     else if (target_%rotation_axys.eq.'y') then
+!
+        do i = 1,cube%n_points_reduced
+           xyz_rot(1,i) =  xyz_000(1,i) * cos_theta + xyz_000(3,i) * sin_theta
+           xyz_rot(2,i) =  xyz_000(2,i)  
+           xyz_rot(3,i) = -xyz_000(1,i) * sin_theta + xyz_000(3,i) * cos_theta
+        enddo
+!
+     else if (target_%rotation_axys.eq.'z') then
+!
+        do i = 1,cube%n_points_reduced
+           xyz_rot(1,i) = xyz_000(1,i) * cos_theta - xyz_000(2,i) * sin_theta
+           xyz_rot(2,i) = xyz_000(1,i) * sin_theta + xyz_000(2,i) * cos_theta  
+           xyz_rot(3,i) = xyz_000(3,i)
+        enddo
+!
+     endif
+!
+!    Translate density to initial position
+!
+     do i = 1,cube%n_points_reduced
+        cube%xyz(1,i) = xyz_rot(1,i) + geom_center(1)
+        cube%xyz(2,i) = xyz_rot(2,i) + geom_center(2)
+        cube%xyz(3,i) = xyz_rot(3,i) + geom_center(3)
+     enddo
+!
+!     call print_cube_coordinates('aceptor_cube_points_ROTATED',cube%n_points_reduced,cube%xyz(1:3,1:cube%n_points_reduced)) 
+!
+! por algunha razon as coordeadas rotadas non saen da subrutina
+print *, 'por algunha razon as coordeadas rotadas non saen da subrutina'
+stop
+!
+!
+  end subroutine rotate_cube_coordinates
+!----------------------------------------------------------------------
+   subroutine print_cube_coordinates(infile,n_points,xyz)
+!
+!    Print  cube coordinates
+!
+     implicit none
+!
+     character(len=*), intent(in) :: infile
+!
+     integer, intent(in)          :: n_points
+!
+     real(dp), dimension(3,n_points), intent(inout) :: xyz
+!
+!    internal variables
+!
+     integer :: i
+     integer :: iin = 21
+!
+     open(unit=iin,file=trim(infile)//'.xyz',status="unknown")
+!
+        write(iin,*) n_points
+        write(iin,*) ' Original cube coordinates'
+!
+        do i = 1, n_points
+           write(iin, '(a,f25.16,2x,f25.16,2x,f25.16)' ) 'H' ,xyz(1,i), xyz(2,i), xyz(3,i) 
+        enddo
+!
+     close(iin)
+!
+  end subroutine print_cube_coordinates
+!----------------------------------------------------------------------
+ 
   function map_atomic_number_to_label(atnum) result(label)
 !
 !   Map atomic number to atomic label

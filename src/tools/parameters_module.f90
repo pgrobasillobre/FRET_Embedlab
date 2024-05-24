@@ -20,9 +20,9 @@ module parameters_module
 !
     real(dp), parameter                    :: QMscrnFact = 0.2d0
 !    
-    real(dp), parameter                    :: pi     = four*atan(one)
-    real(dp), parameter                    :: sqrtpi = 1.7724538509055159d0
-
+    real(dp), parameter                    :: pi         = four*atan(one)
+    real(dp), parameter                    :: sqrtpi     = 1.7724538509055159d0
+    real(dp), parameter                    :: to_radians = pi/180.0d0
 !    
     real(dp), parameter                    :: ToBohr = 1.8897261254578281d0
     real(dp), parameter                    :: ToAng  = 1.0d0/ToBohr

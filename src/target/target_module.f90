@@ -16,7 +16,12 @@ module target_module
 !
     type :: target_type
 !
-      character(len=200) :: name_, density_file, aceptor_density, donor_density, nanoparticle      
+      character(len=200) :: name_
+      character(len=200) :: density_file 
+      character(len=200) :: aceptor_density 
+      character(len=200) :: donor_density 
+      character(len=200) :: nanoparticle      
+      character(len=200) :: rotation_axys
 !
       real(dp)               :: cutoff 
       real(dp)               :: omega_0                  
@@ -28,6 +33,8 @@ module target_module
       logical                :: calc_overlap_int
       logical                :: aceptor_density_rotate
       logical                :: aceptor_transdip_rotate
+!
+      logical                :: debug
 !      
       contains
 !
