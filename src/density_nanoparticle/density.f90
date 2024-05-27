@@ -9,6 +9,7 @@ module density_module
 !
     Implicit None
 !
+    public rotate_cube
     public density
 !
 !   density type
@@ -33,6 +34,10 @@ module density_module
     end type density_type
 !
     type (density_type), Save :: density
+!
+    Interface rotate_cube
+       Module Procedure rotate_cube_coordinates
+    End Interface
 !
    contains
 !----------------------------------------------------------------------
@@ -138,8 +143,11 @@ module density_module
         enddo
      enddo
 !
-     if (rotation) call rotate_cube_coordinates(infile,cube)
-     call print_cube_coordinates('aceptor_cube_points_ROTATED',cube%n_points_reduced,cube%xyz(1:3,1:cube%n_points_reduced)) 
+     if (rotation) then 
+        if (target_%aceptor_transdip_rotate) call rotate_transdip_coordinates(target_%aceptor_transdip,               &
+                                                                              target_%aceptor_density_rotation_angle) 
+        call rotate_cube_coordinates(infile,cube)
+     endif
 !
      01 continue
      close(IIn)
@@ -219,7 +227,6 @@ module density_module
      real(dp), dimension(3,cube%n_points_reduced) :: xyz_000, xyz_rot
 !
 print *, ' Rotation for cube file ', trim(adjustl(infile))
-print *, ' Rotation angle ' , target_%aceptor_density_rotation_angle
 print *, ' Transdip ', target_%aceptor_transdip(1:3) 
 !
      if (target_%debug) call print_cube_coordinates('aceptor_cube_points',cube%n_points_reduced,cube%xyz)
@@ -231,9 +238,9 @@ print *, ' Transdip ', target_%aceptor_transdip(1:3)
 !    Translate density to the origin of coordinates
 !
      do i = 1,cube%n_points_reduced
-        xyz_000(1,i) = cube%xyz(1,i) - geom_center(1)
-        xyz_000(2,i) = cube%xyz(2,i) - geom_center(2)
-        xyz_000(3,i) = cube%xyz(3,i) - geom_center(3)
+        cube%xyz(1,i) = cube%xyz(1,i) - geom_center(1)
+        cube%xyz(2,i) = cube%xyz(2,i) - geom_center(2)
+        cube%xyz(3,i) = cube%xyz(3,i) - geom_center(3)
      enddo
 !
 !    Rotate density
@@ -244,25 +251,25 @@ print *, ' Transdip ', target_%aceptor_transdip(1:3)
      if (target_%rotation_axys.eq.'x') then
 !
         do i = 1,cube%n_points_reduced
-           xyz_rot(1,i) = xyz_000(1,i)
-           xyz_rot(2,i) = xyz_000(2,i) * cos_theta - xyz_000(3,i) * sin_theta 
-           xyz_rot(3,i) = xyz_000(2,i) * sin_theta + xyz_000(3,i) * cos_theta
+           xyz_rot(1,i) = cube%xyz(1,i)
+           xyz_rot(2,i) = cube%xyz(2,i) * cos_theta - cube%xyz(3,i) * sin_theta 
+           xyz_rot(3,i) = cube%xyz(2,i) * sin_theta + cube%xyz(3,i) * cos_theta
         enddo
 
      else if (target_%rotation_axys.eq.'y') then
 !
         do i = 1,cube%n_points_reduced
-           xyz_rot(1,i) =  xyz_000(1,i) * cos_theta + xyz_000(3,i) * sin_theta
-           xyz_rot(2,i) =  xyz_000(2,i)  
-           xyz_rot(3,i) = -xyz_000(1,i) * sin_theta + xyz_000(3,i) * cos_theta
+           xyz_rot(1,i) =  cube%xyz(1,i) * cos_theta + cube%xyz(3,i) * sin_theta
+           xyz_rot(2,i) =  cube%xyz(2,i)  
+           xyz_rot(3,i) = -cube%xyz(1,i) * sin_theta + cube%xyz(3,i) * cos_theta
         enddo
 !
      else if (target_%rotation_axys.eq.'z') then
 !
         do i = 1,cube%n_points_reduced
-           xyz_rot(1,i) = xyz_000(1,i) * cos_theta - xyz_000(2,i) * sin_theta
-           xyz_rot(2,i) = xyz_000(1,i) * sin_theta + xyz_000(2,i) * cos_theta  
-           xyz_rot(3,i) = xyz_000(3,i)
+           xyz_rot(1,i) = cube%xyz(1,i) * cos_theta - cube%xyz(2,i) * sin_theta
+           xyz_rot(2,i) = cube%xyz(1,i) * sin_theta + cube%xyz(2,i) * cos_theta  
+           xyz_rot(3,i) = cube%xyz(3,i)
         enddo
 !
      endif
@@ -275,15 +282,72 @@ print *, ' Transdip ', target_%aceptor_transdip(1:3)
         cube%xyz(3,i) = xyz_rot(3,i) + geom_center(3)
      enddo
 !
-!     call print_cube_coordinates('aceptor_cube_points_ROTATED',cube%n_points_reduced,cube%xyz(1:3,1:cube%n_points_reduced)) 
-!
-! por algunha razon as coordeadas rotadas non saen da subrutina
-print *, 'por algunha razon as coordeadas rotadas non saen da subrutina'
-stop
-!
+     if (target_%debug) call print_cube_coordinates('aceptor_cube_points_ROTATED', &
+                                                     cube%n_points_reduced,        &
+                                                     cube%xyz(1:3,1:cube%n_points_reduced)) 
 !
   end subroutine rotate_cube_coordinates
 !----------------------------------------------------------------------
+   subroutine rotate_transdip_coordinates(transdip,theta)
+!
+!    Rotate cube coordinates
+!
+     implicit none
+!
+     real(dp), dimension(3), intent(in) :: transdip
+     real(dp), intent(inout)            :: theta
+!
+!    internal variables
+!
+     integer :: i
+!
+     real(dp) :: cos_theta, sin_theta
+!
+print *, 'oliii'
+stop
+!
+!    Rotate transdip 
+!
+!!     cos_theta = dcos(target_%aceptor_density_rotation_angle)
+!!     sin_theta = dsin(target_%aceptor_density_rotation_angle) 
+!!!
+!!     if (target_%rotation_axys.eq.'x') then
+!!!
+!!        do i = 1,cube%n_points_reduced
+!!           xyz_rot(1,i) = cube%xyz(1,i)
+!!           xyz_rot(2,i) = cube%xyz(2,i) * cos_theta - cube%xyz(3,i) * sin_theta 
+!!           xyz_rot(3,i) = cube%xyz(2,i) * sin_theta + cube%xyz(3,i) * cos_theta
+!!        enddo
+!!
+!!     else if (target_%rotation_axys.eq.'y') then
+!!!
+!!        do i = 1,cube%n_points_reduced
+!!           xyz_rot(1,i) =  cube%xyz(1,i) * cos_theta + cube%xyz(3,i) * sin_theta
+!!           xyz_rot(2,i) =  cube%xyz(2,i)  
+!!           xyz_rot(3,i) = -cube%xyz(1,i) * sin_theta + cube%xyz(3,i) * cos_theta
+!!        enddo
+!!!
+!!     else if (target_%rotation_axys.eq.'z') then
+!!!
+!!        do i = 1,cube%n_points_reduced
+!!           xyz_rot(1,i) = cube%xyz(1,i) * cos_theta - cube%xyz(2,i) * sin_theta
+!!           xyz_rot(2,i) = cube%xyz(1,i) * sin_theta + cube%xyz(2,i) * cos_theta  
+!!           xyz_rot(3,i) = cube%xyz(3,i)
+!!        enddo
+!!!
+!!     endif
+!!!
+!!!    Translate density to initial position
+!!!
+!!     do i = 1,cube%n_points_reduced
+!!        cube%xyz(1,i) = xyz_rot(1,i) + geom_center(1)
+!!        cube%xyz(2,i) = xyz_rot(2,i) + geom_center(2)
+!!        cube%xyz(3,i) = xyz_rot(3,i) + geom_center(3)
+!!     enddo
+!!!
+  end subroutine rotate_transdip_coordinates
+!----------------------------------------------------------------------
+ 
    subroutine print_cube_coordinates(infile,n_points,xyz)
 !
 !    Print  cube coordinates

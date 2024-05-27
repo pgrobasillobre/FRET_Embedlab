@@ -230,10 +230,12 @@ module input_module
      target_%spectral_overlap = zero
      target_%aceptor_density_rotation_angle = zero
 !
-     target_%calc_overlap_int        = .false.
-     target_%aceptor_density_rotate  = .false.
-     target_%aceptor_transdip_rotate = .false.
-     target_%debug                   = .false.
+     target_%calc_overlap_int              = .false.
+     target_%aceptor_density_rotate        = .false.
+     target_%aceptor_transdip_rotate       = .false.
+     target_%aceptor_transdip_rotate_align_with = .false.
+!
+     target_%debug = .false.
 !
      rewind(inp_%iunit)
 !
@@ -275,6 +277,13 @@ module input_module
                  read(line_keyword, *) target_%aceptor_transdip(1), &
                                        target_%aceptor_transdip(2), &
                                        target_%aceptor_transdip(3)
+!
+              elseif(line_what.eq.'aceptor transition dipole align with') then
+!
+                 target_%aceptor_transdip_rotate_align_with = .true.
+                 read(line_keyword, *) target_%ref_vector(1), &
+                                       target_%ref_vector(2), &
+                                       target_%ref_vector(3)
 !
               elseif(line_what.eq.'donor density') then
 !
@@ -337,11 +346,22 @@ module input_module
 !
 !    Checks and rising errors
 !
-     if(target_%aceptor_transdip_rotate .and. .not. target_%aceptor_density_rotate) then
-        call out_%error("Provide angle for transition density (and density) rotation")
+     if (target_%aceptor_density_rotate .or. target_%aceptor_transdip_rotate) target_%rotate_aceptor = .true. 
 !
-     elseif(target_%aceptor_density_rotate .and.  .not. rotation_axys) then 
+     if(target_%aceptor_transdip_rotate .and. .not. target_%aceptor_density_rotate .and. &
+        target_%aceptor_transdip_rotate .and. .not. target_%aceptor_transdip_rotate_align_with) then
+        call out_%error("Provide angle/reference alignment vector for transition dipole (and density) rotation")
+!
+     elseif(target_%aceptor_density_rotate             .and. .not. rotation_axys .or. &
+            target_%aceptor_transdip_rotate_align_with .and. .not. rotation_axys) then 
         call out_%error("Rotation of aceptor density but no rotation axys given in input")
+!
+     elseif(target_%aceptor_transdip_rotate_align_with .and. .not. target_%aceptor_transdip_rotate) then
+        call out_%error("No acceptor transition density provided in input")
+
+     elseif(target_%aceptor_transdip_rotate_align_with .and. target_%aceptor_density_rotation_angle > zero) then
+        call out_%error("Acceptor rotation angle provided but conflicts with 'align with' option")
+!
      endif
 !
 !    assign the different targets
