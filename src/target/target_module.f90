@@ -28,7 +28,7 @@ module target_module
       real(dp)               :: spectral_overlap
       real(dp)               :: aceptor_density_rotation_angle
 !
-      real(dp), dimension(3) :: aceptor_transdip, ref_vector
+      real(dp), dimension(3) :: aceptor_transdip, aceptor_transdip_rot, ref_vector
 !
       logical                :: calc_overlap_int
       logical                :: aceptor_density_rotate

@@ -76,14 +76,14 @@ module algorithm_module
                              aceptor_density%dx,aceptor_density%dy,aceptor_density%dz,                                 &
                              aceptor_density%xmin,aceptor_density%ymin,aceptor_density%zmin,aceptor_density%nelectrons,&
                              aceptor_density%atomic_label,aceptor_density%x,aceptor_density%y,aceptor_density%z,       &
-                             header='   Aceptor Density Information')
+                             header=aceptor_header)
 !
      call out_%print_density(target_%donor_density,donor_density%natoms,donor_density%n_points_reduced,        &
                              donor_density%nx,donor_density%ny,donor_density%nz,                               &
                              donor_density%dx,donor_density%dy,donor_density%dz,                               &
                              donor_density%xmin,donor_density%ymin,donor_density%zmin,donor_density%nelectrons,&
                              donor_density%atomic_label,donor_density%x,donor_density%y,donor_density%z,       &
-                             header='    Donor Density Information')
+                             header=donor_header)
 !
 !    Calculate integrals
 !
@@ -126,7 +126,7 @@ module algorithm_module
                              aceptor_density%dx,aceptor_density%dy,aceptor_density%dz,                                 &
                              aceptor_density%xmin,aceptor_density%ymin,aceptor_density%zmin,aceptor_density%nelectrons,&
                              aceptor_density%atomic_label,aceptor_density%x,aceptor_density%y,aceptor_density%z,       &
-                             header='   Aceptor Density Information')
+                             header=aceptor_header)
 !
 !    Calculate integrals
 !
@@ -169,14 +169,14 @@ module algorithm_module
                              aceptor_density%dx,aceptor_density%dy,aceptor_density%dz,                                 &
                              aceptor_density%xmin,aceptor_density%ymin,aceptor_density%zmin,aceptor_density%nelectrons,&
                              aceptor_density%atomic_label,aceptor_density%x,aceptor_density%y,aceptor_density%z,       &
-                             header='   Aceptor Density Information')
+                             header=aceptor_header)
 !
      call out_%print_density(target_%donor_density,donor_density%natoms,donor_density%n_points_reduced,        &
                              donor_density%nx,donor_density%ny,donor_density%nz,                               &
                              donor_density%dx,donor_density%dy,donor_density%dz,                               &
                              donor_density%xmin,donor_density%ymin,donor_density%zmin,donor_density%nelectrons,&
                              donor_density%atomic_label,donor_density%x,donor_density%y,donor_density%z,       &
-                             header='    Donor Density Information')
+                             header=donor_header)
 !
 !    Calculate integrals
 !

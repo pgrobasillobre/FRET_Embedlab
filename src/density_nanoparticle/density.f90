@@ -144,8 +144,11 @@ module density_module
      enddo
 !
      if (rotation) then 
-        if (target_%aceptor_transdip_rotate) call rotate_transdip_coordinates(target_%aceptor_transdip,               &
+!
+        if (target_%aceptor_transdip_rotate) call rotate_transdip_coordinates(target_%aceptor_transdip,             &
+                                                                              target_%aceptor_transdip_rot,         &
                                                                               target_%aceptor_density_rotation_angle) 
+!
         call rotate_cube_coordinates(infile,cube)
      endif
 !
@@ -227,7 +230,6 @@ module density_module
      real(dp), dimension(3,cube%n_points_reduced) :: xyz_000, xyz_rot
 !
 print *, ' Rotation for cube file ', trim(adjustl(infile))
-print *, ' Transdip ', target_%aceptor_transdip(1:3) 
 !
      if (target_%debug) call print_cube_coordinates('aceptor_cube_points',cube%n_points_reduced,cube%xyz)
 !
@@ -288,69 +290,62 @@ print *, ' Transdip ', target_%aceptor_transdip(1:3)
 !
   end subroutine rotate_cube_coordinates
 !----------------------------------------------------------------------
-   subroutine rotate_transdip_coordinates(transdip,theta)
+   subroutine rotate_transdip_coordinates(transdip,transdip_rot,theta)
 !
 !    Rotate cube coordinates
 !
      implicit none
 !
-     real(dp), dimension(3), intent(in) :: transdip
-     real(dp), intent(inout)            :: theta
+     real(dp), dimension(3), intent(in)    :: transdip
+     real(dp), dimension(3), intent(inout) :: transdip_rot
+     real(dp), intent(inout)               :: theta
 !
 !    internal variables
 !
-     integer :: i
+     integer :: iin
 !
      real(dp) :: cos_theta, sin_theta
 !
-print *, 'oliii'
-stop
+!    Calculate angle if needed
+!
+     if (target_%aceptor_transdip_rotate_align_with) &
+        target_%aceptor_density_rotation_angle = vectors_angle(target_%aceptor_transdip,target_%ref_vector)
 !
 !    Rotate transdip 
 !
-!!     cos_theta = dcos(target_%aceptor_density_rotation_angle)
-!!     sin_theta = dsin(target_%aceptor_density_rotation_angle) 
-!!!
-!!     if (target_%rotation_axys.eq.'x') then
-!!!
-!!        do i = 1,cube%n_points_reduced
-!!           xyz_rot(1,i) = cube%xyz(1,i)
-!!           xyz_rot(2,i) = cube%xyz(2,i) * cos_theta - cube%xyz(3,i) * sin_theta 
-!!           xyz_rot(3,i) = cube%xyz(2,i) * sin_theta + cube%xyz(3,i) * cos_theta
-!!        enddo
-!!
-!!     else if (target_%rotation_axys.eq.'y') then
-!!!
-!!        do i = 1,cube%n_points_reduced
-!!           xyz_rot(1,i) =  cube%xyz(1,i) * cos_theta + cube%xyz(3,i) * sin_theta
-!!           xyz_rot(2,i) =  cube%xyz(2,i)  
-!!           xyz_rot(3,i) = -cube%xyz(1,i) * sin_theta + cube%xyz(3,i) * cos_theta
-!!        enddo
-!!!
-!!     else if (target_%rotation_axys.eq.'z') then
-!!!
-!!        do i = 1,cube%n_points_reduced
-!!           xyz_rot(1,i) = cube%xyz(1,i) * cos_theta - cube%xyz(2,i) * sin_theta
-!!           xyz_rot(2,i) = cube%xyz(1,i) * sin_theta + cube%xyz(2,i) * cos_theta  
-!!           xyz_rot(3,i) = cube%xyz(3,i)
-!!        enddo
-!!!
-!!     endif
-!!!
-!!!    Translate density to initial position
-!!!
-!!     do i = 1,cube%n_points_reduced
-!!        cube%xyz(1,i) = xyz_rot(1,i) + geom_center(1)
-!!        cube%xyz(2,i) = xyz_rot(2,i) + geom_center(2)
-!!        cube%xyz(3,i) = xyz_rot(3,i) + geom_center(3)
-!!     enddo
-!!!
+     cos_theta = dcos(target_%aceptor_density_rotation_angle)
+     sin_theta = dsin(target_%aceptor_density_rotation_angle) 
+!
+     if (target_%rotation_axys.eq.'x') then
+!
+        transdip_rot(1) = transdip(1)
+        transdip_rot(2) = transdip(2) * cos_theta - transdip(3) * sin_theta 
+        transdip_rot(3) = transdip(2) * sin_theta + transdip(3) * cos_theta
+
+     else if (target_%rotation_axys.eq.'y') then
+!
+        transdip_rot(1) =  transdip(1) * cos_theta + transdip(3) * sin_theta
+        transdip_rot(2) =  transdip(2)  
+        transdip_rot(3) = -transdip(1) * sin_theta + transdip(3) * cos_theta
+!
+     else if (target_%rotation_axys.eq.'z') then
+!
+        transdip_rot(1) = transdip(1) * cos_theta - transdip(2) * sin_theta
+        transdip_rot(2) = transdip(1) * sin_theta + transdip(2) * cos_theta  
+        transdip_rot(3) = transdip(3)
+!
+     endif
+!
+!    Print rotated transdip
+!
+     if (target_%debug) call print_transdip_nmd('transition_dipole_aceptor',transdip)
+     if (target_%debug) call print_transdip_nmd('transition_dipole_aceptor_ROTATED',transdip_rot)
+!
   end subroutine rotate_transdip_coordinates
 !----------------------------------------------------------------------
- 
    subroutine print_cube_coordinates(infile,n_points,xyz)
 !
-!    Print  cube coordinates
+!    print  cube coordinates
 !
      implicit none
 !
@@ -368,17 +363,39 @@ stop
      open(unit=iin,file=trim(infile)//'.xyz',status="unknown")
 !
         write(iin,*) n_points
-        write(iin,*) ' Original cube coordinates'
+        write(iin,*) ' original cube coordinates'
 !
         do i = 1, n_points
-           write(iin, '(a,f25.16,2x,f25.16,2x,f25.16)' ) 'H' ,xyz(1,i), xyz(2,i), xyz(3,i) 
+           write(iin, '(a,f25.16,2x,f25.16,2x,f25.16)' ) 'h' ,xyz(1,i), xyz(2,i), xyz(3,i) 
         enddo
 !
      close(iin)
 !
   end subroutine print_cube_coordinates
 !----------------------------------------------------------------------
- 
+   subroutine print_transdip_nmd(infile,transdip_vector)
+!
+!    print  cube coordinates
+!
+     implicit none
+!
+     character(len=*), intent(in) :: infile
+!
+     real(dp), dimension(3), intent(in) :: transdip_vector
+!
+!    internal variables
+!
+     integer :: iin = 21
+!
+     open(unit=iin,file=trim(infile)//'.nmd',status="unknown")
+!
+        write(iin,*) 'coordinates 0.0 0.0 0.0' ! Assume vector origin aligns with origin of coordinates
+        write(iin, '(a,f25.16,2x,f25.16,2x,f25.16)' ) 'mode 1' , transdip_vector(1), transdip_vector(2), transdip_vector(3)
+!
+     close(iin)
+!
+  end subroutine print_transdip_nmd
+!----------------------------------------------------------------------
   function map_atomic_number_to_label(atnum) result(label)
 !
 !   Map atomic number to atomic label
@@ -553,6 +570,27 @@ stop
     endif
 !
   end function
+!----------------------------------------------------------------------
+function vectors_angle(vec_1, vec_2) result(angle)
+!
+!    Calculate angle between vectors
+!
+     implicit none
+!
+     real(dp), dimension(3), intent(in) :: vec_1, vec_2
+!
+     real(dp) :: angle
+!
+     real(dp) :: vec_1_X_vec_2, vec_1_mod, vec_2_mod
+!
+     vec_1_X_vec_2 = dot_product(vec_1, vec_2)
+!
+     vec_1_mod = dsqrt(dot_product(vec_1, vec_1))
+     vec_2_mod = dsqrt(dot_product(vec_2, vec_2))
+!
+     angle = dacos(vec_1_X_vec_2 / (vec_1_mod * vec_2_mod)) 
+!
+end function vectors_angle
 !----------------------------------------------------------------------
 end module density_module
 

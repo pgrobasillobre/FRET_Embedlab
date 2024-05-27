@@ -298,6 +298,18 @@ module output_module
      Enddo
      Write(out_%iunit,'(a)') " "
 
+     If (header.eq.aceptor_header .and. target_%aceptor_transdip_rotate) then
+        Write(out_%iunit,'(3x,a,1x,f10.5,1x,f10.5,1x,f10.5)') "INPUT   Transition density dipole (x,y,z): ", &
+                                                                target_%aceptor_transdip(1),                   &
+                                                                target_%aceptor_transdip(2),                   &
+                                                                target_%aceptor_transdip(3)
+        Write(out_%iunit,'(a)') " "
+        Write(out_%iunit,'(3x,a,1x,f10.5,1x,f10.5,1x,f10.5)') "ROTATED Transition density dipole (x,y,z): ", &
+                                                                target_%aceptor_transdip_rot(1),               &
+                                                                target_%aceptor_transdip_rot(2),               &
+                                                                target_%aceptor_transdip_rot(3)
+        Write(out_%iunit,'(a)') " "
+     EndIf
 
      if(PRESENT(integral)) then
         Write(out_%iunit,'(a)') "    ============================================================"

@@ -230,6 +230,10 @@ module input_module
      target_%spectral_overlap = zero
      target_%aceptor_density_rotation_angle = zero
 !
+     target_%aceptor_transdip     = zero
+     target_%aceptor_transdip_rot = zero 
+     target_%ref_vector           = zero
+!
      target_%calc_overlap_int              = .false.
      target_%aceptor_density_rotate        = .false.
      target_%aceptor_transdip_rotate       = .false.

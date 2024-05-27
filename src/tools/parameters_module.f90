@@ -23,6 +23,7 @@ module parameters_module
     real(dp), parameter                    :: pi         = four*atan(one)
     real(dp), parameter                    :: sqrtpi     = 1.7724538509055159d0
     real(dp), parameter                    :: to_radians = pi/180.0d0
+    real(dp), parameter                    :: to_degrees = one/to_radians
 !    
     real(dp), parameter                    :: ToBohr = 1.8897261254578281d0
     real(dp), parameter                    :: ToAng  = 1.0d0/ToBohr
@@ -31,10 +32,10 @@ module parameters_module
     real(dp), parameter                    :: Half   = 0.5d0
     real(dp), parameter                    :: FSmAu  = 0.00000021739d0
 !
-!   nearest neighbour distances
-!
-!
     real(dp), parameter                    :: ncellmax = 10000000 ! Fretty has 1.0E06, we have 1.0E07 
+!
+    character(len=30),  parameter          :: aceptor_header = '   Aceptor Density Information' 
+    character(len=29),  parameter          :: donor_header   = '    Donor Density Information'
 !
     character(len=200), parameter          :: fret_start = '# fret quantities ------------------------#'
     character(len=200), parameter          :: fret_end   = '# end fret quantities ------------------------'
