@@ -366,7 +366,9 @@ print *, ' Rotation for cube file ', trim(adjustl(infile))
         write(iin,*) ' original cube coordinates'
 !
         do i = 1, n_points
-           write(iin, '(a,f25.16,2x,f25.16,2x,f25.16)' ) 'h' ,xyz(1,i), xyz(2,i), xyz(3,i) 
+           write(iin, '(a,f25.16,2x,f25.16,2x,f25.16)' ) 'h' ,xyz(1,i)*ToAng, &
+                                                              xyz(2,i)*ToAng, &
+                                                              xyz(3,i)*ToAng
         enddo
 !
      close(iin)

@@ -65,3 +65,8 @@
 !cutoff:
 !omega_0: 
 !spectral overlap: 
+!aceptor density rotate:
+!rotation axys: 
+!aceptor transition dipole: 
+!aceptor transition dipole align with: 
+!debug: true
