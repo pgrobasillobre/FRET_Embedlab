@@ -27,6 +27,7 @@ module target_module
       real(dp)               :: omega_0                  
       real(dp)               :: spectral_overlap
       real(dp)               :: aceptor_density_rotation_angle
+      real(dp)               :: transdip_refvec_theta
 !
       real(dp), dimension(3) :: aceptor_transdip, aceptor_transdip_rot, ref_vector
 !

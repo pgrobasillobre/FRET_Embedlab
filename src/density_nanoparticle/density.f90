@@ -302,9 +302,12 @@ print *, ' Rotation for cube file ', trim(adjustl(infile))
 !
 !    internal variables
 !
-     integer :: iin
+     integer  :: iin
 !
      real(dp) :: cos_theta, sin_theta
+     real(dp) :: theta_check
+!
+     logical  :: rotation_changed = .false.
 !
 !    Calculate angle if needed
 !
@@ -313,7 +316,7 @@ print *, ' Rotation for cube file ', trim(adjustl(infile))
 !
 !    Rotate transdip 
 !
-     cos_theta = dcos(target_%aceptor_density_rotation_angle)
+10   cos_theta = dcos(target_%aceptor_density_rotation_angle)
      sin_theta = dsin(target_%aceptor_density_rotation_angle) 
 !
      if (target_%rotation_axys.eq.'x') then
@@ -333,6 +336,24 @@ print *, ' Rotation for cube file ', trim(adjustl(infile))
         transdip_rot(1) = transdip(1) * cos_theta - transdip(2) * sin_theta
         transdip_rot(2) = transdip(1) * sin_theta + transdip(2) * cos_theta  
         transdip_rot(3) = transdip(3)
+!
+     endif
+!
+!    Check angle between rotated transdip and reference vector
+!    If they are not coincident, change rotation direction
+!
+     if (target_%aceptor_transdip_rotate_align_with) then
+!
+        theta_check = vectors_angle(transdip_rot,target_%ref_vector)
+!
+        if (abs(theta_check) .gt. 0.1 .and. .not. rotation_changed) then 
+           target_%aceptor_density_rotation_angle = -target_%aceptor_density_rotation_angle
+           rotation_changed = .true.
+           GO TO 10
+!
+        else if (abs(theta_check) .gt. 0.01 .and. rotation_changed) then
+           call out_%error('Alignment with reference vector was not possible')
+        endif
 !
      endif
 !
