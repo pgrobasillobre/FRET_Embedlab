@@ -1,9 +1,8 @@
-!----------------------------------------------------------------------
+!i----------------------------------------------------------------------
 module density_module
 !      
 !   Module density
 !
-    use output_module
     use target_module
     use parameters_module
 !
@@ -24,8 +23,9 @@ module density_module
       integer,   dimension(:), allocatable      :: atomic_number
       character, dimension(:), allocatable      :: atomic_label
 !
-      real(dp)                                  :: xmin,ymin,zmin,dx,dy,dz,dummy_real
+      real(dp)                                  :: xmin,ymin,zmin,dummy_real
       real(dp)                                  :: maxdens
+      real(dp), dimension(3)                    :: geom_center, dx, dy, dz
       real(dp), dimension(:), allocatable       :: atomic_charge,x,y,z
       real(dp), dimension(:,:,:), allocatable   :: rho
       real(dp), dimension(:), allocatable       :: rho_reduced
@@ -69,9 +69,9 @@ module density_module
      read(IIn,'(A)') cube%str1
      read(IIn,'(A)') cube%str2
      read(IIn,*)     cube%natoms, cube%xmin,       cube%ymin,       cube%zmin
-     read(IIn,*)     cube%nx,     cube%dx
-     read(IIn,*)     cube%ny,     cube%dummy_real, cube%dy
-     read(IIn,*)     cube%nz,     cube%dummy_real, cube%dummy_real, cube%dz
+     read(IIn,*)     cube%nx,     cube%dx(1),      cube%dx(2),      cube%dx(3)
+     read(IIn,*)     cube%ny,     cube%dy(1),      cube%dy(2),      cube%dy(3)
+     read(IIn,*)     cube%nz,     cube%dz(1),      cube%dz(2),      cube%dz(3)
 !
      allocate(cube%atomic_number(cube%natoms),cube%atomic_label(cube%natoms),cube%atomic_charge(cube%natoms),&
               cube%x(cube%natoms),cube%y(cube%natoms),cube%z(cube%natoms),cube%rho(cube%nx,cube%ny,cube%nz), &
@@ -97,7 +97,13 @@ module density_module
         enddo
      enddo  
 !
-     cube%rho = cube%rho*cube%dx*cube%dy*cube%dz ! weight density by cube volume
+!    Check we have an appropriate cube file to weight the density by cube volume
+!
+     if (cube%dx(2) .gt. 0.0 .or. cube%dx(3) .gt. 0.0 .or. &
+         cube%dy(1) .gt. 0.0 .or. cube%dy(3) .gt. 0.0 .or. &
+         cube%dz(1) .gt. 0.0 .or. cube%dz(2) .gt. 0.0) call error("Cube file conflict: dx,dy,dz matrix is not diagonal")
+!
+     cube%rho = cube%rho*cube%dx(1)*cube%dy(2)*cube%dz(3) ! weight density by cube volume
 !
 !    Find the maximum value of the density
 ! 
@@ -116,15 +122,15 @@ module density_module
 !
      cube%n_points_reduced = 0
      do i = 1, cube%nx
-        x_tmp = cube%xmin + cube%dx*(i-1)
+        x_tmp = cube%xmin + cube%dx(1)*(i-1)
         do j = 1, cube%ny
-           y_tmp = cube%ymin + cube%dy*(j-1)
+           y_tmp = cube%ymin + cube%dy(2)*(j-1)
            do k = 1, cube%nz
-              z_tmp = cube%zmin + cube%dz*(k-1)
+              z_tmp = cube%zmin + cube%dz(3)*(k-1)
 !
 !             If we calculate the overlap integral we should not reduce the density cube
               if (.not. target_%calc_overlap_int .and.  cube%n_points_reduced .gt. ncellmax) &
-                                     call out_%error("Increase cutoff, huge density to be managed")
+                                     call error("Increase cutoff, huge density to be managed")
 !
               if (.not. target_%calc_overlap_int .and. abs(cube%rho(i,j,k)) .gt. cube%maxdens * target_%cutoff .or.&
                   target_%calc_overlap_int) then
@@ -142,6 +148,12 @@ module density_module
            enddo
         enddo
      enddo
+!
+!    Calculate geometrical center
+!
+     cube%geom_center(1) = sum(cube%xyz(1,1:cube%n_points_reduced))/cube%n_points_reduced 
+     cube%geom_center(2) = sum(cube%xyz(2,1:cube%n_points_reduced))/cube%n_points_reduced
+     cube%geom_center(3) = sum(cube%xyz(3,1:cube%n_points_reduced))/cube%n_points_reduced
 !
      if (rotation) then 
 !
@@ -174,7 +186,7 @@ module density_module
 !
    end subroutine delete_density
 !----------------------------------------------------------------------
-   subroutine int_density(cube)
+   subroutine int_density(cube,integral)
 !
 !    Integrate density from cube file
 !
@@ -182,10 +194,11 @@ module density_module
 !
      type (density_type), intent(in)  :: cube
 !
+     real(dp), intent(out)            :: integral
+!
 !
 !    internal variables
 !
-     real (dp) :: integral
      integer   :: i,j,k
 !
      integral = zero
@@ -197,15 +210,6 @@ module density_module
            enddo
         enddo
      enddo
-!
-    call out_%print_density(target_%density_file,cube%natoms,cube%n_points_reduced, &
-                            cube%nx,cube%ny,cube%nz,                                &
-                            cube%dx,cube%dy,cube%dz,                                &
-                            cube%xmin,cube%ymin,cube%zmin,cube%nelectrons,          &
-                            cube%atomic_label,cube%x,cube%y,cube%z,                 &
-                            integral=integral)
-!
-!!    call out_%print_density(cube)
 !
   end subroutine int_density 
 !----------------------------------------------------------------------
@@ -225,24 +229,16 @@ module density_module
 !
      real(dp) :: cos_theta, sin_theta
 !
-     real(dp), dimension(3) :: geom_center
-!
      real(dp), dimension(3,cube%n_points_reduced) :: xyz_000, xyz_rot
 !
-print *, ' Rotation for cube file ', trim(adjustl(infile))
-!
      if (target_%debug) call print_cube_coordinates('aceptor_cube_points',cube%n_points_reduced,cube%xyz)
-!
-     geom_center(1) = sum(cube%xyz(1,1:cube%n_points_reduced))/cube%n_points_reduced 
-     geom_center(2) = sum(cube%xyz(2,1:cube%n_points_reduced))/cube%n_points_reduced
-     geom_center(3) = sum(cube%xyz(3,1:cube%n_points_reduced))/cube%n_points_reduced
 !
 !    Translate density to the origin of coordinates
 !
      do i = 1,cube%n_points_reduced
-        cube%xyz(1,i) = cube%xyz(1,i) - geom_center(1)
-        cube%xyz(2,i) = cube%xyz(2,i) - geom_center(2)
-        cube%xyz(3,i) = cube%xyz(3,i) - geom_center(3)
+        cube%xyz(1,i) = cube%xyz(1,i) - cube%geom_center(1)
+        cube%xyz(2,i) = cube%xyz(2,i) - cube%geom_center(2)
+        cube%xyz(3,i) = cube%xyz(3,i) - cube%geom_center(3)
      enddo
 !
 !    Rotate density
@@ -279,9 +275,9 @@ print *, ' Rotation for cube file ', trim(adjustl(infile))
 !    Translate density to initial position
 !
      do i = 1,cube%n_points_reduced
-        cube%xyz(1,i) = xyz_rot(1,i) + geom_center(1)
-        cube%xyz(2,i) = xyz_rot(2,i) + geom_center(2)
-        cube%xyz(3,i) = xyz_rot(3,i) + geom_center(3)
+        cube%xyz(1,i) = xyz_rot(1,i) + cube%geom_center(1)
+        cube%xyz(2,i) = xyz_rot(2,i) + cube%geom_center(2)
+        cube%xyz(3,i) = xyz_rot(3,i) + cube%geom_center(3)
      enddo
 !
      if (target_%debug) call print_cube_coordinates('aceptor_cube_points_ROTATED', &
@@ -352,7 +348,7 @@ print *, ' Rotation for cube file ', trim(adjustl(infile))
            GO TO 10
 !
         else if (abs(theta_check) .gt. 0.01 .and. rotation_changed) then
-           call out_%error('Alignment with reference vector was not possible')
+           call error('Alignment with reference vector was not possible')
         endif
 !
      endif
@@ -419,6 +415,23 @@ print *, ' Rotation for cube file ', trim(adjustl(infile))
 !
   end subroutine print_transdip_nmd
 !----------------------------------------------------------------------
+   subroutine error(string)
+!
+!    ERROR subroutine needed to not use output_module (avoid circular dependency)
+!
+     implicit none
+!     
+     character(len=*),intent(in) :: string
+!
+!    check if the file is opened
+!
+     write(iuout,'(/1x,a)') "Error during the execution of FRET_Embedlab"
+     write(iuout,'(1x,a/)') trim(string)
+     flush(iuout)
+     stop
+!       
+   end subroutine error
+!-----------------------------------------------------------------------
   function map_atomic_number_to_label(atnum) result(label)
 !
 !   Map atomic number to atomic label
@@ -589,7 +602,7 @@ print *, ' Rotation for cube file ', trim(adjustl(infile))
     else if (atnum.eq.80) then
        label = 'Hg'
     else
-       call out_%error('  We only consider the mapping of atomic numbers until Ar')
+       call error('  We only consider the mapping of atomic numbers until Ar')
     endif
 !
   end function

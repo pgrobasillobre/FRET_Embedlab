@@ -34,6 +34,8 @@ module parameters_module
 !
     real(dp), parameter                    :: ncellmax = 10000000 ! Fretty has 1.0E06, we have 1.0E07 
 !
+    integer, parameter                     :: iuout = 12
+!
     character(len=30),  parameter          :: aceptor_header = '   Aceptor Density Information' 
     character(len=29),  parameter          :: donor_header   = '    Donor Density Information'
 !

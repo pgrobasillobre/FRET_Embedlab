@@ -26,10 +26,9 @@ use algorithm_module
 !---------------------------------------------------------------------------
 !
 !                       Program by Pablo Grobas Illobre
-!                    with contributions by Sveva Sodomaco
 !                             
 !                         For any problem write to:
-!                            pgrobasillobre@sns.it
+!                         pgrobasillobre@gmail.com
 !   
 !---------------------------------------------------------------------------
 !

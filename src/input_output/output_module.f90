@@ -5,21 +5,20 @@ module output_module
 !
     use target_module
     use parameters_module
-!!!    use string_manipulation_module
-!!!    use array_manipulation_module
 !
     Implicit None
 !
 !   Public Variables
 !
+    public print_density_file
+    public print_error
     public out_
 !
 !   output type
 !
     type out_type
 !
-      integer  :: iunit = 12 ! unit of the file
-!!      integer  :: ivrb  = 0  ! Verbose modality 
+      integer  :: iunit = iuout ! unit of the file
 !
       character (len=12)  :: sticks = "(1x,80(1h-))"
 
@@ -32,13 +31,20 @@ module output_module
       procedure :: print_density
       procedure :: print_nanoparticle
       procedure :: print_results_integrals
-!!      procedure :: print_matrix
       procedure :: warning
       procedure :: error
 !
     end type out_type
 !    
     type (out_type), Save :: out_
+!
+    Interface print_density_file
+       Module Procedure print_density 
+    End Interface print_density_file
+!
+    Interface print_error
+       Module Procedure error
+    End Interface print_error
 !
    contains
 !----------------------------------------------------------------------
@@ -57,7 +63,7 @@ module output_module
      write(out_%filename,'(a)') in_file(1:nlen-4) // '.log'
 !
      out_%filename = trim(out_%filename)
-!       
+!
    end subroutine out_file_fill
 !-----------------------------------------------------------------------
    subroutine print_banner(out_)
@@ -233,28 +239,18 @@ module output_module
 !       
    end subroutine error
 !-----------------------------------------------------------------------
-   subroutine print_density(out_,cube_file,natoms,n_points_reduced,nx,ny,nz,           &
-                            dx,dy,dz,xmin,ymin,zmin,nelectrons,atoms,mol_x,mol_y,mol_z,&
-                            integral,header)
-!   subroutine print_density(out_,cube)
+   subroutine print_density(out_,cube_file,cube,integral,header)
 !
+     use density_module, ONLY : density_type
 !
      implicit none
 !     
 !    print density information
 !
+     class (density_type), intent(in)  :: cube 
 !
-!!    type (density_type), intent(in)  :: cube 
-!!
-     integer,  intent(in)                    :: natoms,n_points_reduced,nelectrons,nx,ny,nz
-
-     real(dp), intent(in)                    :: dx,dy,dz
-     real(dp), intent(in)                    :: xmin,ymin,zmin
-     real(dp), dimension(natoms), intent(in) :: mol_x,mol_y,mol_z
-
      character(len=*), intent(in)  :: cube_file
-     character(len=*), dimension(natoms), intent(in) :: atoms
-
+!
      real(dp),         intent(in), optional  :: integral
      character(len=*), intent(in), optional  :: header
 
@@ -281,20 +277,20 @@ module output_module
      Write(out_%iunit,'(a)') " "
      Write(out_%iunit,'(3x,a)') "Density Grid (CUBE format): "
      Write(out_%iunit,'(a)') " "
-     Write(out_%iunit, 1000) natoms, xmin, ymin, zmin
-     Write(out_%iunit, 1000) nx,   dx, zero, zero
-     Write(out_%iunit, 1000) ny, zero,   dy, zero
-     Write(out_%iunit, 1000) nz, zero, zero,   dz
+     Write(out_%iunit, 1000) cube%natoms, cube%xmin ,   cube%ymin ,   cube%zmin
+     Write(out_%iunit, 1000) cube%nx,     cube%dx(1),   cube%dx(2),   cube%dx(3)
+     Write(out_%iunit, 1000) cube%ny,     cube%dy(1),   cube%dy(2),   cube%dy(3)
+     Write(out_%iunit, 1000) cube%nz,     cube%dz(1),   cube%dz(2),   cube%dz(3)
      Write(out_%iunit,'(a)') " " 
-     Write(out_%iunit,*)     "    Total number of grid points: ", nx*ny*nz
+     Write(out_%iunit,*)     "    Total number of grid points: ", cube%nx*cube%ny*cube%nz
      If (target_%name_ .ne. "integrate_density") then
-        Write(out_%iunit,*)     "    ---> Reduced density points:", n_points_reduced
+        Write(out_%iunit,*)     "    ---> Reduced density points:", cube%n_points_reduced
      Endif
      Write(out_%iunit,'(a)') " " 
      Write(out_%iunit,'(3x,a)') "Associated molecular coordinates (Ang): "
      Write(out_%iunit,'(a)') " "
-     Do i=1,natoms
-        Write(out_%iunit,1001) atoms(i), mol_x(i)*ToAng, mol_y(i)*ToAng, mol_z(i)*ToAng
+     Do i=1,cube%natoms
+        Write(out_%iunit,1001) cube%atomic_label(i), cube%x(i)*ToAng, cube%y(i)*ToAng, cube%z(i)*ToAng
      Enddo
      Write(out_%iunit,'(a)') " "
 
@@ -309,18 +305,17 @@ module output_module
                                                                 target_%aceptor_transdip_rot(2),               &
                                                                 target_%aceptor_transdip_rot(3)
         Write(out_%iunit,'(a)') " "
-     EndIf
+    EndIf
 
      if(PRESENT(integral)) then
         Write(out_%iunit,'(a)') "    ============================================================"
         Write(out_%iunit,*) "    Integrated electron density --> ", integral
-        Write(out_%iunit,*) "    Total electrons in molecule --> ", nelectrons
+        Write(out_%iunit,*) "    Total electrons in molecule --> ", cube%nelectrons
         Write(out_%iunit,'(a)') "    ============================================================"
         Write(out_%iunit,'(a)') " " 
      endif
 
      Flush(out_%iunit)
-!
 !
    end subroutine print_density
 !-----------------------------------------------------------------------
