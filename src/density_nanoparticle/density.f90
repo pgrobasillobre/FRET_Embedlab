@@ -25,7 +25,7 @@ module density_module
 !
       real(dp)                                  :: xmin,ymin,zmin,dummy_real
       real(dp)                                  :: maxdens
-      real(dp), dimension(3)                    :: geom_center, dx, dy, dz
+      real(dp), dimension(3)                    :: geom_center, geom_center_mol, dx, dy, dz
       real(dp), dimension(:), allocatable       :: atomic_charge,x,y,z
       real(dp), dimension(:,:,:), allocatable   :: rho
       real(dp), dimension(:), allocatable       :: rho_reduced
@@ -149,11 +149,20 @@ module density_module
         enddo
      enddo
 !
-!    Calculate geometrical center
+!    Calculate geometrical center of cube and molecule
 !
      cube%geom_center(1) = sum(cube%xyz(1,1:cube%n_points_reduced))/cube%n_points_reduced 
      cube%geom_center(2) = sum(cube%xyz(2,1:cube%n_points_reduced))/cube%n_points_reduced
      cube%geom_center(3) = sum(cube%xyz(3,1:cube%n_points_reduced))/cube%n_points_reduced
+!
+     cube%geom_center_mol(1) = sum(cube%x(1:cube%natoms))/cube%natoms 
+     cube%geom_center_mol(2) = sum(cube%y(1:cube%natoms))/cube%natoms
+     cube%geom_center_mol(3) = sum(cube%z(1:cube%natoms))/cube%natoms
+!
+     if (abs(cube%geom_center_mol(1) - cube%geom_center(1)) > 0.3 .or. &
+         abs(cube%geom_center_mol(2) - cube%geom_center(2)) > 0.3 .or. &
+         abs(cube%geom_center_mol(3) - cube%geom_center(3)) > 0.3) &
+         call error("Cube file corrupt: cube center and molecular center do not coincide")
 !
      if (rotation) then 
 !
@@ -229,9 +238,16 @@ module density_module
 !
      real(dp) :: cos_theta, sin_theta
 !
-     real(dp), dimension(3,cube%n_points_reduced) :: xyz_000, xyz_rot
+     real(dp)                                     :: xmin_rot,ymin_rot,zmin_rot
+     real(dp), dimension(3)                       :: d_vec,d_vec_rot
+     real(dp), dimension(3,cube%natoms)           :: xyz_rot_mol
+     real(dp), dimension(3,cube%n_points_reduced) :: xyz_rot
 !
      if (target_%debug) call print_cube_coordinates('aceptor_cube_points',cube%n_points_reduced,cube%xyz)
+!
+!    NOTE: too much spaghetti code in this subroutine, we have to rewrite it better
+!
+!    ================ MODIFY DENSITY ================= 
 !
 !    Translate density to the origin of coordinates
 !
@@ -240,6 +256,7 @@ module density_module
         cube%xyz(2,i) = cube%xyz(2,i) - cube%geom_center(2)
         cube%xyz(3,i) = cube%xyz(3,i) - cube%geom_center(3)
      enddo
+!
 !
 !    Rotate density
 !
@@ -279,6 +296,131 @@ module density_module
         cube%xyz(2,i) = xyz_rot(2,i) + cube%geom_center(2)
         cube%xyz(3,i) = xyz_rot(3,i) + cube%geom_center(3)
      enddo
+!
+!
+!    =============== MODIFY CUBE MIN ================ 
+!
+
+!    Translate xmin,ymin,zmin to the origin of coordinates
+!
+     cube%xmin = - cube%geom_center(1)
+     cube%ymin = - cube%geom_center(2)
+     cube%zmin = - cube%geom_center(3)
+!
+!    Rotate cube
+!
+     if (target_%rotation_axys.eq.'x') then
+!
+        xmin_rot = cube%xmin
+        ymin_rot = cube%ymin * cos_theta - cube%zmin * sin_theta 
+        zmin_rot = cube%ymin * sin_theta + cube%zmin * cos_theta
+!
+     else if (target_%rotation_axys.eq.'y') then
+!
+        xmin_rot =  cube%xmin * cos_theta + cube%zmin * sin_theta
+        ymin_rot =  cube%ymin  
+        zmin_rot = -cube%xmin * sin_theta + cube%zmin * cos_theta
+!
+     else if (target_%rotation_axys.eq.'z') then
+!
+        xmin_rot = cube%xmin * cos_theta - cube%ymin * sin_theta
+        ymin_rot = cube%xmin * sin_theta + cube%ymin * cos_theta  
+        zmin_rot = cube%zmin
+!
+     endif
+!
+!    Translate density to initial position
+!
+     cube%xmin = xmin_rot + cube%geom_center(1)
+     cube%ymin = ymin_rot + cube%geom_center(2)
+     cube%zmin = zmin_rot + cube%geom_center(3)
+!
+!
+!    ============= MODIFY CUBE VECTORS ============== 
+!
+!
+     do i = 1,3
+!
+        if (i.eq.1) d_vec(1:3) = cube%dx(1:3)
+        if (i.eq.2) d_vec(1:3) = cube%dy(1:3)
+        if (i.eq.3) d_vec(1:3) = cube%dz(1:3)
+!
+        if (target_%rotation_axys.eq.'x') then
+!
+           d_vec_rot(1) = d_vec(1)
+           d_vec_rot(2) = d_vec(2) * cos_theta - d_vec(3) * sin_theta 
+           d_vec_rot(3) = d_vec(2) * sin_theta + d_vec(3) * cos_theta
+!
+        else if (target_%rotation_axys.eq.'y') then
+!
+           d_vec_rot(1) =  d_vec(1) * cos_theta + d_vec(3) * sin_theta
+           d_vec_rot(2) =  d_vec(2)  
+           d_vec_rot(3) = -d_vec(1) * sin_theta + d_vec(3) * cos_theta
+!
+        else if (target_%rotation_axys.eq.'z') then
+!
+           d_vec_rot(1) = d_vec(1) * cos_theta - d_vec(2) * sin_theta
+           d_vec_rot(2) = d_vec(1) * sin_theta + d_vec(2) * cos_theta  
+           d_vec_rot(3) = d_vec(3)
+!
+        endif
+!
+        if (i.eq.1) cube%dx(1:3) = d_vec_rot(1:3)
+        if (i.eq.2) cube%dy(1:3) = d_vec_rot(1:3)
+        if (i.eq.3) cube%dz(1:3) = d_vec_rot(1:3)
+!
+     enddo
+!
+!
+!    ================ MODIFY MOLECULAR GEOMETRY ================= !
+!
+!    Translate molecule to the origin of coordinates
+!
+     do i = 1,cube%natoms
+        cube%x(i) = cube%x(i) - cube%geom_center_mol(1)
+        cube%y(i) = cube%y(i) - cube%geom_center_mol(2)
+        cube%z(i) = cube%z(i) - cube%geom_center_mol(3)
+     enddo
+!
+!    Rotate density
+!
+     cos_theta = dcos(target_%aceptor_density_rotation_angle)
+     sin_theta = dsin(target_%aceptor_density_rotation_angle)
+!
+     if (target_%rotation_axys.eq.'x') then
+!
+        do i = 1,cube%natoms
+           xyz_rot_mol(1,i) = cube%x(i)
+           xyz_rot_mol(2,i) = cube%y(i) * cos_theta - cube%z(i) * sin_theta
+           xyz_rot_mol(3,i) = cube%y(i) * sin_theta + cube%z(i) * cos_theta
+        enddo
+
+     else if (target_%rotation_axys.eq.'y') then
+!
+        do i = 1,cube%natoms
+           xyz_rot_mol(1,i) =  cube%x(i) * cos_theta + cube%z(i) * sin_theta
+           xyz_rot_mol(2,i) =  cube%y(i)
+           xyz_rot_mol(3,i) = -cube%x(i) * sin_theta + cube%z(i) * cos_theta
+        enddo
+!
+     else if (target_%rotation_axys.eq.'z') then
+!
+        do i = 1,cube%natoms
+           xyz_rot_mol(1,i) = cube%x(i) * cos_theta - cube%y(i) * sin_theta
+           xyz_rot_mol(2,i) = cube%x(i) * sin_theta + cube%y(i) * cos_theta
+           xyz_rot_mol(3,i) = cube%z(i)
+        enddo
+!
+     endif
+!
+!    Translate molecular geometry back to initial position
+!
+     do i = 1,cube%natoms
+        cube%x(i) = xyz_rot_mol(1,i) + cube%geom_center_mol(1)
+        cube%y(i) = xyz_rot_mol(2,i) + cube%geom_center_mol(2)
+        cube%z(i) = xyz_rot_mol(3,i) + cube%geom_center_mol(3)
+     enddo
+!
 !
      if (target_%debug) call print_cube_coordinates('aceptor_cube_points_ROTATED', &
                                                      cube%n_points_reduced,        &
