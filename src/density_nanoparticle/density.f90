@@ -474,7 +474,6 @@ module density_module
         call delete_density(cube_rot)
 
      endif
-stop
 !
   end subroutine rotate_cube_coordinates
 !----------------------------------------------------------------------
