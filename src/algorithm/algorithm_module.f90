@@ -70,13 +70,12 @@ module algorithm_module
 !
 !    Read input files
 !
-     call read_density(target_%aceptor_density, aceptor_density, rotation=target_%rotate_aceptor)
-     call read_density(target_%donor_density, donor_density, rotation=.false.)
+     call read_density(target_%aceptor_density, aceptor_density, rotation=target_%rotate_aceptor, what_dens='aceptor')
+     call read_density(target_%donor_density, donor_density, rotation=.false., what_dens='donor')
 !
 !    Print aceptor / donor density characteristics
 !
      call out_%print_density(target_%aceptor_density,aceptor_density,header=aceptor_header)
-!
      call out_%print_density(target_%donor_density,donor_density,header=donor_header)
 !
 !    Calculate integrals
@@ -108,7 +107,7 @@ module algorithm_module
 !    Read input files
 !
      call read_nanoparticle(target_%nanoparticle, nanoparticle)
-     call read_density(target_%aceptor_density, aceptor_density, rotation=target_%rotate_aceptor)
+     call read_density(target_%aceptor_density, aceptor_density, rotation=target_%rotate_aceptor, what_dens='aceptor')
 !
 !    Print NP / aceptor density characteristics
 !
@@ -145,8 +144,8 @@ module algorithm_module
 !    Read input files
 !
      call read_nanoparticle(target_%nanoparticle, nanoparticle)
-     call read_density(target_%aceptor_density, aceptor_density, rotation=target_%rotate_aceptor)
-     call read_density(target_%donor_density, donor_density, rotation=.false.)
+     call read_density(target_%aceptor_density, aceptor_density, rotation=target_%rotate_aceptor, what_dens='aceptor')
+     call read_density(target_%donor_density, donor_density, rotation=.false., what_dens='donor')
 !
 !    Print NP / densities characteristics
 !
@@ -154,7 +153,6 @@ module algorithm_module
                                   nanoparticle%charges,nanoparticle%dipoles)
 !
      call out_%print_density(target_%aceptor_density,aceptor_density,header=aceptor_header)
-!
      call out_%print_density(target_%donor_density,donor_density,header=donor_header)
 !
 !    Calculate integrals

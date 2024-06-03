@@ -368,6 +368,13 @@ module input_module
 !
      endif
 !
+!    Create folder to store debug quantities
+!
+     if (target_%debug) then
+        if (file_exists("debug")) call execute_command_line("rm -rf debug")
+        call execute_command_line("mkdir debug")
+     endif
+!
 !    assign the different targets
 !
      if (.not. cutoff .and. .not. integrate_cube .and. .not. cutoff .and. omega_0) then

@@ -3,6 +3,7 @@ module density_module
 !      
 !   Module density
 !
+    !$ use omp_lib
     use target_module
     use parameters_module
 !
@@ -23,8 +24,8 @@ module density_module
       integer,   dimension(:), allocatable      :: atomic_number
       character, dimension(:), allocatable      :: atomic_label
 !
-      real(dp)                                  :: xmin,ymin,zmin,dummy_real
-      real(dp)                                  :: maxdens
+      real(dp)                                  :: xmin,ymin,zmin
+      real(dp)                                  :: maxdens, volume
       real(dp), dimension(3)                    :: geom_center, geom_center_mol, dx, dy, dz
       real(dp), dimension(:), allocatable       :: atomic_charge,x,y,z
       real(dp), dimension(:,:,:), allocatable   :: rho
@@ -39,17 +40,23 @@ module density_module
        Module Procedure rotate_cube_coordinates
     End Interface
 !
+    Interface delete_cube_density
+       Module Procedure delete_density
+    End Interface
+!
    contains
 !----------------------------------------------------------------------
-   subroutine read_density(infile, cube, rotation)
+   subroutine read_density(infile, cube, rotation, what_dens)
 !
 !    Read input cube file
 !
      implicit none
 !
-     character(len=*),    intent(in)  :: infile
+     character(len=*),    intent(in)        :: infile
 !
-     logical,             intent(in)  :: rotation
+     logical,             intent(in)        :: rotation
+!
+     character(len=*), optional, intent(in) :: what_dens
 !
      type (density_type), intent(out) :: cube
 !
@@ -103,6 +110,7 @@ module density_module
          cube%dy(1) .gt. 0.0 .or. cube%dy(3) .gt. 0.0 .or. &
          cube%dz(1) .gt. 0.0 .or. cube%dz(2) .gt. 0.0) call error("Cube file conflict: dx,dy,dz matrix is not diagonal")
 !
+     cube%volume = cube%dx(1)*cube%dy(2)*cube%dz(3)
      cube%rho = cube%rho*cube%dx(1)*cube%dy(2)*cube%dz(3) ! weight density by cube volume
 !
 !    Find the maximum value of the density
@@ -168,9 +176,21 @@ module density_module
 !
         if (target_%aceptor_transdip_rotate) call rotate_transdip_coordinates(target_%aceptor_transdip,             &
                                                                               target_%aceptor_transdip_rot,         &
+                                                                              cube%geom_center_mol,                 &
                                                                               target_%aceptor_density_rotation_angle) 
 !
-        call rotate_cube_coordinates(infile,cube)
+        call rotate_cube_coordinates(what_dens,cube)
+!
+     endif
+!
+     if (target_%debug) then 
+         if (what_dens.eq.'aceptor') then 
+            call print_cube_density(outfile='debug/aceptor_fret.cube',scale_volume=.true.,cube=cube)
+         else if (what_dens.eq.'donor') then
+            call print_cube_density(outfile='debug/donor_fret.cube',scale_volume=.true.,cube=cube)
+         else
+            call error("Density type to print not recognised")
+         endif
      endif
 !
      01 continue
@@ -178,6 +198,59 @@ module density_module
 !
    end subroutine read_density
 !----------------------------------------------------------------------
+   subroutine print_cube_density(outfile, scale_volume, cube)
+!
+!    Read input cube file
+!
+     implicit none
+!
+     character(len=*),    intent(in) :: outfile
+!
+     logical, intent(in)             :: scale_volume
+!
+     type (density_type), intent(in) :: cube
+!
+!
+!    internal variables
+!
+     integer                         :: IIn = 21
+     integer                         :: i,j,k
+     integer                         :: iost
+!
+     1000 Format(I5,1x,F11.6,1x,F11.6,1x,F11.6)
+     1001 Format(I5,1x,F11.6,1x,F11.6,1x,F11.6,1x,F11.6)
+!
+!    Read variables
+     open (unit=IIn, file=trim(outfile), status="new", action="write", iostat=iost,err=01)
+     write(IIn,'(A)') '*** adf ***'
+     write(IIn,'(A)') 'FRET_Embedlab printed density'
+     write(IIn,1000)     cube%natoms, cube%xmin,       cube%ymin,       cube%zmin
+     write(IIn,1000)     cube%nx,     cube%dx(1),      cube%dx(2),      cube%dx(3)
+     write(IIn,1000)     cube%ny,     cube%dy(1),      cube%dy(2),      cube%dy(3)
+     write(IIn,1000)     cube%nz,     cube%dz(1),      cube%dz(2),      cube%dz(3)
+!
+!
+     do i=1,cube%natoms
+        write(IIn,1001) cube%atomic_number(i),cube%atomic_charge(i),cube%x(i),cube%y(i),cube%z(i) 
+     enddo
+!
+     do i=1,cube%nx
+        do j=1,cube%ny
+          do k = 1,cube%nz
+              if (scale_volume) write(IIn,'(6E13.5)', advance='no') cube%rho(i,j,k)/cube%volume
+              if (.not.scale_volume) write(IIn,'(6E13.5)', advance='no') cube%rho(i,j,k)
+              if (mod(k,6) == 0) write(IIn,*) ! New line every 6 numbers              
+           enddo
+           if (mod(k,6).ne.0) write(IIn,*) ! New line if not already done in previous iteration
+        enddo
+     enddo  
+!
+     01 continue
+     close(IIn)
+!
+   end subroutine print_cube_density
+!----------------------------------------------------------------------
+ 
    subroutine delete_density(cube)
 !
 !    Read input cube file
@@ -186,12 +259,15 @@ module density_module
 !
      type (density_type), intent(inout)  :: cube
 !
-     deallocate(cube%atomic_number)
-     deallocate(cube%atomic_charge)
-     deallocate(cube%x)
-     deallocate(cube%y)
-     deallocate(cube%z)
-     deallocate(cube%rho)
+     if (allocated(cube%atomic_number)) deallocate(cube%atomic_number)
+     if (allocated(cube%atomic_label) ) deallocate(cube%atomic_label)
+     if (allocated(cube%atomic_charge)) deallocate(cube%atomic_charge)
+     if (allocated(cube%x)            ) deallocate(cube%x)
+     if (allocated(cube%y)            ) deallocate(cube%y)
+     if (allocated(cube%z)            ) deallocate(cube%z)
+     if (allocated(cube%rho)          ) deallocate(cube%rho)
+     if (allocated(cube%xyz)          ) deallocate(cube%xyz)
+     if (allocated(cube%rho_reduced)  ) deallocate(cube%rho_reduced)
 !
    end subroutine delete_density
 !----------------------------------------------------------------------
@@ -222,34 +298,38 @@ module density_module
 !
   end subroutine int_density 
 !----------------------------------------------------------------------
-   subroutine rotate_cube_coordinates(infile,cube)
+   subroutine rotate_cube_coordinates(what_dens,cube)
 !
 !    Rotate cube coordinates
 !
      implicit none
 !
-     character(len=*), intent(in) :: infile
+     character(len=*), intent(in) :: what_dens
 !
      type (density_type), intent(inout) :: cube
 !
 !    internal variables
 !
-     integer :: i
+     integer :: i, j, k, l
 !
      real(dp) :: cos_theta, sin_theta
 !
-     real(dp)                                     :: xmin_rot,ymin_rot,zmin_rot
-     real(dp), dimension(3)                       :: d_vec,d_vec_rot
-     real(dp), dimension(3,cube%natoms)           :: xyz_rot_mol
+     real(dp)                                     :: x_tmp, y_tmp, z_tmp, oversize
      real(dp), dimension(3,cube%n_points_reduced) :: xyz_rot
 !
-     if (target_%debug) call print_cube_coordinates('aceptor_cube_points',cube%n_points_reduced,cube%xyz)
+     type (density_type) :: cube_rot
 !
-!    NOTE: too much spaghetti code in this subroutine, we have to rewrite it better
+     if (target_%debug) call print_cube_coordinates('debug/'//what_dens//'_cube_points',cube%n_points_reduced,cube%xyz)
+!
+!    Calculate and save angle cosine and sine
+!
+     cos_theta = dcos(target_%aceptor_density_rotation_angle)
+     sin_theta = dsin(target_%aceptor_density_rotation_angle) 
+!
 !
 !    ================ MODIFY DENSITY ================= 
 !
-!    Translate density to the origin of coordinates
+!    Translate density center to the origin of coordinates
 !
      do i = 1,cube%n_points_reduced
         cube%xyz(1,i) = cube%xyz(1,i) - cube%geom_center(1)
@@ -257,11 +337,7 @@ module density_module
         cube%xyz(3,i) = cube%xyz(3,i) - cube%geom_center(3)
      enddo
 !
-!
-!    Rotate density
-!
-     cos_theta = dcos(target_%aceptor_density_rotation_angle)
-     sin_theta = dsin(target_%aceptor_density_rotation_angle) 
+!    Rotate
 !
      if (target_%rotation_axys.eq.'x') then
 !
@@ -297,144 +373,118 @@ module density_module
         cube%xyz(3,i) = xyz_rot(3,i) + cube%geom_center(3)
      enddo
 !
-!
-!    =============== MODIFY CUBE MIN ================ 
-!
-
-!    Translate xmin,ymin,zmin to the origin of coordinates
-!
-     cube%xmin = - cube%geom_center(1)
-     cube%ymin = - cube%geom_center(2)
-     cube%zmin = - cube%geom_center(3)
-!
-!    Rotate cube
-!
-     if (target_%rotation_axys.eq.'x') then
-!
-        xmin_rot = cube%xmin
-        ymin_rot = cube%ymin * cos_theta - cube%zmin * sin_theta 
-        zmin_rot = cube%ymin * sin_theta + cube%zmin * cos_theta
-!
-     else if (target_%rotation_axys.eq.'y') then
-!
-        xmin_rot =  cube%xmin * cos_theta + cube%zmin * sin_theta
-        ymin_rot =  cube%ymin  
-        zmin_rot = -cube%xmin * sin_theta + cube%zmin * cos_theta
-!
-     else if (target_%rotation_axys.eq.'z') then
-!
-        xmin_rot = cube%xmin * cos_theta - cube%ymin * sin_theta
-        ymin_rot = cube%xmin * sin_theta + cube%ymin * cos_theta  
-        zmin_rot = cube%zmin
-!
-     endif
-!
-!    Translate density to initial position
-!
-     cube%xmin = xmin_rot + cube%geom_center(1)
-     cube%ymin = ymin_rot + cube%geom_center(2)
-     cube%zmin = zmin_rot + cube%geom_center(3)
-!
-!
-!    ============= MODIFY CUBE VECTORS ============== 
-!
-!
-     do i = 1,3
-!
-        if (i.eq.1) d_vec(1:3) = cube%dx(1:3)
-        if (i.eq.2) d_vec(1:3) = cube%dy(1:3)
-        if (i.eq.3) d_vec(1:3) = cube%dz(1:3)
-!
-        if (target_%rotation_axys.eq.'x') then
-!
-           d_vec_rot(1) = d_vec(1)
-           d_vec_rot(2) = d_vec(2) * cos_theta - d_vec(3) * sin_theta 
-           d_vec_rot(3) = d_vec(2) * sin_theta + d_vec(3) * cos_theta
-!
-        else if (target_%rotation_axys.eq.'y') then
-!
-           d_vec_rot(1) =  d_vec(1) * cos_theta + d_vec(3) * sin_theta
-           d_vec_rot(2) =  d_vec(2)  
-           d_vec_rot(3) = -d_vec(1) * sin_theta + d_vec(3) * cos_theta
-!
-        else if (target_%rotation_axys.eq.'z') then
-!
-           d_vec_rot(1) = d_vec(1) * cos_theta - d_vec(2) * sin_theta
-           d_vec_rot(2) = d_vec(1) * sin_theta + d_vec(2) * cos_theta  
-           d_vec_rot(3) = d_vec(3)
-!
-        endif
-!
-        if (i.eq.1) cube%dx(1:3) = d_vec_rot(1:3)
-        if (i.eq.2) cube%dy(1:3) = d_vec_rot(1:3)
-        if (i.eq.3) cube%dz(1:3) = d_vec_rot(1:3)
-!
-     enddo
-!
-!
-!    ================ MODIFY MOLECULAR GEOMETRY ================= !
-!
-!    Translate molecule to the origin of coordinates
-!
-     do i = 1,cube%natoms
-        cube%x(i) = cube%x(i) - cube%geom_center_mol(1)
-        cube%y(i) = cube%y(i) - cube%geom_center_mol(2)
-        cube%z(i) = cube%z(i) - cube%geom_center_mol(3)
-     enddo
-!
-!    Rotate density
-!
-     cos_theta = dcos(target_%aceptor_density_rotation_angle)
-     sin_theta = dsin(target_%aceptor_density_rotation_angle)
-!
-     if (target_%rotation_axys.eq.'x') then
-!
-        do i = 1,cube%natoms
-           xyz_rot_mol(1,i) = cube%x(i)
-           xyz_rot_mol(2,i) = cube%y(i) * cos_theta - cube%z(i) * sin_theta
-           xyz_rot_mol(3,i) = cube%y(i) * sin_theta + cube%z(i) * cos_theta
-        enddo
-
-     else if (target_%rotation_axys.eq.'y') then
-!
-        do i = 1,cube%natoms
-           xyz_rot_mol(1,i) =  cube%x(i) * cos_theta + cube%z(i) * sin_theta
-           xyz_rot_mol(2,i) =  cube%y(i)
-           xyz_rot_mol(3,i) = -cube%x(i) * sin_theta + cube%z(i) * cos_theta
-        enddo
-!
-     else if (target_%rotation_axys.eq.'z') then
-!
-        do i = 1,cube%natoms
-           xyz_rot_mol(1,i) = cube%x(i) * cos_theta - cube%y(i) * sin_theta
-           xyz_rot_mol(2,i) = cube%x(i) * sin_theta + cube%y(i) * cos_theta
-           xyz_rot_mol(3,i) = cube%z(i)
-        enddo
-!
-     endif
-!
-!    Translate molecular geometry back to initial position
-!
-     do i = 1,cube%natoms
-        cube%x(i) = xyz_rot_mol(1,i) + cube%geom_center_mol(1)
-        cube%y(i) = xyz_rot_mol(2,i) + cube%geom_center_mol(2)
-        cube%z(i) = xyz_rot_mol(3,i) + cube%geom_center_mol(3)
-     enddo
-!
-!
-     if (target_%debug) call print_cube_coordinates('aceptor_cube_points_ROTATED', &
-                                                     cube%n_points_reduced,        &
+     if (target_%debug) call print_cube_coordinates('debug/'//what_dens//'_cube_points_ROTATED', &
+                                                     cube%n_points_reduced,              &
                                                      cube%xyz(1:3,1:cube%n_points_reduced)) 
+!
+!
+!    =============== ROTATED CUBE TO PRINT AS CHECK ================ 
+!
+     if (target_%debug) then
+!
+!       Create new cube
+        cube_rot%geom_center = zero
+        cube_rot%geom_center_mol = zero
+        cube_rot%dx = zero 
+        cube_rot%dy = zero
+        cube_rot%dz = zero
+!
+        cube_rot%natoms = cube%natoms
+!
+        oversize = 5.0 ! Oversize in angstroms for rotated cube reconstruction
+!
+!       Establish limits of new cube
+        cube_rot%xmin = (minval(cube%xyz(1,1:cube%n_points_reduced)) * ToAng - oversize)*ToBohr 
+        cube_rot%ymin = (minval(cube%xyz(2,1:cube%n_points_reduced)) * ToAng - oversize)*ToBohr
+        cube_rot%zmin = (minval(cube%xyz(3,1:cube%n_points_reduced)) * ToAng - oversize)*ToBohr
+!
+        cube_rot%dx(1) = cube%dx(1)*2.0
+        cube_rot%dy(2) = cube%dy(2)*2.0
+        cube_rot%dz(3) = cube%dz(3)*2.0
+!
+        cube_rot%volume = cube_rot%dx(1) * cube_rot%dy(2) * cube_rot%dz(3)
+!
+        cube_rot%nx = int((oversize*two*ToBohr + maxval(cube%xyz(1,1:cube%n_points_reduced)) - &
+                                                 minval(cube%xyz(1,1:cube%n_points_reduced)))/cube_rot%dx(1))
+        cube_rot%ny = int((oversize*two*ToBohr + maxval(cube%xyz(2,1:cube%n_points_reduced)) - &
+                                                 minval(cube%xyz(2,1:cube%n_points_reduced)))/cube_rot%dy(2))
+        cube_rot%nz = int((oversize*two*ToBohr + maxval(cube%xyz(3,1:cube%n_points_reduced)) - &
+                                                 minval(cube%xyz(3,1:cube%n_points_reduced)))/cube_rot%dz(3))
+!
+!
+!       Fill more cube_rot attributes
+        allocate(cube_rot%atomic_number(cube_rot%natoms),             &
+                 cube_rot%atomic_label(cube_rot%natoms),              &
+                 cube_rot%atomic_charge(cube_rot%natoms),             &
+                 cube_rot%x(cube_rot%natoms),                         &
+                 cube_rot%y(cube_rot%natoms),                         &
+                 cube_rot%z(cube_rot%natoms),                         &
+                 cube_rot%rho(cube_rot%nx,cube_rot%ny,cube_rot%nz),   &
+                 cube_rot%xyz(3,cube_rot%nx*cube_rot%ny*cube_rot%nz))    
+!
+        cube_rot%atomic_number(1:cube_rot%natoms) = cube%atomic_number(1:cube%natoms)
+        cube_rot%atomic_label(1:cube_rot%natoms)  = cube%atomic_label(1:cube%natoms)
+        cube_rot%atomic_charge(1:cube_rot%natoms) = cube%atomic_charge(1:cube%natoms)
+        cube_rot%x(1:cube_rot%natoms)             = cube%x(1:cube%natoms) 
+        cube_rot%y(1:cube_rot%natoms)             = cube%y(1:cube%natoms)        
+        cube_rot%z(1:cube_rot%natoms)             = cube%z(1:cube%natoms)        
+        cube_rot%rho = zero
+        cube_rot%xyz = zero
+!
+!       
+!       Map rotated reduced cube%rho to new cube_rot%rho
+!
+        do i = 1, cube_rot%nx
+           x_tmp = cube_rot%xmin + cube_rot%dx(1)*(i-1)
+           do j = 1, cube_rot%ny
+              y_tmp = cube_rot%ymin + cube_rot%dy(2)*(j-1)
+              do k = 1, cube_rot%nz
+                 z_tmp = cube_rot%zmin + cube_rot%dz(3)*(k-1)
+!
+                 cube_rot%xyz(1,i) = x_tmp
+                 cube_rot%xyz(2,j) = y_tmp
+                 cube_rot%xyz(3,k) = z_tmp
+!
+!                Map new coordinates to rotated coordinates and assign density values.
+!                Threshold for mapping is the smallest cube volume in original cube
+!
+                 do l = 1, cube%n_points_reduced
+!
+                    if (abs(x_tmp - cube%xyz(1,l)) .lt. cube%dx(1) .and. &
+                        abs(y_tmp - cube%xyz(2,l)) .lt. cube%dy(2) .and. &
+                        abs(z_tmp - cube%xyz(3,l)) .lt. cube%dz(3)) then
+!
+!                      Rotated density spanning over new volume
+                       cube_rot%rho(i,j,k) = cube_rot%volume * (cube%rho_reduced(l)/cube%volume)
+                       go to 10
+
+                    endif
+!
+                 enddo
+!
+                 10 continue
+!
+              enddo
+           enddo
+        enddo
+!
+        call print_cube_density(outfile='debug/'//what_dens//'_fret_ROTATED_density_only.cube', &
+                                scale_volume=.false.,cube=cube_rot)
+!
+        call delete_density(cube_rot)
+
+     endif
+stop
 !
   end subroutine rotate_cube_coordinates
 !----------------------------------------------------------------------
-   subroutine rotate_transdip_coordinates(transdip,transdip_rot,theta)
+   subroutine rotate_transdip_coordinates(transdip,transdip_rot,geom_center_mol,theta)
 !
 !    Rotate cube coordinates
 !
      implicit none
 !
-     real(dp), dimension(3), intent(in)    :: transdip
+     real(dp), dimension(3), intent(in)    :: transdip, geom_center_mol
      real(dp), dimension(3), intent(inout) :: transdip_rot
      real(dp), intent(inout)               :: theta
 !
@@ -497,8 +547,8 @@ module density_module
 !
 !    Print rotated transdip
 !
-     if (target_%debug) call print_transdip_nmd('transition_dipole_aceptor',transdip)
-     if (target_%debug) call print_transdip_nmd('transition_dipole_aceptor_ROTATED',transdip_rot)
+     if (target_%debug) call print_transdip_nmd('debug/transition_dipole_aceptor',transdip,geom_center_mol)
+     if (target_%debug) call print_transdip_nmd('debug/transition_dipole_aceptor_ROTATED',transdip_rot,geom_center_mol)
 !
   end subroutine rotate_transdip_coordinates
 !----------------------------------------------------------------------
@@ -522,7 +572,7 @@ module density_module
      open(unit=iin,file=trim(infile)//'.xyz',status="unknown")
 !
         write(iin,*) n_points
-        write(iin,*) ' original cube coordinates'
+        write(iin,*) 'cube coordinates'
 !
         do i = 1, n_points
            write(iin, '(a,f25.16,2x,f25.16,2x,f25.16)' ) 'h' ,xyz(1,i)*ToAng, &
@@ -534,7 +584,7 @@ module density_module
 !
   end subroutine print_cube_coordinates
 !----------------------------------------------------------------------
-   subroutine print_transdip_nmd(infile,transdip_vector)
+   subroutine print_transdip_nmd(infile,transdip_vector,center)
 !
 !    print  cube coordinates
 !
@@ -542,7 +592,7 @@ module density_module
 !
      character(len=*), intent(in) :: infile
 !
-     real(dp), dimension(3), intent(in) :: transdip_vector
+     real(dp), dimension(3), intent(in) :: transdip_vector, center
 !
 !    internal variables
 !
@@ -550,7 +600,7 @@ module density_module
 !
      open(unit=iin,file=trim(infile)//'.nmd',status="unknown")
 !
-        write(iin,*) 'coordinates 0.0 0.0 0.0' ! Assume vector origin aligns with origin of coordinates
+        write(iin,'(a,1x,f10.5,2x,f10.5,2x,f10.5)') 'coordinates ', center(1), center(2), center(3) 
         write(iin, '(a,f25.16,2x,f25.16,2x,f25.16)' ) 'mode 1' , transdip_vector(1), transdip_vector(2), transdip_vector(3)
 !
      close(iin)
