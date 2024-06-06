@@ -229,15 +229,25 @@ module input_module
      target_%omega_0 = zero
      target_%spectral_overlap = zero
      target_%aceptor_density_rotation_angle = zero
+     target_%donor_density_rotation_angle = zero
 !
      target_%aceptor_transdip     = zero
      target_%aceptor_transdip_rot = zero 
-     target_%ref_vector           = zero
+     target_%aceptor_ref_vector   = zero
 !
-     target_%calc_overlap_int              = .false.
-     target_%aceptor_density_rotate        = .false.
-     target_%aceptor_transdip_rotate       = .false.
+     target_%donor_transdip     = zero
+     target_%donor_transdip_rot = zero 
+     target_%donor_ref_vector   = zero
+!
+     target_%calc_overlap_int                   = .false.
+!
+     target_%aceptor_density_rotate             = .false.
+     target_%aceptor_transdip_rotate            = .false.
      target_%aceptor_transdip_rotate_align_with = .false.
+!
+     target_%donor_density_rotate               = .false.
+     target_%donor_transdip_rotate              = .false.
+     target_%donor_transdip_rotate_align_with   = .false.
 !
      target_%debug = .false.
 !
@@ -285,15 +295,35 @@ module input_module
               elseif(line_what.eq.'aceptor transition dipole align with') then
 !
                  target_%aceptor_transdip_rotate_align_with = .true.
-                 read(line_keyword, *) target_%ref_vector(1), &
-                                       target_%ref_vector(2), &
-                                       target_%ref_vector(3)
+                 read(line_keyword, *) target_%aceptor_ref_vector(1), &
+                                       target_%aceptor_ref_vector(2), &
+                                       target_%aceptor_ref_vector(3)
 !
               elseif(line_what.eq.'donor density') then
 !
                  donor_density = .true.
                  target_%donor_density = line_keyword
                  if (.not. file_exists(line_keyword)) call out_%error('File "'//trim(line_keyword)//'" not found')
+!
+              elseif(line_what.eq.'donor density rotate') then
+!
+                 target_%donor_density_rotate = .true.
+                 read(line_keyword,'(f25.16)') target_%donor_density_rotation_angle
+                 target_%donor_density_rotation_angle = target_%donor_density_rotation_angle * to_radians ! Assumed to be in degrees
+!
+              elseif(line_what.eq.'donor transition dipole') then
+!
+                 target_%donor_transdip_rotate = .true.
+                 read(line_keyword, *) target_%donor_transdip(1), &
+                                       target_%donor_transdip(2), &
+                                       target_%donor_transdip(3)
+!
+              elseif(line_what.eq.'donor transition dipole align with') then
+!
+                 target_%donor_transdip_rotate_align_with = .true.
+                 read(line_keyword, *) target_%donor_ref_vector(1), &
+                                       target_%donor_ref_vector(2), &
+                                       target_%donor_ref_vector(3)
 !
               elseif(line_what.eq.'nanoparticle') then
 !
@@ -348,7 +378,7 @@ module input_module
 !        
         end do
 !
-!    Checks and rising errors
+!    Checks and rising errors aceptor
 !
      if (target_%aceptor_density_rotate .or. target_%aceptor_transdip_rotate) target_%rotate_aceptor = .true. 
 !
@@ -358,7 +388,7 @@ module input_module
 !
      elseif(target_%aceptor_density_rotate             .and. .not. rotation_axys .or. &
             target_%aceptor_transdip_rotate_align_with .and. .not. rotation_axys) then 
-        call out_%error("Rotation of aceptor density but no rotation axys given in input")
+        call out_%error("Rotation of aceptor/donor density but no rotation axys given in input")
 !
      elseif(target_%aceptor_transdip_rotate_align_with .and. .not. target_%aceptor_transdip_rotate) then
         call out_%error("No acceptor transition density provided in input")
@@ -367,6 +397,31 @@ module input_module
         call out_%error("Acceptor rotation angle provided but conflicts with 'align with' option")
 !
      endif
+!
+!    Checks and rising errors donor
+!
+     if (target_%donor_density_rotate .or. target_%donor_transdip_rotate) target_%rotate_donor = .true. 
+!
+     if(target_%donor_transdip_rotate .and. .not. target_%donor_density_rotate .and. &
+        target_%donor_transdip_rotate .and. .not. target_%donor_transdip_rotate_align_with) then
+        call out_%error("Provide angle/reference alignment vector for transition dipole (and density) rotation")
+!
+     elseif(target_%donor_density_rotate             .and. .not. rotation_axys .or. &
+            target_%donor_transdip_rotate_align_with .and. .not. rotation_axys) then 
+        call out_%error("Rotation of aceptor/donor density but no rotation axys given in input")
+!
+     elseif(target_%donor_transdip_rotate_align_with .and. .not. target_%donor_transdip_rotate) then
+        call out_%error("No donor transition density provided in input")
+
+     elseif(target_%donor_transdip_rotate_align_with .and. target_%donor_density_rotation_angle > zero) then
+        call out_%error("donor rotation angle provided but conflicts with 'align with' option")
+!
+     endif
+!
+!    Check rotation axys
+!
+     if (rotation_axys .and. .not. target_%rotate_aceptor .and. .not. target_%rotate_donor) &
+          call out_%error("Rotation axys given but no rotate aceptor/donor selected")
 !
 !    Create folder to store debug quantities
 !

@@ -27,15 +27,17 @@ module target_module
       real(dp)               :: omega_0                  
       real(dp)               :: spectral_overlap
       real(dp)               :: aceptor_density_rotation_angle
+      real(dp)               :: donor_density_rotation_angle
       real(dp)               :: transdip_refvec_theta
 !
-      real(dp), dimension(3) :: aceptor_transdip, aceptor_transdip_rot, ref_vector
+      real(dp), dimension(3) :: aceptor_transdip, aceptor_transdip_rot, aceptor_ref_vector
+      real(dp), dimension(3) :: donor_transdip, donor_transdip_rot, donor_ref_vector
 !
       logical                :: calc_overlap_int
-      logical                :: aceptor_density_rotate
-      logical                :: aceptor_transdip_rotate
-      logical                :: aceptor_transdip_rotate_align_with
-      logical                :: rotate_aceptor
+      logical                :: aceptor_density_rotate,  donor_density_rotate
+      logical                :: aceptor_transdip_rotate, donor_transdip_rotate
+      logical                :: aceptor_transdip_rotate_align_with, donor_transdip_rotate_align_with
+      logical                :: rotate_aceptor, rotate_donor
 !
       logical                :: debug
 !      

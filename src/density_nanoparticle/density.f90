@@ -10,6 +10,7 @@ module density_module
     Implicit None
 !
     public rotate_cube
+    public rotate_transdip
     public density
 !
 !   density type
@@ -40,6 +41,10 @@ module density_module
        Module Procedure rotate_cube_coordinates
     End Interface
 !
+    Interface rotate_transdip
+       Module Procedure rotate_transdip_coordinates
+    End Interface
+!
     Interface delete_cube_density
        Module Procedure delete_density
     End Interface
@@ -59,7 +64,6 @@ module density_module
      character(len=*), optional, intent(in) :: what_dens
 !
      type (density_type), intent(out) :: cube
-!
 !
 !    internal variables
 !
@@ -172,14 +176,29 @@ module density_module
          abs(cube%geom_center_mol(3) - cube%geom_center(3)) > 0.3) &
          call error("Cube file corrupt: cube center and molecular center do not coincide")
 !
-     if (rotation) then 
+!    Rotate aceptor and/or donor cube if requested 
 !
-        if (target_%aceptor_transdip_rotate) call rotate_transdip_coordinates(target_%aceptor_transdip,             &
-                                                                              target_%aceptor_transdip_rot,         &
-                                                                              cube%geom_center_mol,                 &
+     if (rotation .and. what_dens.eq.'aceptor') then 
+!
+        if (target_%aceptor_transdip_rotate) call rotate_transdip_coordinates(cube%geom_center_mol,                      &
+                                                                              target_%aceptor_ref_vector,                &
+                                                                              target_%aceptor_transdip_rotate_align_with,&
+                                                                              target_%aceptor_transdip,                  &
+                                                                              target_%aceptor_transdip_rot,              &
                                                                               target_%aceptor_density_rotation_angle) 
 !
-        call rotate_cube_coordinates(what_dens,cube)
+        call rotate_cube_coordinates(what_dens,target_%aceptor_density_rotation_angle,cube)
+!
+     else if (rotation .and. what_dens.eq.'donor') then 
+!
+        if (target_%donor_transdip_rotate) call rotate_transdip_coordinates(cube%geom_center_mol,                      &
+                                                                              target_%donor_ref_vector,                &
+                                                                              target_%donor_transdip_rotate_align_with,&
+                                                                              target_%donor_transdip,                  &
+                                                                              target_%donor_transdip_rot,              &
+                                                                              target_%donor_density_rotation_angle) 
+!
+        call rotate_cube_coordinates(what_dens,target_%donor_density_rotation_angle,cube)
 !
      endif
 !
@@ -250,7 +269,6 @@ module density_module
 !
    end subroutine print_cube_density
 !----------------------------------------------------------------------
- 
    subroutine delete_density(cube)
 !
 !    Read input cube file
@@ -298,13 +316,15 @@ module density_module
 !
   end subroutine int_density 
 !----------------------------------------------------------------------
-   subroutine rotate_cube_coordinates(what_dens,cube)
+   subroutine rotate_cube_coordinates(what_dens,rot_angle,cube)
 !
 !    Rotate cube coordinates
 !
      implicit none
 !
      character(len=*), intent(in) :: what_dens
+!
+     real(dp), intent(in)         :: rot_angle
 !
      type (density_type), intent(inout) :: cube
 !
@@ -323,8 +343,8 @@ module density_module
 !
 !    Calculate and save angle cosine and sine
 !
-     cos_theta = dcos(target_%aceptor_density_rotation_angle)
-     sin_theta = dsin(target_%aceptor_density_rotation_angle) 
+     cos_theta = dcos(rot_angle)
+     sin_theta = dsin(rot_angle) 
 !
 !
 !    ================ MODIFY DENSITY ================= 
@@ -391,7 +411,7 @@ module density_module
 !
         cube_rot%natoms = cube%natoms
 !
-        oversize = 5.0 ! Oversize in angstroms for rotated cube reconstruction
+        oversize = 2.0 ! Oversize in angstroms for rotated cube reconstruction
 !
 !       Establish limits of new cube
         cube_rot%xmin = (minval(cube%xyz(1,1:cube%n_points_reduced)) * ToAng - oversize)*ToBohr 
@@ -477,14 +497,16 @@ module density_module
 !
   end subroutine rotate_cube_coordinates
 !----------------------------------------------------------------------
-   subroutine rotate_transdip_coordinates(transdip,transdip_rot,geom_center_mol,theta)
+   subroutine rotate_transdip_coordinates(geom_center_mol,ref_vector,align_dips,transdip,transdip_rot,theta)
 !
 !    Rotate cube coordinates
 !
      implicit none
 !
-     real(dp), dimension(3), intent(in)    :: transdip, geom_center_mol
-     real(dp), dimension(3), intent(inout) :: transdip_rot
+     real(dp), dimension(3), intent(in)    :: geom_center_mol,ref_vector
+     logical, intent(in)                   :: align_dips
+!
+     real(dp), dimension(3), intent(inout) :: transdip,transdip_rot
      real(dp), intent(inout)               :: theta
 !
 !    internal variables
@@ -498,13 +520,13 @@ module density_module
 !
 !    Calculate angle if needed
 !
-     if (target_%aceptor_transdip_rotate_align_with) &
-        target_%aceptor_density_rotation_angle = vectors_angle(target_%aceptor_transdip,target_%ref_vector)
+     if (align_dips) &
+        theta = vectors_angle(transdip,ref_vector)
 !
 !    Rotate transdip 
 !
-10   cos_theta = dcos(target_%aceptor_density_rotation_angle)
-     sin_theta = dsin(target_%aceptor_density_rotation_angle) 
+10   cos_theta = dcos(theta)
+     sin_theta = dsin(theta) 
 !
      if (target_%rotation_axys.eq.'x') then
 !
@@ -529,12 +551,12 @@ module density_module
 !    Check angle between rotated transdip and reference vector
 !    If they are not coincident, change rotation direction
 !
-     if (target_%aceptor_transdip_rotate_align_with) then
+     if (align_dips) then
 !
-        theta_check = vectors_angle(transdip_rot,target_%ref_vector)
+        theta_check = vectors_angle(transdip_rot,ref_vector)
 !
         if (abs(theta_check) .gt. 0.1 .and. .not. rotation_changed) then 
-           target_%aceptor_density_rotation_angle = -target_%aceptor_density_rotation_angle
+           theta = -theta
            rotation_changed = .true.
            GO TO 10
 !
