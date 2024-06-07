@@ -30,13 +30,16 @@ module nanoparticle_module
 !
    contains
 !----------------------------------------------------------------------
-   subroutine read_nanoparticle(infile, np)
+   subroutine read_nanoparticle(infile, np, rotation)
 !
 !    Read input np file
 !
      implicit none
 !
      character(len=*),    intent(in)        :: infile
+!
+     logical, intent(in)                    :: rotation
+!
      type (nanoparticle_type), intent(out)  :: np
 !
 !

@@ -206,8 +206,12 @@ module input_module
 !    internal variables
 !
      integer :: num_string_initial, num_string_end, num_keywords
-     logical :: found_string
      integer :: i
+!
+     logical :: found_string
+     logical :: aceptor_density_rotate
+     logical :: donor_density_rotate
+!
      character(len=200) :: line
      character(len=200) :: line_what
      character(len=200) :: line_keyword
@@ -239,15 +243,19 @@ module input_module
      target_%donor_transdip_rot = zero 
      target_%donor_ref_vector   = zero
 !
-     target_%calc_overlap_int                   = .false.
+     target_%calc_overlap_int   = .false.
 !
-     target_%aceptor_density_rotate             = .false.
+     aceptor_density_rotate                     = .false.
+     target_%rotate_aceptor                     = .false.
      target_%aceptor_transdip_rotate            = .false.
      target_%aceptor_transdip_rotate_align_with = .false.
 !
-     target_%donor_density_rotate               = .false.
+     donor_density_rotate                       = .false.
+     target_%rotate_donor                       = .false.
      target_%donor_transdip_rotate              = .false.
      target_%donor_transdip_rotate_align_with   = .false.
+!
+     target_%rotate_np = .false.
 !
      target_%debug = .false.
 !
@@ -281,7 +289,7 @@ module input_module
 !
               elseif(line_what.eq.'aceptor density rotate') then
 !
-                 target_%aceptor_density_rotate = .true.
+                 aceptor_density_rotate = .true.
                  read(line_keyword,'(f25.16)') target_%aceptor_density_rotation_angle
                  target_%aceptor_density_rotation_angle = target_%aceptor_density_rotation_angle * to_radians ! Assumed to be in degrees
 !
@@ -307,7 +315,7 @@ module input_module
 !
               elseif(line_what.eq.'donor density rotate') then
 !
-                 target_%donor_density_rotate = .true.
+                 donor_density_rotate = .true.
                  read(line_keyword,'(f25.16)') target_%donor_density_rotation_angle
                  target_%donor_density_rotation_angle = target_%donor_density_rotation_angle * to_radians ! Assumed to be in degrees
 !
@@ -380,13 +388,13 @@ module input_module
 !
 !    Checks and rising errors aceptor
 !
-     if (target_%aceptor_density_rotate .or. target_%aceptor_transdip_rotate) target_%rotate_aceptor = .true. 
+     if (aceptor_density_rotate .or. target_%aceptor_transdip_rotate) target_%rotate_aceptor = .true. 
 !
-     if(target_%aceptor_transdip_rotate .and. .not. target_%aceptor_density_rotate .and. &
+     if(target_%aceptor_transdip_rotate .and. .not. aceptor_density_rotate .and. &
         target_%aceptor_transdip_rotate .and. .not. target_%aceptor_transdip_rotate_align_with) then
         call out_%error("Provide angle/reference alignment vector for transition dipole (and density) rotation")
 !
-     elseif(target_%aceptor_density_rotate             .and. .not. rotation_axys .or. &
+     elseif(aceptor_density_rotate             .and. .not. rotation_axys .or. &
             target_%aceptor_transdip_rotate_align_with .and. .not. rotation_axys) then 
         call out_%error("Rotation of aceptor/donor density but no rotation axys given in input")
 !
@@ -400,13 +408,13 @@ module input_module
 !
 !    Checks and rising errors donor
 !
-     if (target_%donor_density_rotate .or. target_%donor_transdip_rotate) target_%rotate_donor = .true. 
+     if (donor_density_rotate .or. target_%donor_transdip_rotate) target_%rotate_donor = .true. 
 !
-     if(target_%donor_transdip_rotate .and. .not. target_%donor_density_rotate .and. &
+     if(target_%donor_transdip_rotate .and. .not. donor_density_rotate .and. &
         target_%donor_transdip_rotate .and. .not. target_%donor_transdip_rotate_align_with) then
         call out_%error("Provide angle/reference alignment vector for transition dipole (and density) rotation")
 !
-     elseif(target_%donor_density_rotate             .and. .not. rotation_axys .or. &
+     elseif(donor_density_rotate             .and. .not. rotation_axys .or. &
             target_%donor_transdip_rotate_align_with .and. .not. rotation_axys) then 
         call out_%error("Rotation of aceptor/donor density but no rotation axys given in input")
 !
@@ -417,6 +425,10 @@ module input_module
         call out_%error("donor rotation angle provided but conflicts with 'align with' option")
 !
      endif
+!
+!    Check and rising errors np
+!
+     if (donor_density_rotate) target_%rotate_np = .true.
 !
 !    Check rotation axys
 !

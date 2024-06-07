@@ -106,8 +106,8 @@ module algorithm_module
 !
 !    Read input files
 !
-     call read_nanoparticle(target_%nanoparticle, nanoparticle)
      call read_density(target_%aceptor_density, aceptor_density, rotation=target_%rotate_aceptor, what_dens='aceptor')
+     call read_nanoparticle(target_%nanoparticle, nanoparticle, rotation=target_%rotate_np)
 !
 !    Print NP / aceptor density characteristics
 !
@@ -143,9 +143,9 @@ module algorithm_module
 !
 !    Read input files
 !
-     call read_nanoparticle(target_%nanoparticle, nanoparticle)
      call read_density(target_%aceptor_density, aceptor_density, rotation=target_%rotate_aceptor, what_dens='aceptor')
      call read_density(target_%donor_density, donor_density, rotation=target_%rotate_donor, what_dens='donor')
+     call read_nanoparticle(target_%nanoparticle, nanoparticle, rotation=target_%rotate_np)
 !
 !    Print NP / densities characteristics
 !
