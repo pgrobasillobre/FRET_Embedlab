@@ -3,14 +3,10 @@
 ## Table of Contents
 
 - [About](#about)
-- [Getting Started](#getting-started)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
-- [Usage](#usage)
-- [Contributing](#contributing)
 - [License](#license)
 - [Contact](#contact)
-- [Acknowledgements](#acknowledgements)
 
 ## About
 
@@ -41,8 +37,3 @@ Computation of electronic energy transfer (EET) rates for three general cases:
     - OpenMP
     - If you have MKL installed (recommended)
       export MATH_ROOT=/opt/intel/mkl/lib/intel64_lin
-
-```bash
-# Example
-Node.js
-npm
