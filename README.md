@@ -10,11 +10,11 @@
 
 ## About
 
-   Computation of electronic energy transfer (EET) rates for three general cases:
+Computation of electronic energy transfer (EET) rates for three general cases:
 
-      1. Donor to acceptor chromophores EET
-      2. Plasmonic substrate to acceptor chromophore EET
-      3. Donor to acceptor chromophores EET mediated by plasmonic substrate
+   1. Donor to acceptor chromophores EET
+   2. Plasmonic substrate to acceptor chromophore EET
+   3. Donor to acceptor chromophores EET mediated by plasmonic substrate
 
 
 ### Prerequisites
