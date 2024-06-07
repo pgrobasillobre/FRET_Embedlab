@@ -203,11 +203,11 @@ module nanoparticle_module
 !
 !    internal variables
 !
-     integer :: i, j, k, l
+     integer :: i, j
 !
      real(dp) :: cos_theta, sin_theta
 !
-     real(dp)                              :: x_tmp, y_tmp, z_tmp, oversize
+     real(dp)                              :: x_tmp, y_tmp, z_tmp
      real(dp), allocatable, dimension(:,:) :: xyz_rot
 !
      type (nanoparticle_type) :: np_rot
@@ -223,8 +223,9 @@ module nanoparticle_module
 !    ================ MODIFY NP GEOMETRY ================= 
 !
      allocate(xyz_rot(3,np%natoms))
+     xyz_rot = zero
 !
-!    Translate density center to the origin of coordinates
+!    Translate NP center to the origin of coordinates
 !
      do i = 1,np%natoms
         np%xyz(1,i) = np%xyz(1,i) - np%geom_center(1)
@@ -260,7 +261,7 @@ module nanoparticle_module
 !
      endif
 !
-!    Translate density to initial position
+!    Translate NP to initial position
 !
      do i = 1,np%natoms
         np%xyz(1,i) = xyz_rot(1,i) + np%geom_center(1)
@@ -268,108 +269,64 @@ module nanoparticle_module
         np%xyz(3,i) = xyz_rot(3,i) + np%geom_center(3)
      enddo
 !
-!!!!
-!!!!
-!!!!    =============== ROTATED CUBE TO PRINT AS CHECK ================ 
-!!!!
-!!!     if (target_%debug) then
-!!!!
-!!!!       Create new cube
-!!!        cube_rot%geom_center = zero
-!!!        cube_rot%geom_center_mol = zero
-!!!        cube_rot%dx = zero
-!!!        cube_rot%dy = zero
-!!!        cube_rot%dz = zero
-!!!!
-!!!        cube_rot%natoms = cube%natoms
-!!!!
-!!!        oversize = 2.0 ! Oversize in angstroms for rotated cube reconstruction
-!!!!
-!!!!       Establish limits of new cube
-!!!        cube_rot%xmin = (minval(cube%xyz(1,1:cube%n_points_reduced)) * ToAng - oversize)*ToBohr
-!!!        cube_rot%ymin = (minval(cube%xyz(2,1:cube%n_points_reduced)) * ToAng - oversize)*ToBohr
-!!!        cube_rot%zmin = (minval(cube%xyz(3,1:cube%n_points_reduced)) * ToAng - oversize)*ToBohr
-!!!!
-!!!        cube_rot%dx(1) = cube%dx(1)*2.0
-!!!        cube_rot%dy(2) = cube%dy(2)*2.0
-!!!        cube_rot%dz(3) = cube%dz(3)*2.0
-!!!!
-!!!        cube_rot%volume = cube_rot%dx(1) * cube_rot%dy(2) * cube_rot%dz(3)
-!!!!
-!!!        cube_rot%nx = int((oversize*two*ToBohr + maxval(cube%xyz(1,1:cube%n_points_reduced)) - &
-!!!                                                 minval(cube%xyz(1,1:cube%n_points_reduced)))/cube_rot%dx(1))
-!!!        cube_rot%ny = int((oversize*two*ToBohr + maxval(cube%xyz(2,1:cube%n_points_reduced)) - &
-!!!                                                 minval(cube%xyz(2,1:cube%n_points_reduced)))/cube_rot%dy(2))
-!!!        cube_rot%nz = int((oversize*two*ToBohr + maxval(cube%xyz(3,1:cube%n_points_reduced)) - &
-!!!                                                 minval(cube%xyz(3,1:cube%n_points_reduced)))/cube_rot%dz(3))
-!!!!
-!!!!
-!!!!       Fill more cube_rot attributes
-!!!        allocate(cube_rot%atomic_number(cube_rot%natoms),             &
-!!!                 cube_rot%atomic_label(cube_rot%natoms),              &
-!!!                 cube_rot%atomic_charge(cube_rot%natoms),             &
-!!!                 cube_rot%x(cube_rot%natoms),                         &
-!!!                 cube_rot%y(cube_rot%natoms),                         &
-!!!                 cube_rot%z(cube_rot%natoms),                         &
-!!!                 cube_rot%rho(cube_rot%nx,cube_rot%ny,cube_rot%nz),   &
-!!!                 cube_rot%xyz(3,cube_rot%nx*cube_rot%ny*cube_rot%nz))
-!!!!
-!!!        cube_rot%atomic_number(1:cube_rot%natoms) = cube%atomic_number(1:cube%natoms)
-!!!        cube_rot%atomic_label(1:cube_rot%natoms)  = cube%atomic_label(1:cube%natoms)
-!!!        cube_rot%atomic_charge(1:cube_rot%natoms) = cube%atomic_charge(1:cube%natoms)
-!!!        cube_rot%x(1:cube_rot%natoms)             = cube%x(1:cube%natoms)
-!!!        cube_rot%y(1:cube_rot%natoms)             = cube%y(1:cube%natoms)
-!!!        cube_rot%z(1:cube_rot%natoms)             = cube%z(1:cube%natoms)
-!!!        cube_rot%rho = zero
-!!!        cube_rot%xyz = zero
-!!!!
-!!!!       
-!!!!       Map rotated reduced cube%rho to new cube_rot%rho
-!!!!
-!!!        do i = 1, cube_rot%nx
-!!!           x_tmp = cube_rot%xmin + cube_rot%dx(1)*(i-1)
-!!!           do j = 1, cube_rot%ny
-!!!              y_tmp = cube_rot%ymin + cube_rot%dy(2)*(j-1)
-!!!              do k = 1, cube_rot%nz
-!!!                 z_tmp = cube_rot%zmin + cube_rot%dz(3)*(k-1)
-!!!!
-!!!                 cube_rot%xyz(1,i) = x_tmp
-!!!                 cube_rot%xyz(2,j) = y_tmp
-!!!                 cube_rot%xyz(3,k) = z_tmp
-!!!!
-!!!!                Map new coordinates to rotated coordinates and assign density values.
-!!!!                Threshold for mapping is the smallest cube volume in original cube
-!!!!
-!!!                 do l = 1, cube%n_points_reduced
-!!!!
-!!!                    if (abs(x_tmp - cube%xyz(1,l)) .lt. cube%dx(1) .and. &
-!!!                        abs(y_tmp - cube%xyz(2,l)) .lt. cube%dy(2) .and. &
-!!!                        abs(z_tmp - cube%xyz(3,l)) .lt. cube%dz(3)) then
-!!!!
-!!!!                      Rotated density spanning over new volume
-!!!                       cube_rot%rho(i,j,k) = cube_rot%volume * (cube%rho_reduced(l)/cube%volume)
-!!!                       go to 10
-!!!
-!!!                    endif
-!!!!
-!!!                 enddo
-!!!!
-!!!                 10 continue
-!!!!
-!!!              enddo
-!!!           enddo
-!!!        enddo
-!!!!
-!!!        call print_cube_density(outfile='debug/'//what_dens//'_fret_ROTATED_density_only.cube', &
-!!!                                scale_volume=.false.,cube=cube_rot)
-!!!!
-!!!        call delete_density(cube_rot)
-!!!
-!!!     endif
-!!!!
+     deallocate(xyz_rot)
+!
+!    ================ MODIFY NP DIPOLES ================= 
+!
+     if (np%dipoles) then
+!
+        x_tmp = zero
+        y_tmp = zero
+        z_tmp = zero
+!
+        do j = 1,2 ! 1=real part, 2= imaginary part
+!
+!          Rotate
+!   
+           if (target_%rotation_axys.eq.'x') then
+!   
+              do i = 1,np%natoms
+                 x_tmp = np%mu(1,i,j)
+                 y_tmp = np%mu(2,i,j) * cos_theta - np%mu(3,i,j) * sin_theta
+                 z_tmp = np%mu(2,i,j) * sin_theta + np%mu(3,i,j) * cos_theta
+!
+                 np%mu(1,i,j) = x_tmp 
+                 np%mu(2,i,j) = y_tmp
+                 np%mu(3,i,j) = z_tmp
+              enddo
+!
+           else if (target_%rotation_axys.eq.'y') then
+!   
+              do i = 1,np%natoms
+                 x_tmp =  np%mu(1,i,j) * cos_theta + np%mu(3,i,j) * sin_theta
+                 y_tmp =  np%mu(2,i,j)
+                 z_tmp = -np%mu(1,i,j) * sin_theta + np%mu(3,i,j) * cos_theta
+!
+                 np%mu(1,i,j) = x_tmp 
+                 np%mu(2,i,j) = y_tmp
+                 np%mu(3,i,j) = z_tmp
+              enddo
+!   
+           else if (target_%rotation_axys.eq.'z') then
+!   
+              do i = 1,np%natoms
+                 x_tmp = np%mu(1,i,j) * cos_theta - np%mu(2,i,j) * sin_theta
+                 y_tmp = np%mu(1,i,j) * sin_theta + np%mu(2,i,j) * cos_theta
+                 z_tmp = np%mu(3,i,j)
+!
+                 np%mu(1,i,j) = x_tmp 
+                 np%mu(2,i,j) = y_tmp
+                 np%mu(3,i,j) = z_tmp
+              enddo
+!   
+           endif
+!
+        enddo
+!
+     endif
+!
      if (target_%debug) call print_np_coords_dips('debug/np_rot',np)
 !
-stop
   end subroutine rotate_np_coords_dips
 !----------------------------------------------------------------------
    subroutine print_np_coords_dips(infile,np)
