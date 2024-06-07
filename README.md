@@ -21,7 +21,7 @@ Computation of electronic energy transfer (EET) rates for three general cases:
 
    - CMake3.14 or higher
    - Python 2.7.
-   - fortran compiler (gfortran suggested)
+   - fortran compiler (gfortran 9.3.0 or higher suggested)
    - Lapack/Blas libraries (MKL suggested)
    - runtest module python
      (pip install runtest)
