@@ -32,13 +32,11 @@ Computation of electronic energy transfer (EET) rates for three general cases:
 
 ## Installation
 
-   ./setup.sh -b buildir -fc gfortran-path -omp
+   ./setup.sh -b buildir -fc fort-path -omp
 
-   buildir : the name of the directory where the code is built (optional)
-   
-   gfortran-path: path to fortran compiler (optional)
-   
-   omp     : option to activate OpenMP (Recommended)
+   - buildir  : the name of the directory where the code is built (optional)
+   - fort-path: path to fortran compiler (optional)
+   - omp      : option to activate OpenMP (Recommended)
 
 ## License 
 
