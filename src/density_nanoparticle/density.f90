@@ -17,21 +17,21 @@ module density_module
 !
     type density_type
 ! 
-      character (len=200)                       :: str1,str2
+      character (len=200)                         :: str1,str2
 !
-      integer                                   :: natoms,nx,ny,nz
-      integer                                   :: n_points_reduced
-      integer                                   :: nelectrons
-      integer,   dimension(:), allocatable      :: atomic_number
-      character, dimension(:), allocatable      :: atomic_label
+      integer                                     :: natoms,nx,ny,nz
+      integer                                     :: n_points_reduced
+      integer                                     :: nelectrons
+      integer,   dimension(:), allocatable        :: atomic_number
+      character(len=2), dimension(:), allocatable :: atomic_label
 !
-      real(dp)                                  :: xmin,ymin,zmin
-      real(dp)                                  :: maxdens, volume
-      real(dp), dimension(3)                    :: geom_center, geom_center_mol, dx, dy, dz
-      real(dp), dimension(:), allocatable       :: atomic_charge,x,y,z
-      real(dp), dimension(:,:,:), allocatable   :: rho
-      real(dp), dimension(:), allocatable       :: rho_reduced
-      real(dp), dimension(:,:), allocatable     :: xyz 
+      real(dp)                                    :: xmin,ymin,zmin
+      real(dp)                                    :: maxdens, volume
+      real(dp), dimension(3)                      :: geom_center, geom_center_mol, dx, dy, dz
+      real(dp), dimension(:), allocatable         :: atomic_charge,x,y,z
+      real(dp), dimension(:,:,:), allocatable     :: rho
+      real(dp), dimension(:), allocatable         :: rho_reduced
+      real(dp), dimension(:,:), allocatable       :: xyz 
 !
     end type density_type
 !
@@ -180,7 +180,8 @@ module density_module
 !
      if (rotation .and. what_dens.eq.'aceptor') then 
 !
-        if (target_%aceptor_transdip_rotate) call rotate_transdip_coordinates(cube%geom_center_mol,                      &
+        if (target_%aceptor_transdip_rotate) call rotate_transdip_coordinates(what_dens,                                 &
+                                                                              cube%geom_center_mol,                      &
                                                                               target_%aceptor_ref_vector,                &
                                                                               target_%aceptor_transdip_rotate_align_with,&
                                                                               target_%aceptor_transdip,                  &
@@ -191,12 +192,13 @@ module density_module
 !
      else if (rotation .and. what_dens.eq.'donor') then 
 !
-        if (target_%donor_transdip_rotate) call rotate_transdip_coordinates(cube%geom_center_mol,                      &
-                                                                              target_%donor_ref_vector,                &
-                                                                              target_%donor_transdip_rotate_align_with,&
-                                                                              target_%donor_transdip,                  &
-                                                                              target_%donor_transdip_rot,              &
-                                                                              target_%donor_density_rotation_angle) 
+        if (target_%donor_transdip_rotate) call rotate_transdip_coordinates(what_dens,                               &
+                                                                            cube%geom_center_mol,                    &
+                                                                            target_%donor_ref_vector,                &
+                                                                            target_%donor_transdip_rotate_align_with,&
+                                                                            target_%donor_transdip,                  &
+                                                                            target_%donor_transdip_rot,              &
+                                                                            target_%donor_density_rotation_angle) 
 !
         call rotate_cube_coordinates(what_dens,target_%donor_density_rotation_angle,cube)
 !
@@ -497,12 +499,13 @@ module density_module
 !
   end subroutine rotate_cube_coordinates
 !----------------------------------------------------------------------
-   subroutine rotate_transdip_coordinates(geom_center_mol,ref_vector,align_dips,transdip,transdip_rot,theta)
+   subroutine rotate_transdip_coordinates(what_dens,geom_center_mol,ref_vector,align_dips,transdip,transdip_rot,theta)
 !
 !    Rotate cube coordinates
 !
      implicit none
 !
+     character(len=*), intent(in)          :: what_dens
      real(dp), dimension(3), intent(in)    :: geom_center_mol,ref_vector
      logical, intent(in)                   :: align_dips
 !
@@ -513,15 +516,22 @@ module density_module
 !
      integer  :: iin
 !
+     real(dp), dimension(3) :: ref_vector_trans
+
      real(dp) :: cos_theta, sin_theta
      real(dp) :: theta_check
 !
      logical  :: rotation_changed = .false.
 !
-!    Calculate angle if needed
+!    Move reference vector to the origin of coordinates and calculate angle if needed
 !
-     if (align_dips) &
-        theta = vectors_angle(transdip,ref_vector)
+     if (align_dips) then 
+        ref_vector_trans(1) = ref_vector(1) - geom_center_mol(1)*ToAng 
+        ref_vector_trans(2) = ref_vector(2) - geom_center_mol(2)*ToAng
+        ref_vector_trans(3) = ref_vector(3) - geom_center_mol(3)*ToAng
+!
+        theta = vectors_angle(transdip,ref_vector_trans)
+     endif
 !
 !    Rotate transdip 
 !
@@ -553,23 +563,31 @@ module density_module
 !
      if (align_dips) then
 !
-        theta_check = vectors_angle(transdip_rot,ref_vector)
+        theta_check = vectors_angle(transdip_rot,ref_vector_trans)
 !
-        if (abs(theta_check) .gt. 0.1 .and. .not. rotation_changed) then 
+        if (abs(theta_check) .gt. angle_thresh .and. .not. rotation_changed) then 
            theta = -theta
            rotation_changed = .true.
            GO TO 10
 !
-        else if (abs(theta_check) .gt. 0.01 .and. rotation_changed) then
+        else if (abs(theta_check) .gt. angle_thresh .and. rotation_changed) then 
+           write(iuout,'(/1x,a,f8.3)') 'Calculated angle: ', theta_check 
+           write(iuout,'(a)') ' '
+           write(iuout,'(a,1x,f8.3,2x,f8.3,2x,f8.3)') ' Geom-centered reference vector:', &
+               ref_vector_trans(1), ref_vector_trans(2), ref_vector_trans(3)
            call error('Alignment with reference vector was not possible')
         endif
 !
+        if (what_dens.eq.'aceptor') target_%aceptor_angle_check = theta_check*to_degrees 
+        if (what_dens.eq.'donor')   target_%donor_angle_check   = theta_check*to_degrees
+!
      endif
+
 !
 !    Print rotated transdip
 !
-     if (target_%debug) call print_transdip_nmd('debug/transition_dipole_aceptor',transdip,geom_center_mol)
-     if (target_%debug) call print_transdip_nmd('debug/transition_dipole_aceptor_ROTATED',transdip_rot,geom_center_mol)
+     if (target_%debug) call print_transdip_nmd('debug/transition_dipole_'//what_dens,transdip,geom_center_mol)
+     if (target_%debug) call print_transdip_nmd('debug/transition_dipole_'//what_dens//'_ROTATED',transdip_rot,geom_center_mol)
 !
   end subroutine rotate_transdip_coordinates
 !----------------------------------------------------------------------

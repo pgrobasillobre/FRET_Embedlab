@@ -29,6 +29,7 @@ module target_module
       real(dp)               :: aceptor_density_rotation_angle
       real(dp)               :: donor_density_rotation_angle
       real(dp)               :: transdip_refvec_theta
+      real(dp)               :: aceptor_angle_check, donor_angle_check
 !
       real(dp), dimension(3) :: aceptor_transdip, aceptor_transdip_rot, aceptor_ref_vector
       real(dp), dimension(3) :: donor_transdip, donor_transdip_rot, donor_ref_vector

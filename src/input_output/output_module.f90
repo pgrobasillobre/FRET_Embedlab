@@ -305,6 +305,22 @@ module output_module
                                                                 target_%aceptor_transdip_rot(2),               &
                                                                 target_%aceptor_transdip_rot(3)
         Write(out_%iunit,'(a)') " "
+        Write(out_%iunit,'(3x,a,1x,f8.3,1x,a)')  "Alignment angle:", target_%aceptor_angle_check, "°"
+        Write(out_%iunit,'(a)') " "
+
+     Else If (header.eq.donor_header .and. target_%donor_transdip_rotate) then
+        Write(out_%iunit,'(3x,a,1x,f10.5,1x,f10.5,1x,f10.5)') "INPUT   Transition density dipole (x,y,z): ", &
+                                                                target_%donor_transdip(1),                   &
+                                                                target_%donor_transdip(2),                   &
+                                                                target_%donor_transdip(3)
+        Write(out_%iunit,'(a)') " "
+        Write(out_%iunit,'(3x,a,1x,f10.5,1x,f10.5,1x,f10.5)') "ROTATED Transition density dipole (x,y,z): ", &
+                                                                target_%donor_transdip_rot(1),               &
+                                                                target_%donor_transdip_rot(2),               &
+                                                                target_%donor_transdip_rot(3)
+        Write(out_%iunit,'(a)') " "
+        Write(out_%iunit,'(3x,a,1x,f8.3,1x,a)')  "Alignment angle:", target_%donor_angle_check, "°"
+        Write(out_%iunit,'(a)') " "
     EndIf
 
      if(PRESENT(integral)) then

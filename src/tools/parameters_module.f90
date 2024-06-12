@@ -18,6 +18,8 @@ module parameters_module
     real(dp), parameter                    :: seven  = 7.0d0
     real(dp), parameter                    :: eight  = 8.0d0
 !
+    real(dp), parameter                    :: angle_thresh = 0.1d0 ! = 6 degrees
+!
     real(dp), parameter                    :: QMscrnFact = 0.2d0
 !    
     real(dp), parameter                    :: pi         = four*atan(one)
