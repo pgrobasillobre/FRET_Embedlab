@@ -1,4 +1,4 @@
-!i----------------------------------------------------------------------
+!----------------------------------------------------------------------
 module density_module
 !      
 !   Module density
@@ -513,15 +513,13 @@ module density_module
 !
      logical  :: rotation_changed
 !
-     rotation_changed = .false.
-!
      theta_check  = 0.0
+!
+     rotation_changed = .false.
 !
 !    Move reference vector to the origin of coordinates and calculate angle if needed
 !
-     if (align_dips .and..not. rotation_changed) then 
-        ref_vector_trans = zero
-
+     if (align_dips) then 
         ref_vector_trans(1) = ref_vector(1) - geom_center_mol(1)*ToAng 
         ref_vector_trans(2) = ref_vector(2) - geom_center_mol(2)*ToAng
         ref_vector_trans(3) = ref_vector(3) - geom_center_mol(3)*ToAng
@@ -531,7 +529,7 @@ module density_module
 !
 !    Rotate transdip 
 !
-1000 cos_theta = dcos(theta)
+10   cos_theta = dcos(theta)
      sin_theta = dsin(theta) 
 !
      if (target_%rotation_axys.eq.'x') then
@@ -555,7 +553,9 @@ module density_module
      endif
 !
 !    Check angle between rotated transdip and reference vector
-!    If they are not coincident, change rotation direction
+!    If they are not coincident, change rotation direction.
+!
+!    angle_thres: parameter threshold for angle mismatch
 !
      if (align_dips) then
 !
@@ -564,7 +564,7 @@ module density_module
         if (abs(theta_check) .gt. angle_thresh .and. .not. rotation_changed) then 
            theta = -theta
            rotation_changed = .true.
-           GOTO 1000
+           GOTO 10
 !
         else if (abs(theta_check) .gt. angle_thresh .and. rotation_changed) then 
            write(iuout,'(/1x,a,f8.3)') 'Calculated angle: ', theta_check*to_degrees 
