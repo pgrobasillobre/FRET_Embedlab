@@ -426,9 +426,9 @@ module input_module
 !
      endif
 !
-!    Check and rising errors np
+!    Check np
 !
-     if (donor_density_rotate) target_%rotate_np = .true.
+     target_%rotate_np = target_%rotate_donor
 !
 !    Check rotation axys
 !
