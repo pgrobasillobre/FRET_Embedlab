@@ -18,8 +18,6 @@ module parameters_module
     real(dp), parameter                    :: seven  = 7.0d0
     real(dp), parameter                    :: eight  = 8.0d0
 !
-    real(dp), parameter                    :: angle_thresh = 0.1d0 ! = 6 degrees
-!
     real(dp), parameter                    :: QMscrnFact = 0.2d0
 !    
     real(dp), parameter                    :: pi         = four*atan(one)
@@ -27,6 +25,8 @@ module parameters_module
     real(dp), parameter                    :: to_radians = pi/180.0d0
     real(dp), parameter                    :: to_degrees = one/to_radians
 !    
+    real(dp), parameter                    :: angle_thresh = 6.0d0*to_radians ! = 6 degrees
+!
     real(dp), parameter                    :: ToBohr = 1.8897261254578281d0
     real(dp), parameter                    :: ToAng  = 1.0d0/ToBohr
     real(dp), parameter                    :: Light  = 137.035227d0

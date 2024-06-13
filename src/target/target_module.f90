@@ -34,14 +34,14 @@ module target_module
       real(dp), dimension(3) :: aceptor_transdip, aceptor_transdip_rot, aceptor_ref_vector
       real(dp), dimension(3) :: donor_transdip, donor_transdip_rot, donor_ref_vector
 !
+      integer                :: debug
+!
       logical                :: calc_overlap_int
       logical                :: aceptor_density_rotate, donor_density_rotate
       logical                :: aceptor_transdip_rotate, donor_transdip_rotate
       logical                :: aceptor_transdip_rotate_align_with, donor_transdip_rotate_align_with
       logical                :: rotate_aceptor, rotate_donor, rotate_np
 !
-      logical                :: debug
-!      
       contains
 !
     end type target_type

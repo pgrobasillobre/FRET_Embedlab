@@ -196,8 +196,6 @@ module integrals_module
      screen_pot = zero
      screen_fld = zero
 !
-     !We are debugging this
-!
      !$omp parallel do private(i,j,r,dist,invdst,sf,sf0,sf1,screen_pot,screen_fld) &
      !$omp collapse(1) & 
      !$omp reduction(+:aceptor_np_int_re,aceptor_np_int_im) & 

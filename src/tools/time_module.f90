@@ -37,7 +37,6 @@ module time_module
 !
    contains
 !----------------------------------------------------------------------
-! debugpgi: do we need this?
    subroutine initialize_time(time)
 !   
 !    initialize timer (create strings_ and data_timer)

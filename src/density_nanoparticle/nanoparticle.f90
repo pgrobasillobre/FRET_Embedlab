@@ -212,7 +212,7 @@ module nanoparticle_module
 !
      type (nanoparticle_type) :: np_rot
 !
-     if (target_%debug) call print_np_coords_dips('debug/np',np)
+     if (target_%debug.ge.1) call print_np_coords_dips('debug/np',np)
 !
 !    Calculate and save angle cosine and sine
 !
@@ -325,7 +325,7 @@ module nanoparticle_module
 !
      endif
 !
-     if (target_%debug) call print_np_coords_dips('debug/np_rot',np)
+     if (target_%debug.ge.1) call print_np_coords_dips('debug/np_rot',np)
 !
   end subroutine rotate_np_coords_dips
 !----------------------------------------------------------------------

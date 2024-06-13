@@ -257,7 +257,7 @@ module input_module
 !
      target_%rotate_np = .false.
 !
-     target_%debug = .false.
+     target_%debug = 0
 !
      rewind(inp_%iunit)
 !
@@ -360,7 +360,7 @@ module input_module
                  read(line_keyword,'(f25.16)') target_%spectral_overlap
 !
               elseif(line_what.eq.'debug') then
-                 if (line_keyword.eq.'true') target_%debug = .true.
+                 read(line_keyword, *) target_%debug
 !
               elseif(line_what.eq.'rotation axys') then
                  rotation_axys = .true.
@@ -437,7 +437,7 @@ module input_module
 !
 !    Create folder to store debug quantities
 !
-     if (target_%debug) then
+     if (target_%debug.ge.1) then
         if (file_exists("debug")) call execute_command_line("rm -rf debug")
         call execute_command_line("mkdir debug")
      endif

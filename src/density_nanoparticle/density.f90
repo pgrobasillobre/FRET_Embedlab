@@ -204,15 +204,7 @@ module density_module
 !
      endif
 !
-     if (target_%debug) then 
-         if (what_dens.eq.'aceptor') then 
-            call print_cube_density(outfile='debug/aceptor_fret.cube',scale_volume=.true.,cube=cube)
-         else if (what_dens.eq.'donor') then
-            call print_cube_density(outfile='debug/donor_fret.cube',scale_volume=.true.,cube=cube)
-         else
-            call error("Density type to print not recognised")
-         endif
-     endif
+     if (target_%debug.ge.2) call print_cube_density(outfile='debug/'//what_dens//'_fret.cube',scale_volume=.true.,cube=cube)
 !
      01 continue
      close(IIn)
@@ -341,7 +333,7 @@ module density_module
 !
      type (density_type) :: cube_rot
 !
-     if (target_%debug) call print_cube_coordinates('debug/'//what_dens//'_cube_points',cube%n_points_reduced,cube%xyz)
+     if (target_%debug.ge.1) call print_cube_coordinates('debug/'//what_dens//'_cube_points',cube%n_points_reduced,cube%xyz)
 !
 !    Calculate and save angle cosine and sine
 !
@@ -395,14 +387,14 @@ module density_module
         cube%xyz(3,i) = xyz_rot(3,i) + cube%geom_center(3)
      enddo
 !
-     if (target_%debug) call print_cube_coordinates('debug/'//what_dens//'_cube_points_ROTATED', &
+     if (target_%debug.ge.1) call print_cube_coordinates('debug/'//what_dens//'_cube_points_ROTATED', &
                                                      cube%n_points_reduced,              &
                                                      cube%xyz(1:3,1:cube%n_points_reduced)) 
 !
 !
 !    =============== ROTATED CUBE TO PRINT AS CHECK ================ 
 !
-     if (target_%debug) then
+     if (target_%debug.ge.2) then
 !
 !       Create new cube
         cube_rot%geom_center = zero
@@ -514,18 +506,22 @@ module density_module
 !
 !    internal variables
 !
-     integer  :: iin
-!
      real(dp), dimension(3) :: ref_vector_trans
 
      real(dp) :: cos_theta, sin_theta
      real(dp) :: theta_check
 !
-     logical  :: rotation_changed = .false.
+     logical  :: rotation_changed
+!
+     rotation_changed = .false.
+!
+     theta_check  = 0.0
 !
 !    Move reference vector to the origin of coordinates and calculate angle if needed
 !
-     if (align_dips) then 
+     if (align_dips .and..not. rotation_changed) then 
+        ref_vector_trans = zero
+
         ref_vector_trans(1) = ref_vector(1) - geom_center_mol(1)*ToAng 
         ref_vector_trans(2) = ref_vector(2) - geom_center_mol(2)*ToAng
         ref_vector_trans(3) = ref_vector(3) - geom_center_mol(3)*ToAng
@@ -535,7 +531,7 @@ module density_module
 !
 !    Rotate transdip 
 !
-10   cos_theta = dcos(theta)
+1000 cos_theta = dcos(theta)
      sin_theta = dsin(theta) 
 !
      if (target_%rotation_axys.eq.'x') then
@@ -568,10 +564,11 @@ module density_module
         if (abs(theta_check) .gt. angle_thresh .and. .not. rotation_changed) then 
            theta = -theta
            rotation_changed = .true.
-           GO TO 10
+           if (target_%debug.ge.1) write(iuout,'(/1x,a,1x,f8.3)') 'First calculated angle:', theta_check*to_degrees
+           GOTO 1000
 !
         else if (abs(theta_check) .gt. angle_thresh .and. rotation_changed) then 
-           write(iuout,'(/1x,a,f8.3)') 'Calculated angle: ', theta_check 
+           write(iuout,'(/1x,a,f8.3)') 'Calculated angle: ', theta_check*to_degrees 
            write(iuout,'(a)') ' '
            write(iuout,'(a,1x,f8.3,2x,f8.3,2x,f8.3)') ' Geom-centered reference vector:', &
                ref_vector_trans(1), ref_vector_trans(2), ref_vector_trans(3)
@@ -586,8 +583,8 @@ module density_module
 !
 !    Print rotated transdip
 !
-     if (target_%debug) call print_transdip_nmd('debug/transition_dipole_'//what_dens,transdip,geom_center_mol)
-     if (target_%debug) call print_transdip_nmd('debug/transition_dipole_'//what_dens//'_ROTATED',transdip_rot,geom_center_mol)
+     if (target_%debug.ge.1) call print_transdip_nmd('debug/transition_dipole_'//what_dens,transdip,geom_center_mol)
+     if (target_%debug.ge.1) call print_transdip_nmd('debug/transition_dipole_'//what_dens//'_ROTATED',transdip_rot,geom_center_mol)
 !
   end subroutine rotate_transdip_coordinates
 !----------------------------------------------------------------------
@@ -639,7 +636,7 @@ module density_module
 !
      open(unit=iin,file=trim(infile)//'.nmd',status="unknown")
 !
-        write(iin,'(a,1x,f10.5,2x,f10.5,2x,f10.5)') 'coordinates ', center(1), center(2), center(3) 
+        write(iin,'(a,1x,f10.5,2x,f10.5,2x,f10.5)') 'coordinates ', center(1)*ToAng, center(2)*ToAng, center(3)*ToAng 
         write(iin, '(a,f25.16,2x,f25.16,2x,f25.16)' ) 'mode 1' , transdip_vector(1), transdip_vector(2), transdip_vector(3)
 !
      close(iin)
@@ -844,9 +841,10 @@ function vectors_angle(vec_1, vec_2) result(angle)
 !
      implicit none
 !
-     real(dp), dimension(3), intent(in) :: vec_1, vec_2
+     real(dp), dimension(3), intent(in) :: vec_1
+     real(dp), dimension(3), intent(in) :: vec_2
 !
-     real(dp) :: angle
+     real(dp) :: division, angle
 !
      real(dp) :: vec_1_X_vec_2, vec_1_mod, vec_2_mod
 !
@@ -855,7 +853,13 @@ function vectors_angle(vec_1, vec_2) result(angle)
      vec_1_mod = dsqrt(dot_product(vec_1, vec_1))
      vec_2_mod = dsqrt(dot_product(vec_2, vec_2))
 !
-     angle = dacos(vec_1_X_vec_2 / (vec_1_mod * vec_2_mod)) 
+     division = vec_1_X_vec_2 / (vec_1_mod * vec_2_mod)
+!
+!    Handle decimal points to avoid floating point errors
+     if (division .gt.  1.00000000000000d0) division =  1.0d0
+     if (division .lt. -1.00000000000000d0) division = -1.0d0
+!
+     angle = dacos(division) 
 !
 end function vectors_angle
 !----------------------------------------------------------------------
