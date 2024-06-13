@@ -564,7 +564,6 @@ module density_module
         if (abs(theta_check) .gt. angle_thresh .and. .not. rotation_changed) then 
            theta = -theta
            rotation_changed = .true.
-           if (target_%debug.ge.1) write(iuout,'(/1x,a,1x,f8.3)') 'First calculated angle:', theta_check*to_degrees
            GOTO 1000
 !
         else if (abs(theta_check) .gt. angle_thresh .and. rotation_changed) then 

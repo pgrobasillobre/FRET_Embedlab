@@ -287,7 +287,7 @@ module output_module
         Write(out_%iunit,*)     "    ---> Reduced density points:", cube%n_points_reduced
      Endif
      Write(out_%iunit,'(a)') " " 
-     Write(out_%iunit,'(3x,a)') "Associated molecular coordinates (Ang): "
+     Write(out_%iunit,'(3x,a)') "Associated molecular coordinates (Å): "
      Write(out_%iunit,'(a)') " "
      Do i=1,cube%natoms
         Write(out_%iunit,1001) cube%atomic_label(i), cube%x(i)*ToAng, cube%y(i)*ToAng, cube%z(i)*ToAng
@@ -366,7 +366,7 @@ module output_module
 
      write(out_%iunit,out_%sticks) 
      Write(out_%iunit,'(a)') " "
-     Write(out_%iunit,'(21x,a)') '     Nanoparticle Geometry (Ang)                    ' 
+     Write(out_%iunit,'(21x,a)') '       Nanoparticle Geometry (Å)                    ' 
      Write(out_%iunit,'(a)') " "
 
      Write(out_%iunit,out_%sticks) 
