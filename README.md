@@ -1,49 +1,60 @@
-# FRET Embedlab
+# 🚀 FRET Embedlab – Electronic Energy Transfer Computation
 
-## Table of Contents
+## 📌 Table of Contents
 
-- [About](#about)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [License](#license)
-- [Contact](#contact)
+- [About](#-about)
+- [Prerequisites](#-prerequisites)
+- [Installation](#-installation)
+- [License](#-license)
+- [Contact](#-contact)
 
-## About
+## ✨ About
 
-Computation of electronic energy transfer (EET) rates for three general cases:
+FRET Embedlab computes **electronic energy transfer (EET) rates** for three general cases:
 
-   1. Donor to acceptor chromophores EET
-   2. Plasmonic substrate to acceptor chromophore EET
-   3. Donor to acceptor chromophores EET mediated by plasmonic substrate
+1. **Donor to acceptor chromophore EET**  
+2. **Plasmonic substrate to acceptor chromophore EET**  
+3. **Donor to acceptor chromophore EET mediated by a plasmonic substrate**  
+
+This tool enables precise calculations for energy transfer in molecular and plasmonic systems.
+
+## ⚙️ Prerequisites
+
+Before installing, ensure you have the following dependencies:
+
+- 🔹 **CMake 3.14 or higher**
+- 🔹 **Python 2.7**  
+- 🔹 **Fortran compiler** (gfortran **9.3.0** or higher recommended)  
+- 🔹 **LAPACK/BLAS libraries** (MKL suggested)  
+- 🔹 **Python `runtest` module** (install via `pip install runtest`)  
+- 🔹 **OpenMP support**  
+- 🔹 If using **MKL** (recommended), set:  
+
+```
+export MATH_ROOT=/opt/intel/mkl/lib/intel64_lin
+```
 
 
-### Prerequisites
+## 🛠️ Installation
 
-   - CMake3.14 or higher
-   - Python 2.7.
-   - fortran compiler (gfortran 9.3.0 or higher suggested)
-   - Lapack/Blas libraries (MKL suggested)
-   - runtest module python
-     (pip install runtest)
-   - OpenMP
-   - If you have MKL installed (recommended)
-      export MATH_ROOT=/opt/intel/mkl/lib/intel64_lin
+Run the following command to build the project:
+
+```
+./setup.sh -b <build-dir> -fc <fort-path> -omp
+```
 
 
-## Installation
+Options:
+- **`-b build-dir`** : Name of the directory where the code is built *(optional)*
+- **`-fc fort-path`** : Path to the Fortran compiler *(optional)*
+- **`-omp`** : Enables OpenMP *(recommended)*
 
-   ./setup.sh -b buildir -fc fort-path -omp
+## 📜 License
 
-   - buildir  : the name of the directory where the code is built (optional)
-   - fort-path: path to fortran compiler (optional)
-   - omp      : option to activate OpenMP (Recommended)
+This project is licensed under the **GNU General Public License v3.0**.
 
-## License 
+## 📬 Contact
 
-   This project is licensed under the GNU General Public License v3.0
+For inquiries or issues, please contact:
 
-## Contact
-
-   For any issue contact pgrobasillobre@gmail.com
-   
-
+📧 **pgrobasillobre@gmail.com**
