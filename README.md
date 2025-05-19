@@ -1,60 +1,59 @@
-# 🚀 FRET Embedlab – Electronic Energy Transfer Computation
+# FretLab – Electronic Energy Transfer Computation
 
-## 📌 Table of Contents
+## Table of Contents
 
-- [About](#-about)
-- [Prerequisites](#-prerequisites)
-- [Installation](#-installation)
-- [License](#-license)
-- [Contact](#-contact)
+- [About](#about)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [License](#license)
+- [Contact](#contact)
 
-## ✨ About
+## About
 
-FRET Embedlab computes **electronic energy transfer (EET) rates** for three general cases:
+**FretLab** is a high-performance computational tool designed to compute **electronic energy transfer (EET) rates**. It supports three general use cases:
 
-1. **Donor to acceptor chromophore EET**  
-2. **Plasmonic substrate to acceptor chromophore EET**  
-3. **Donor to acceptor chromophore EET mediated by a plasmonic substrate**  
+1. **Donor to acceptor chromophore EET**
+2. **Plasmonic substrate to acceptor chromophore EET**
+3. **Donor to acceptor chromophore EET mediated by a plasmonic substrate**
 
-This tool enables precise calculations for energy transfer in molecular and plasmonic systems.
+FretLab is designed for speed and scalability using parallel processing with OpenMP and efficient linear algebra routines.
 
-## ⚙️ Prerequisites
+## Prerequisites
 
-Before installing, ensure you have the following dependencies:
+Before building FretLab, ensure the following dependencies are installed:
 
-- 🔹 **CMake 3.14 or higher**
-- 🔹 **Python 2.7**  
-- 🔹 **Fortran compiler** (gfortran **9.3.0** or higher recommended)  
-- 🔹 **LAPACK/BLAS libraries** (MKL suggested)  
-- 🔹 **Python `runtest` module** (install via `pip install runtest`)  
-- 🔹 **OpenMP support**  
-- 🔹 If using **MKL** (recommended), set:  
+- CMake 3.14 or higher
+- Python 2.7
+- Fortran compiler (gfortran 9.3.0 or higher recommended)
+- LAPACK/BLAS libraries (MKL suggested)
+- Python `runtest` module (`pip install runtest`)
+- OpenMP support
+
+If using MKL (recommended), set the following environment variable:
 
 ```
 export MATH_ROOT=/opt/intel/mkl/lib/intel64_lin
 ```
 
+## Installation
 
-## 🛠️ Installation
-
-Run the following command to build the project:
+To build FretLab, run:
 
 ```
 ./setup.sh -b <build-dir> -fc <fort-path> -omp
 ```
 
+### Options:
+- `-b <build-dir>` : Name of the build directory (optional)
+- `-fc <fort-path>` : Path to the Fortran compiler (optional)
+- `-omp` : Enables OpenMP (recommended)
 
-Options:
-- **`-b build-dir`** : Name of the directory where the code is built *(optional)*
-- **`-fc fort-path`** : Path to the Fortran compiler *(optional)*
-- **`-omp`** : Enables OpenMP *(recommended)*
-
-## 📜 License
+## License
 
 This project is licensed under the **GNU General Public License v3.0**.
 
-## 📬 Contact
+## Contact
 
-For inquiries or issues, please contact:
+For questions, support, or contributions, contact:
 
-📧 **pgrobasillobre@gmail.com**
+**pgrobasillobre@gmail.com**
