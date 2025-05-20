@@ -28,8 +28,8 @@
      inkscape:deskcolor="#d1d1d1"
      inkscape:document-units="mm"
      inkscape:zoom="0.75654374"
-     inkscape:cx="386.62669"
-     inkscape:cy="637.76881"
+     inkscape:cx="366.79968"
+     inkscape:cy="427.60251"
      inkscape:window-width="1848"
      inkscape:window-height="1016"
      inkscape:window-x="3512"
@@ -213,8 +213,8 @@
        y="6.3791857"
        transform="rotate(-90)"
        inkscape:export-filename="FretLab.png"
-       inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96" />
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
     <path
        style="fill:#ff8a00;fill-opacity:1;stroke:#980000;stroke-width:2.43603;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;filter:url(#filter66426)"
        id="path33335"
@@ -228,8 +228,8 @@
        sodipodi:cx="248.49261"
        inkscape:path-effect="#path-effect33454"
        inkscape:export-filename="FretLab.png"
-       inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96" />
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
     <path
        style="fill:#000017;fill-opacity:0;stroke:#ff8900;stroke-width:1.98124;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;filter:url(#filter66572)"
        id="path33335-0"
@@ -243,8 +243,8 @@
        inkscape:path-effect="#path-effect42923"
        d="m 306.54799,324.62735 a 58.055374,58.055374 0 0 1 -58.05538,58.05537 58.055374,58.055374 0 0 1 -58.05537,-58.05537 58.055374,58.055374 0 0 1 58.05537,-58.05537 58.055374,58.055374 0 0 1 58.05538,58.05537 z"
        inkscape:export-filename="FretLab.png"
-       inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96" />
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
     <text
        xml:space="preserve"
        style="font-weight:bold;font-size:74.0178px;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman,  Bold';opacity:1;fill:url(#radialGradient76880);fill-opacity:1;fill-rule:nonzero;stroke:#d3d3d3;stroke-width:1.25889;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.999979"
@@ -252,8 +252,8 @@
        y="128.18251"
        id="text1-3"
        inkscape:export-filename="FretLab.png"
-       inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96"><tspan
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300"><tspan
          sodipodi:role="line"
          id="tspan1-6"
          style="font-size:74.0178px;fill:url(#radialGradient76880);fill-opacity:1;fill-rule:nonzero;stroke:#d3d3d3;stroke-width:1.25889;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.999979"
@@ -269,8 +269,8 @@
        id="text1-3-5"
        transform="rotate(-20.071559)"
        inkscape:export-filename="FretLab.png"
-       inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96"><tspan
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300"><tspan
          sodipodi:role="line"
          id="tspan1-6-3"
          style="font-size:40.5228px;fill:#ffa540;fill-opacity:1;stroke:#502800;stroke-width:0.524535;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
@@ -12483,7 +12483,7 @@ f+z/B0futbfERJbGAAAAAElFTkSuQmCC
        clip-path="url(#clipPath78462)"
        transform="translate(0,-22.754175)"
        inkscape:export-filename="FretLab.png"
-       inkscape:export-xdpi="96"
-       inkscape:export-ydpi="96" />
+       inkscape:export-xdpi="300"
+       inkscape:export-ydpi="300" />
   </g>
 </svg>
