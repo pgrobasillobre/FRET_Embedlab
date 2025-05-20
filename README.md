@@ -1,8 +1,9 @@
 # FretLab – Electronic Energy Transfer Computation
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/pgrobasillobre/FretLab/tree/main/docs/_static/FretLab.png" width="600">
+  <img src="https://raw.githubusercontent.com/pgrobasillobre/FretLab/main/docs/_static/FretLab.png" width="600">
 </p>
+
 
 
 ## Table of Contents
