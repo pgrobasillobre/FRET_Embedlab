@@ -3,7 +3,6 @@
 ## Table of Contents
 
 - [About](#about)
-- [Prerequisites](#prerequisites)
 - [Installation](#installation)
 - [License](#license)
 - [Contact](#contact)
@@ -18,12 +17,12 @@
 
 FretLab is designed for speed and scalability using parallel processing with OpenMP and efficient linear algebra routines.
 
-## Prerequisites
+## Installation
 
-Before building FretLab, ensure the following dependencies are installed:
+FretLab requires the following dependencies:
 
 - CMake 3.14 or higher
-- Python 2.7
+- Python 3.8+
 - Fortran compiler (gfortran 9.3.0 or higher recommended)
 - LAPACK/BLAS libraries (MKL suggested)
 - Python `runtest` module (`pip install runtest`)
@@ -35,7 +34,7 @@ If using MKL (recommended), set the following environment variable:
 export MATH_ROOT=/opt/intel/mkl/lib/intel64_lin
 ```
 
-## Installation
+### Compilation
 
 To build FretLab, run:
 
@@ -52,8 +51,13 @@ To build FretLab, run:
 
 This project is licensed under the **GNU General Public License v3.0**.
 
+## License
+
+FretLab is licensed under the **GNU General Public License v3.0**.
+
 ## Contact
 
-For questions, support, or contributions, contact:
+For issues or contributions:
 
-**pgrobasillobre@gmail.com**
+- Email: **pgrobasillobre@gmail.com**
+- Github issues: https://github.com/pgrobasillobre/FretLab/issues
