@@ -8,7 +8,7 @@ from runtest import version_info, get_filter, cli, run
 from runtest_config import configure
 
 f = [
-    get_filter(from_string='Nanoparticle Geometry (Ang)',
+    get_filter(from_string='RESULTS',
                to_string='Andiamo a mensa?',
                rel_tolerance=1.0e-15)
 ]
@@ -19,7 +19,7 @@ options = cli()
 ierr=0
 ierr += run(options,
             configure,
-            input_files=['pdi_bem_pdi_cut_10E-02.inp'],
+            input_files=['acceptor_np_charges_donor_cutoff_10E-02.inp'],
             filters={'log':f})
 
 sys.exit(ierr)

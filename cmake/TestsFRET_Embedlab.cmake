@@ -17,4 +17,4 @@ endmacro()
 # 	verylong > 200 seconds
 # 
 # NEVER comment out tests
-add_FRET_Embedlab_runtest(pdi_bem_pdi_cut_10E-02       "FRET_Embedlab;aceptor_np_donor;Nanoparticle")
+add_FRET_Embedlab_runtest(acceptor_np_charges_donor_cutoff_10E-02       "FRET_Embedlab;aceptor_np_donor;Nanoparticle")

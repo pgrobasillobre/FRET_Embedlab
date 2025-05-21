@@ -69,4 +69,4 @@
 !rotation axys: 
 !aceptor transition dipole: 
 !aceptor transition dipole align with: 
-!debug: true
+!debug: 1/2/3
