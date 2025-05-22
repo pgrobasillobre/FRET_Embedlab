@@ -1,0 +1,5 @@
+aceptor density: densities/aceptor.cube 
+donor density: densities/donor.cube 
+nanoparticle: nanoparticle/donor.log
+spectral overlap: 49210.48804823888
+cutoff: 1.0e-1
