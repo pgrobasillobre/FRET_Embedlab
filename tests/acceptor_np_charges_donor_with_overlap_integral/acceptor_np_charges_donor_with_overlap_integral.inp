@@ -1,0 +1,6 @@
+aceptor density: densities/aceptor_coarse.cub 
+donor density: densities/donor_coarse.cub 
+nanoparticle: nanoparticle/donor.log
+omega_0: 0.08498876753462517
+spectral overlap: 49210.48804823888
+cutoff: 1.0e-2

@@ -261,7 +261,7 @@ module output_module
 !    formats
 !
      1000 Format(3x,I5,1x,E15.7,1x,E15.7,1x,E15.7)
-     1001 Format(7x,a,2x,f10.6,2x,f10.6,2x,f10.6)
+     1001 Format(7x,a,2x,f12.6,2x,f12.6,2x,f12.6)
 !
      write(out_%iunit,out_%sticks) 
      Write(out_%iunit,'(a)') " "
@@ -326,7 +326,6 @@ module output_module
      if(PRESENT(integral)) then
         Write(out_%iunit,'(a)') "    ============================================================"
         Write(out_%iunit,*) "    Integrated electron density --> ", integral
-        Write(out_%iunit,*) "    Total electrons in molecule --> ", cube%nelectrons
         Write(out_%iunit,'(a)') "    ============================================================"
         Write(out_%iunit,'(a)') " " 
      endif

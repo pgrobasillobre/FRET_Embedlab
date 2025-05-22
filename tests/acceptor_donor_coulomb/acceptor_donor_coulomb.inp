@@ -1,0 +1,4 @@
+aceptor density: densities/aceptor_coarse.cub 
+donor density: densities/donor_coarse.cub 
+cutoff: 1.0e-02
+spectral overlap: 49210.48804823888

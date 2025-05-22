@@ -1,0 +1,3 @@
+aceptor density: densities/aceptor_coarse.cub 
+nanoparticle: nanoparticle/donor.log
+cutoff: 1.0e-2

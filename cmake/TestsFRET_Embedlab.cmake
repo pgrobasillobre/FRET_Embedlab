@@ -17,4 +17,10 @@ endmacro()
 # 	verylong > 200 seconds
 # 
 # NEVER comment out tests
-add_FRET_Embedlab_runtest(acceptor_np_charges_donor_cutoff_10E-02       "FRET_Embedlab;aceptor_np_donor;Nanoparticle")
+add_FRET_Embedlab_runtest(integrate_density                     "FRET_Embedlab;density_integral")
+add_FRET_Embedlab_runtest(acceptor_donor_with_overlap_integral  "FRET_Embedlab;aceptor_donor_charges_overlap;")
+add_FRET_Embedlab_runtest(acceptor_donor_coulomb                "FRET_Embedlab;aceptor_donor_coulomb;")
+add_FRET_Embedlab_runtest(acceptor_np_charges                   "FRET_Embedlab;aceptor_np_charges;")
+
+add_FRET_Embedlab_runtest(acceptor_np_charges_donor_with_overlap_integral     "FRET_Embedlab;aceptor_np_donor_charges_overlap;")
+
