@@ -22,17 +22,20 @@
 3. **Donor to acceptor chromophore EET mediated by a plasmonic substrate**
 
 FretLab is designed for speed and scalability using parallel processing with OpenMP and efficient linear algebra routines.
-### Theoretical Framework
 
-All quantities in FretLab are assumed to be given or computed in **atomic units**. The EET rate, denoted $\kappa_{      ext{EET}}$, is computed using **Fermi's Golden Rule**:
+## Theoretical Framework
 
-$\kappa_{       ext{EET}} = ^Lrac{2\pi}{\hbar} |V|^2 J$
+All quantities in FretLab are assumed to be given or computed in **atomic units**. The EET rate, denoted as **κ_EET**, is computed using **Fermi's Golden Rule**:
+
+```
+κ_EET = (2π / ħ) * |V|² * J
+```
 
 Where:
-- $V$ is the total coupling potential between donor and acceptor
-- $J$ is the spectral overlap integral
+- **V** is the total coupling potential between donor and acceptor
+- **J** is the spectral overlap integral
 
-If a **plasmonic substrate** is present (modeled as a set of induced charges $q_k$), the total potential $V$ is given by:
+If a **plasmonic substrate** is present (modeled as a set of induced charges `q_k`), the total potential **V** is given by:
 
 ```
 V = V_Coulomb + V_overlap + V_environment
@@ -43,9 +46,10 @@ V = V_Coulomb + V_overlap + V_environment
 ```
 
 Where:
-- $^Mho_A$ and $^Mho_D$ are the acceptor and donor charge densities
-- $\omega_0$ is the incident frequency
-- $q_k^{\omega}(\mathbf{r}_k; ^Mho_D)$ are the frequency-dependent induced charges at positions $\mathbf{r}_k$ due to the donor density
+- **ρ_A** and **ρ_D** are the acceptor and donor charge densities
+- **ω₀** is the incident frequency
+- **q_k^ω(𝒓_k; ρ_D)** are the frequency-dependent induced charges at positions **𝒓_k**
+
 
 
 ## Installation
