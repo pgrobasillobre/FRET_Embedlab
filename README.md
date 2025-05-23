@@ -25,11 +25,12 @@ FretLab is designed for speed and scalability using parallel processing with Ope
 
 ## Theoretical Framework
 
-All quantities in FretLab are expressed in atomic units. The EET rate is  calculated using Fermi’s Golden Rule:
+All quantities in FretLab are expressed in atomic units. The EET rate is 
+calculated using Fermi’s Golden Rule:
 
-\[
-\kappa_{\text{EET}} = \frac{2\pi}{\hbar} \: |V|^2 \: J
-\]
+<p align="center">
+  <code>κ_EET = (2π / ℏ) · |V|² · J</code>
+</p>
 
 Where:
 - V is the total coupling potential between donor and acceptor
@@ -38,23 +39,19 @@ Where:
 In the presence of a plasmonic substrate (modeled via induced charges q_k),
 the total coupling V becomes:
 
-\[
-\begin{aligned}
-V &= V_{\text{Coulomb}} + V_{\text{overlap}} + V_{\text{environment}} \\
-  &= \int d\mathbf{r} \, d\mathbf{r'} \, 
-  \frac{\rho_{A}^*(\mathbf{r}) \rho_{D}(\mathbf{r'})}{|\mathbf{r} - \mathbf{r'}|} \\
-  &\quad - \omega_0 \int d\mathbf{r} \, \rho_{A}^*(\mathbf{r}) \rho_{D}(\mathbf{r}) \\
-  &\quad + \sum_{k} \left( \int d\mathbf{r} \, 
-  \frac{\rho_{A}^*(\mathbf{r}) }{|\mathbf{r} - \mathbf{r}_{k}|} \right) \, 
-  q^{\omega}(\mathbf{r}_{k}; \rho_{D})
-\end{aligned}
-\]
+<p align="center">
+  <code>
+    V = V_Coulomb + V_overlap + V_environment<br><br>
+    = ∫ d𝒓 d𝒓′ [ρ_A*(𝒓) ρ_D(𝒓′)] / |𝒓 − 𝒓′|<br>
+    − ω₀ ∫ d𝒓 ρ_A*(𝒓) ρ_D(𝒓)<br>
+    + ∑ₖ [ ∫ d𝒓 ρ_A*(𝒓) / |𝒓 − 𝒓ₖ| ] · qₖ^ω(𝒓ₖ; ρ_D)
+  </code>
+</p>
 
 Where:
-- \( \rho_A \) and \( \rho_D \) are the acceptor and donor charge densities
-- \( \omega_0 \) is the incident frequency
-- \( q_k^{\omega}(\mathbf{r}_k; \rho_D) \) are the frequency-dependent induced charges at positions \( \mathbf{r}_k \)
-
+- ρ_A and ρ_D are the acceptor and donor charge densities
+- ω₀ is the incident frequency
+- qₖ^ω(𝒓ₖ; ρ_D) are the frequency-dependent induced charges at positions 𝒓ₖ
 
 ## Installation
 
