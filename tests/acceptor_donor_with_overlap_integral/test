@@ -9,7 +9,7 @@ from runtest_config import configure
 
 f = [
     get_filter(from_string='RESULTS',
-               to_string='Andiamo a mensa?',
+               to_string='Just me',
                rel_tolerance=1.0e-15)
 ]
 

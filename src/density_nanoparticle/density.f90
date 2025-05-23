@@ -236,7 +236,7 @@ module density_module
 !    Read variables
      open (unit=IIn, file=trim(outfile), status="new", action="write", iostat=iost,err=01)
      write(IIn,'(A)') '*** adf ***'
-     write(IIn,'(A)') 'FRET_Embedlab printed density'
+     write(IIn,'(A)') 'FretLab printed density'
      write(IIn,1000)     cube%natoms, cube%xmin,       cube%ymin,       cube%zmin
      write(IIn,1000)     cube%nx,     cube%dx(1),      cube%dx(2),      cube%dx(3)
      write(IIn,1000)     cube%ny,     cube%dy(1),      cube%dy(2),      cube%dy(3)
@@ -652,7 +652,7 @@ module density_module
 !
 !    check if the file is opened
 !
-     write(iuout,'(/1x,a)') "Error during the execution of FRET_Embedlab"
+     write(iuout,'(/1x,a)') "Error during the execution of FretLab"
      write(iuout,'(1x,a/)') trim(string)
      flush(iuout)
      stop

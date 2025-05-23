@@ -187,11 +187,12 @@ module time_module
      character(len=4)  :: Year
      character(len=2)  :: Hour, Minute, Month, Day
 !     
-     1343 Format(45X,'Andiamo a mensa?',&
-         /,60X,'-- S. Sodomaco')
+     1343 Format(25X,'No AI, no shortcuts. Just me, and the code.',&
+         /,&
+         /,53X,'-- P. Grobas Illobre')
      1004 Format(43X,'     CPU Time: ',i5,' h ',i2,' min ',i2,' sec')
      1005 Format(43X,' Elapsed Time: ',i5,' h ',i2,' min ',i2,' sec')
-     1010 Format(4x,'Normal Termination of FRET_Embedlab program in date ',10a,2x,&
+     1010 Format(4x,'Normal Termination of FretLab program in date ',10a,2x,&
           2a,2x,8a)
 !    
      CALL DATE_AND_TIME(DateINFO,TimeINFO)

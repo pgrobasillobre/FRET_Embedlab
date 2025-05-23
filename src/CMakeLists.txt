@@ -1,4 +1,4 @@
-target_sources(FRET_Embedlab PUBLIC 
+target_sources(FretLab PUBLIC 
 #${CMAKE_CURRENT_SOURCE_DIR}/general/general_module.f90
 ${CMAKE_CURRENT_SOURCE_DIR}/tools/parallel_module.f90
 ${CMAKE_CURRENT_SOURCE_DIR}/algorithm/algorithm_module.f90
@@ -12,5 +12,5 @@ ${CMAKE_CURRENT_SOURCE_DIR}/tools/string_manipulation_module.f90
 ${CMAKE_CURRENT_SOURCE_DIR}/tools/time_module.f90
 ${CMAKE_CURRENT_SOURCE_DIR}/tools/parameters_module.f90
 ${CMAKE_CURRENT_SOURCE_DIR}/target/target_module.f90
-${CMAKE_CURRENT_SOURCE_DIR}/FRET_Embedlab.f90
+${CMAKE_CURRENT_SOURCE_DIR}/FretLab.f90
 )

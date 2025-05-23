@@ -7,7 +7,7 @@ def configure(options, input_files,extra_arg):
     from os import path
     from sys import platform
 
-    launcher = 'FRET_Embedlab'
+    launcher = 'FretLab'
     launcher_full_path = path.normpath(path.join(options.binary_dir, launcher))
 
     if len(input_files) == 1:

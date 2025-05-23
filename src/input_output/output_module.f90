@@ -70,24 +70,18 @@ module output_module
 !
      implicit none
 !     
-!    print banner FRET Embedlab 
+!    print banner FretLab 
 !
      class(out_type)  :: out_
 !
      Write(out_%iunit,out_%sticks) 
-     Write(out_%iunit,'(11x,a)') "       ______ _____  ______ _______                    " 
-     Write(out_%iunit,'(11x,a)') "      |  ____|  __ \|  ____|__   __|                   "                           
-     Write(out_%iunit,'(11x,a)') "      | |__  | |__) | |__     | |                      "
-     Write(out_%iunit,'(11x,a)') "      |  __| |  _  /|  __|    | |                      "
-     Write(out_%iunit,'(11x,a)') "      | |    | | \ \| |____   | |                      "
-     Write(out_%iunit,'(11x,a)') "      |_|    |_|  \_\______|  |_|                      "
      Write(out_%iunit,'(a)') " "
-     Write(out_%iunit,'(11x,a)') "       ______           _              _ _       _     "
-     Write(out_%iunit,'(11x,a)') "      |  ____|         | |            | | |     | |    "
-     Write(out_%iunit,'(11x,a)') "      | |__   _ __ ___ | |__   ___  __| | | __ _| |__  "
-     Write(out_%iunit,'(11x,a)') "      |  __| | '_ ` _ \| '_ \ / _ \/ _` | |/ _` | '_ \ "
-     Write(out_%iunit,'(11x,a)') "      | |____| | | | | | |_) |  __/ (_| | | (_| | |_) |"
-     Write(out_%iunit,'(11x,a)') "      |______|_| |_| |_|_.__/ \___|\__,_|_|\__,_|_.__/ "
+     Write(out_%iunit,'(20x,a)') "    ______          __  __          __  " 
+     Write(out_%iunit,'(20x,a)') "   / ____/_______  / /_/ /   ____ _/ /_ "                           
+     Write(out_%iunit,'(20x,a)') "  / /_  / ___/ _ \/ __/ /   / __ `/ __ \"
+     Write(out_%iunit,'(20x,a)') " / __/ / /  /  __/ /_/ /___/ /_/ / /_/ /"
+     Write(out_%iunit,'(20x,a)') "/_/   /_/   \___/\__/_____/\__,_/_.___/ "
+     Write(out_%iunit,'(20x,a)') "                                         "
      Write(out_%iunit,'(a)') " "
      Write(out_%iunit,out_%sticks) 
      Write(out_%iunit,'(a)') " "
@@ -97,95 +91,7 @@ module output_module
      Write(out_%iunit,'(a)') " "
      Flush(out_%iunit)
 !
-!
    end subroutine print_banner
-!----------------------------------------------------------------------
-!!!   subroutine print_matrix(out_,string,matrix,idim1,idim2)
-!!!!
-!!!     implicit none
-!!!!     
-!!!!    print matrix 
-!!!!
-!!!     class(out_type)  :: out_
-!!!!
-!!!     integer, intent(in)                             :: idim1
-!!!     integer, intent(in)                             :: idim2
-!!!     real(dp), dimension(idim1,idim2), intent(in)    :: matrix
-!!!     character(len=*)                                :: string
-!!!!     
-!!!!    internal
-!!!!
-!!!     integer                                 :: i, j, k
-!!!     integer                                 :: ierr
-!!!     integer                                 :: NVec
-!!!     integer                                 :: NElements
-!!!     integer                                 :: len_string
-!!!     character(len=7)                        :: format_string
-!!!!     
-!!!     real(dp), dimension(:,:,:), allocatable :: dummy
-!!!     real(dp), dimension(:,:,:), allocatable :: dummy2
-!!!!     
-!!! 2000 Format(3x,5(8x,i5))
-!!!
-!!!!
-!!!!    Count how many vectors are there
-!!!!
-!!!     NVec      = ceiling(float(idim2)/five)
-!!!     NElements = mod(idim2,5)
-!!!     if(nelements.eq.0) nelements = 5
-!!!!     
-!!!     allocate(dummy(idim1,NVec-1,5),stat=ierr)
-!!!     if(ierr.gt.0) call out_%error('not enough space in print_matrix')
-!!!!     
-!!!     allocate(dummy2(idim1,1,NElements),stat=ierr)
-!!!     if(ierr.gt.0) call out_%error('not enough space in print_matrix')
-!!!!     
-!!!     if(NVec.ne.1) then
-!!!        !$omp parallel do collapse(3) 
-!!!        do i = 1, NVec-1
-!!!           do j = 1, idim1
-!!!              do k = 1, 5
-!!!                 dummy(j,i,k) = matrix(j,k+(i-1)*5)
-!!!              enddo
-!!!           enddo
-!!!        enddo
-!!!       !$omp end parallel do
-!!!     endif
-!!!!     
-!!!     do j = 1, idim1
-!!!        do k = 1, nelements
-!!!           dummy2(j,1,k) = matrix(j,k+(NVec-1)*5)
-!!!        enddo
-!!!     enddo    
-!!!!
-!!!     len_string = len(string)
-!!!     write(format_string,'(a,i2,a)') "(",40-len_string/2,"X,a)"
-!!!!
-!!!     write(out_%iunit,out_%sticks)
-!!!     write(out_%iunit,format_string) string
-!!!     write(out_%iunit,out_%sticks)
-!!!!     
-!!!     do i = 1, nvec
-!!!!     
-!!!        write(out_%iunit,'(a)') ' '
-!!!!     
-!!!        if(i.ne.nvec) write(out_%iunit,2000) (k+(i-1)*5,k=1,5)
-!!!        if(i.eq.nvec) write(out_%iunit,2000) (k+(i-1)*5,k=1,NElements)
-!!!!     
-!!!        do j = 1, idim1
-!!!!     
-!!!           if(i.ne.NVec) write(out_%iunit,'(i4,4x,5(e11.4,2x))') j,(dummy(j,i,k), k = 1, 5 )
-!!!!     
-!!!           if(i.eq.nvec) write(out_%iunit,'(i4,4x,5(e11.4,2x))') j,(dummy2(j,1,k), k = 1,NElements)
-!!!!     
-!!!        enddo
-!!!!     
-!!!     enddo
-!!!!     
-!!!     write(out_%iunit,out_%sticks)
-!!!     flush(out_%iunit)
-!!!!    
-!!!   end subroutine print_matrix
 !----------------------------------------------------------------------
    subroutine warning(out_,string)
 !
@@ -226,12 +132,12 @@ module output_module
      inquire(file=out_%filename,number=unit_)
 !     
      if (unit_.eq.out_%iunit) then
-        write(out_%iunit,'(/1x,a)') "Error during the execution of FRET_Embedlab"
+        write(out_%iunit,'(/1x,a)') "Error during the execution of FretLab"
         write(out_%iunit,'(1x,a/)') trim(string)
         flush(out_%iunit)
         stop
      else
-        write(*,'(/1x,a)') "Error during the execution of FRET_Embedlab"
+        write(*,'(/1x,a)') "Error during the execution of FretLab"
         write(*,'(1x,a/)') trim(string)
         flush(out_%iunit)
         stop
@@ -429,7 +335,6 @@ module output_module
 !    IMPORTANT: ADF prints the transition densities with opposite sign,
 !               so we correct the sign of the potential integral
      if(PRESENT(aceptor_np_int)) then
-        !Write(out_%iunit,'(a)') " "
         Write(out_%iunit,'(5x,a,f25.16,a,f25.16,a)') "Aceptor-NP Interaction:  ", -aceptor_np_int(1), '    + ',&
                                                                                   -aceptor_np_int(2) , ' i  a.u.'
         v_tot(1) = v_tot(1) - aceptor_np_int(1)

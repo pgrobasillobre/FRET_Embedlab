@@ -19,7 +19,7 @@ else()
       )
 endif()
 
-include(TestsFRET_Embedlab)
+include(TestsFretLab)
 include(CTest)
 enable_testing()
 

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(FRET_Embedlab)
+project(FretLab)
 enable_language(Fortran)
 
 set(CMAKE_MODULE_PATH
@@ -74,10 +74,10 @@ set(CMAKE_Fortran_FLAGS "${CMAKE_Fortran_FLAGS} ${dialect}")
 #
 # Compile.
 #
-add_executable(FRET_Embedlab "") 
+add_executable(FretLab "") 
 add_subdirectory(src) 
 if(ENABLE_OMP)
-   target_link_libraries(FRET_Embedlab 
+   target_link_libraries(FretLab 
      PRIVATE 
      ${LAPACK_LIBRARIES} 
      ${BLAS_LIBRARIES} 
@@ -85,7 +85,7 @@ if(ENABLE_OMP)
      OpenMP::OpenMP_Fortran
    )
 else()
-   target_link_libraries(FRET_Embedlab 
+   target_link_libraries(FretLab 
      PRIVATE 
      ${LAPACK_LIBRARIES} 
      ${BLAS_LIBRARIES} 

@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# installation of FRET_Embedlab
+# installation of FretLab
 #
 #
 README=README.md
