@@ -22,34 +22,30 @@
 3. **Donor to acceptor chromophore EET mediated by a plasmonic substrate**
 
 FretLab is designed for speed and scalability using parallel processing with OpenMP and efficient linear algebra routines.
-
 ### Theoretical Framework
 
-All quantities in FretLab are assumed to be given or computed in **atomic units**. The EET rate, denoted \(\kappa_{\text{EET}}\), is computed using **Fermi's Golden Rule**:
+All quantities in FretLab are assumed to be given or computed in **atomic units**. The EET rate, denoted $\kappa_{      ext{EET}}$, is computed using **Fermi's Golden Rule**:
 
-\[
-\kappa_{\text{EET}} = \frac{2\pi}{\hbar} \, |V|^2 \, J
-\]
+$\kappa_{       ext{EET}} = ^Lrac{2\pi}{\hbar} |V|^2 J$
 
 Where:
-- \(V\) is the total coupling potential between donor and acceptor,
-- \(J\) is the spectral overlap integral.
+- $V$ is the total coupling potential between donor and acceptor
+- $J$ is the spectral overlap integral
 
-If a **plasmonic substrate** is present (modeled as a set of induced charges \(q_k\)), the total potential \(V\) is given by:
+If a **plasmonic substrate** is present (modeled as a set of induced charges $q_k$), the total potential $V$ is given by:
 
-\[
-\begin{aligned}
-V &= V_{\text{Coulomb}} + V_{\text{overlap}} + V_{\text{environment}} = \\
-&= \int d\mathbf{r} \, d\mathbf{r'} \, \frac{\rho_A^*(\mathbf{r}) \, \rho_D(\mathbf{r'})}{|\mathbf{r} - \mathbf{r'}|} 
-- \omega_0 \int d\mathbf{r} \, \rho_A^*(\mathbf{r}) \, \rho_D(\mathbf{r}) \\
-&\quad + \sum_k \left( \int d\mathbf{r} \, \frac{\rho_A^*(\mathbf{r})}{|\mathbf{r} - \mathbf{r}_k|} \right) \, q_k^{\omega}(\mathbf{r}_k; \rho_D)
-\end{aligned}
-\]
+```
+V = V_Coulomb + V_overlap + V_environment
+
+  = ∫ d𝒓 d𝒓′ [ρ_A*(𝒓) ρ_D(𝒓′)] / |𝒓 − 𝒓′|
+  − ω₀ ∫ d𝒓 ρ_A*(𝒓) ρ_D(𝒓)
+  + ∑ₖ [ ∫ d𝒓 ρ_A*(𝒓) / |𝒓 − 𝒓_k| ] q_k^ω(𝒓_k; ρ_D)
+```
 
 Where:
-- \(\rho_A\) and \(\rho_D\) are the acceptor and donor charge densities, respectively,
-- \(\omega_0\) is the incident frequency,
-- \(q_k^{\omega}(\mathbf{r}_k; \rho_D)\) are the frequency-dependent induced charges at positions \(\mathbf{r}_k\), due to the donor density.
+- $^Mho_A$ and $^Mho_D$ are the acceptor and donor charge densities
+- $\omega_0$ is the incident frequency
+- $q_k^{\omega}(\mathbf{r}_k; ^Mho_D)$ are the frequency-dependent induced charges at positions $\mathbf{r}_k$ due to the donor density
 
 
 ## Installation
