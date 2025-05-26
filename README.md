@@ -46,6 +46,9 @@ To build FretLab, run:
 
 ```
 ./setup.sh -omp -fc <fort-path>
+
+cd build/
+make
 ```
 
 ### Options:
