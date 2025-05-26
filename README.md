@@ -23,36 +23,6 @@
 
 FretLab is designed for speed and scalability using parallel processing with OpenMP and efficient linear algebra routines.
 
-## Theoretical Framework
-
-All quantities in FretLab are expressed in atomic units. The EET rate is 
-calculated using Fermi’s Golden Rule:
-
-<p align="center">
-  <code>κ_EET = (2π / ℏ) · |V|² · J</code>
-</p>
-
-Where:
-- V is the total coupling potential between donor and acceptor
-- J is the spectral overlap integral
-
-In the presence of a plasmonic substrate (modeled via induced charges q_k),
-the total coupling V becomes:
-
-<p align="center">
-  <code>
-    V = V_Coulomb + V_overlap + V_environment<br><br>
-    = ∫ d𝒓 d𝒓′ [ρ_A*(𝒓) ρ_D(𝒓′)] / |𝒓 − 𝒓′|<br>
-    − ω₀ ∫ d𝒓 ρ_A*(𝒓) ρ_D(𝒓)<br>
-    + ∑ₖ [ ∫ d𝒓 ρ_A*(𝒓) / |𝒓 − 𝒓ₖ| ] · qₖ^ω(𝒓ₖ; ρ_D)
-  </code>
-</p>
-
-Where:
-- ρ_A and ρ_D are the acceptor and donor charge densities
-- ω₀ is the incident frequency
-- qₖ^ω(𝒓ₖ; ρ_D) are the frequency-dependent induced charges at positions 𝒓ₖ
-
 ## Installation
 
 FretLab requires the following dependencies:
@@ -75,13 +45,22 @@ export MATH_ROOT=/opt/intel/mkl/lib/intel64_lin
 To build FretLab, run:
 
 ```
-./setup.sh -b <build-dir> -fc <fort-path> -omp
+./setup.sh -omp -fc <fort-path>
 ```
 
 ### Options:
-- `-b <build-dir>` : Name of the build directory (optional)
-- `-fc <fort-path>` : Path to the Fortran compiler (optional)
 - `-omp` : Enables OpenMP (recommended)
+- `-fc <fort-path>` : Path to the Fortran compiler (optional)
+
+
+### Running Tests:
+
+After building, you can run the test suite with:
+
+```
+cd build/
+ctest
+```
 
 ## License
 
@@ -93,3 +72,4 @@ For issues or contributions:
 
 - Email: **pgrobasillobre@gmail.com**
 - Github issues: https://github.com/pgrobasillobre/FretLab/issues
+
