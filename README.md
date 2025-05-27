@@ -55,6 +55,11 @@ $$
 V_{\text{environment}} = \sum_k \left( \int d\mathbf{r} \ \frac{\rho_A^*(\mathbf{r})}{|\mathbf{r} - \mathbf{r}_k|} \right) q^\omega(\mathbf{r}_k; \rho_D)
 $$
 
+Where:
+
+- $\rho_A$ and $\rho_D$ are the acceptor and donor charge densities  
+- $\omega_0$ is the incident frequency  
+- $q_k^\omega(\mathbf{r}_k; \rho_D)$ are the frequency-dependent induced charges at positions $\mathbf{r}_k$
 
 
 
