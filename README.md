@@ -48,7 +48,7 @@ V_{\text{coulomb}} =  \int d\mathbf{r} \ d\mathbf{r'} \ \frac{\rho_A^*(\mathbf{r
 $$
 
 $$
-V_{\text{overlap}} = - \omega_0 \int d\mathbf{r} \ \rho_A^*(\mathbf{r}) \rho_D 
+V_{\text{overlap}} = - \omega_0 \int d\mathbf{r} \ d\mathbf{r'} \ \rho_A^*(\mathbf{r}) \rho_D (\mathbf{r'}) 
 $$
 
 $$
