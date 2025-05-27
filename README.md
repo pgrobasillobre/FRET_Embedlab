@@ -37,6 +37,10 @@ Where:
 - V is the total coupling potential between donor and acceptor
 - J is the [spectral overlap integral](https://github.com/pgrobasillobre/SpectralOverlap)
 
+In the presence of a plasmonic substrate (modeled via induced charges $$q_k$$), the total coupling V becomes:
+
+![Equation](https://latex.codecogs.com/svg.image?V%20=%20V_{\text{Coulomb}}%20+%20V_{\text{overlap}}%20+%20V_{\text{environment}}%20=%20\int%20d\mathbf{r}%20d\mathbf{r'}%20\frac{\rho_{A}^*(\mathbf{r})%20\rho_{D}(\mathbf{r'})}{|\mathbf{r}-\mathbf{r'}|}%20-%20\omega_0%20\int%20d\mathbf{r}%20\rho_{A}^*(\mathbf{r})%20\rho_{D}%20+%20\sum_{k}%20\left(%20\int%20d\mathbf{r}%20\frac{\rho_{A}^*(\mathbf{r})%20}{|\mathbf{r}-\mathbf{r}_{k}|}%20\right)%20q^{\omega}(\mathbf{r}_{k};%20\rho_{D}))
+
 
 ## Installation
 
