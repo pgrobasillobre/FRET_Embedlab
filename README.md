@@ -23,6 +23,21 @@
 
 FretLab is designed for speed and scalability using parallel processing with OpenMP and efficient linear algebra routines.
 
+
+## Theoretical Framework
+
+All quantities in FretLab are expressed in atomic units. The EET rate is 
+calculated using Fermi’s Golden Rule:
+
+$$
+\kappa_{\text{EET}} = \frac{2\pi}{\hbar} \ |V|^2 \ J
+$$
+
+Where:
+- V is the total coupling potential between donor and acceptor
+- J is the [spectral overlap integral](https://github.com/pgrobasillobre/SpectralOverlap)
+
+
 ## Installation
 
 FretLab requires the following dependencies:
