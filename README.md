@@ -39,7 +39,24 @@ Where:
 
 In the presence of a plasmonic substrate (modeled via induced charges $$q_k$$), the total coupling V becomes:
 
-![Equation](https://latex.codecogs.com/svg.image?V%20=%20V_{\text{Coulomb}}%20+%20V_{\text{overlap}}%20+%20V_{\text{environment}}%20=%20\int%20d\mathbf{r}%20d\mathbf{r'}%20\frac{\rho_{A}^*(\mathbf{r})%20\rho_{D}(\mathbf{r'})}{|\mathbf{r}-\mathbf{r'}|}%20-%20\omega_0%20\int%20d\mathbf{r}%20\rho_{A}^*(\mathbf{r})%20\rho_{D}%20+%20\sum_{k}%20\left(%20\int%20d\mathbf{r}%20\frac{\rho_{A}^*(\mathbf{r})%20}{|\mathbf{r}-\mathbf{r}_{k}|}%20\right)%20q^{\omega}(\mathbf{r}_{k};%20\rho_{D}))
+$$
+V = V_{\text{coulomb}} \ + V_{\text{overlap}} \ + V_{\text{environment}}
+$$
+
+$$
+V_{\text{coulomb}} =  \int d\mathbf{r} \ d\mathbf{r'} \ \frac{\rho_A^*(\mathbf{r}) \rho_D(\mathbf{r'})}{|\mathbf{r} - \mathbf{r'}|}
+$$
+
+$$
+V_{\text{overlap}} = - \omega_0 \int d\mathbf{r} \ \rho_A^*(\mathbf{r}) \rho_D 
+$$
+
+$$
+V_{\text{environment}} = \sum_k \left( \int d\mathbf{r} \ \frac{\rho_A^*(\mathbf{r})}{|\mathbf{r} - \mathbf{r}_k|} \right) q^\omega(\mathbf{r}_k; \rho_D)
+$$
+
+
+
 
 
 ## Installation
