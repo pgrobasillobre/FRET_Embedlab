@@ -37,10 +37,10 @@ Where:
 - V is the total coupling potential between donor and acceptor
 - J is the [spectral overlap integral](https://github.com/pgrobasillobre/SpectralOverlap)
 
-In the presence of a plasmonic substrate (modeled via induced charges $$q_k$$), the total coupling V becomes:
+In the presence of a plasmonic substrate (modeled via induced charges $$q_k$$ and, if applicable, induced dipoles $$\mu_k$$), the total coupling V becomes:
 
 $$
-V = V_{\text{coulomb}} \ + V_{\text{overlap}} \ + V_{\text{environment}}
+V = V_{\text{coulomb}} \ + V_{\text{overlap}} \ + V_{\text{environment}}^{\text{   q}} + V_{\text{environment}}^{  \mu} 
 $$
 
 $$
@@ -52,7 +52,12 @@ V_{\text{overlap}} = - \omega_0 \int d\mathbf{r} \ d\mathbf{r'} \ \rho_A^*(\math
 $$
 
 $$
-V_{\text{environment}} = \sum_k \left( \int d\mathbf{r} \ \frac{\rho_A^*(\mathbf{r})}{|\mathbf{r} - \mathbf{r}_k|} \right) q^\omega(\mathbf{r}_k; \rho_D)
+V_{\text{environment}}^{\text{   q}} = \sum_k \left( \int d\mathbf{r} \ \frac{\rho_A^*(\mathbf{r})}{|\mathbf{r} - \mathbf{r}_k|} \right) q^\omega(\mathbf{r}_k; \rho_D)
+$$
+
+
+$$
+V_{\text{environment}}^{\text{   \mu}} = \sum_k \left( \int d\mathbf{r} \ -\frac{\mathbf{r} - \mathbf{r}_k}{|\mathbf{r} - \mathbf{r}_k|^3} \cdot \rho_A^*(\mathbf{r}) \right) \mu^\omega(\mathbf{r}_k; \rho_D)
 $$
 
 Where:
@@ -60,6 +65,8 @@ Where:
 - $\rho_A$ and $\rho_D$ are the acceptor and donor charge densities  
 - $\omega_0$ is the incident frequency  
 - $q_k^\omega(\mathbf{r}_k; \rho_D)$ are the frequency-dependent induced charges at positions $\mathbf{r}_k$
+- $\mu_k^\omega(\mathbf{r}_k; \rho_D)$ are the frequency-dependent induced dipoles at positions $\mathbf{r}_k$
+
 
 
 
@@ -91,6 +98,8 @@ To build FretLab, run:
 cd build/
 make
 ```
+
+This will generate an executable named `FretLab` inside the `build/` directory.
 
 ### Options:
 - `-omp` : Enables OpenMP (recommended)
