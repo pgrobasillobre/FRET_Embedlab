@@ -67,10 +67,6 @@ Where:
 - $q_k^\omega(\mathbf{r}_k; \rho_D)$ are the frequency-dependent induced charges at positions $\mathbf{r}_k$
 - $\mu_k^\omega(\mathbf{r}_k; \rho_D)$ are the frequency-dependent induced dipoles at positions $\mathbf{r}_k$
 
-
-
-
-
 ## Installation
 
 FretLab requires the following dependencies:
@@ -114,6 +110,21 @@ After building, you can run the test suite with:
 cd build/
 ctest
 ```
+
+## Usage
+
+To execute a simulation, run:
+
+```
+./FretLab input_file.inp
+```
+
+To see example input files and different configuration options, refer to the files located in:
+
+```
+tests/
+```
+
 
 ## License
 
