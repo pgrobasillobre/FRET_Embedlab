@@ -57,7 +57,7 @@ $$
 
 
 $$
-V_{\text{environment}}^{\text{   \mu}} = \sum_k \left( \int d\mathbf{r} \ -\frac{\mathbf{r} - \mathbf{r}_k}{|\mathbf{r} - \mathbf{r}_k|^3} \cdot \rho_A^*(\mathbf{r}) \right) \mu^\omega(\mathbf{r}_k; \rho_D)
+V_{\text{environment}}^{\mu} = \sum_k \left( \int d\mathbf{r} \ -\frac{\mathbf{r} - \mathbf{r}_k}{|\mathbf{r} - \mathbf{r}_k|^3} \cdot \rho_A^*(\mathbf{r}) \right) \mu^\omega(\mathbf{r}_k; \rho_D)
 $$
 
 Where:
