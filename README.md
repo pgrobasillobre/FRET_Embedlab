@@ -10,6 +10,7 @@
 
 - [About](#about)
 - [Installation](#installation)
+- [Usage](#usage)
 - [License](#license)
 - [Contact](#contact)
 
