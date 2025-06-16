@@ -133,9 +133,11 @@ tests/
 
 FretLab is licensed under the **GNU General Public License v3.0**.
 
-## Funding
+## Acknowledgments & Funding
 
-Development of FretLab has been supported by the FARE 2020 program — “Framework per l’attrazione e il rafforzamento delle eccellenze per la ricerca in Italia.”
+This project has been supported by the **FARE 2020** program — *"Framework per l’attrazione e il rafforzamento delle eccellenze per la ricerca in Italia."*
+
+FretLab has been developed as part of a collaborative scientific effort involving **Tommaso Giovannini**, **Piero Lafiosca**, **Sveva Sodomaco**, and **Chiara Cappelli**.
 
 ## Contact
 
